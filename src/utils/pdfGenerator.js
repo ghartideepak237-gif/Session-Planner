@@ -1,127 +1,33 @@
 import jsPDF from 'jspdf';
 
-export const generateSessionPDF = (session) => {
-  try {
-    const doc = new jsPDF({ format: 'a4', unit: 'mm' });
-    let y = 20;
-    const margin = 20;
-    const contentWidth = 170;
-
-    // Header
-    doc.setFontSize(24);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(255, 107, 53); // Accent color
-    doc.text('Session Flow Guide', margin, y);
-    y += 10;
-
-    doc.setFontSize(12);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(100, 100, 100);
-    doc.text(`${session.college || 'General Group'} | ${session.sessionNumber || 'N/A'}`, margin, y);
-    y += 6;
-    
-    const totalDuration = session.selectedGames.reduce((acc, g) => acc + (g.actualDuration || 0), 0);
-    doc.text(`Target: ${session.baseDuration} min | Planned: ${totalDuration} min`, margin, y);
-    y += 10;
-    
-    if (session.notes) {
-       doc.setFontSize(10);
-       doc.setTextColor(80, 80, 80);
-       doc.setFont('helvetica', 'italic');
-       const splitNotes = doc.splitTextToSize(`Global Session Notes: ${session.notes}`, contentWidth);
-       doc.text(splitNotes, margin, y);
-       y += (splitNotes.length * 5) + 5;
-    }
-
-    doc.setLineWidth(0.2);
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, y, 190, y);
-    y += 10;
-
-    // Helper to check for page break and reset y
-    const checkBreak = (needed) => {
-      if (y + needed > 275) {
-        doc.addPage();
-        y = 20;
-        return true;
-      }
-      return false;
-    };
-
-    // Games Iteration
-    session.selectedGames.forEach((game, index) => {
-      checkBreak(30);
-
-      // 1. Activity Name
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(20, 20, 20);
-      doc.text(`${index + 1}. ${game.title}`, margin, y);
-      y += 6;
-
-      // 2. Meta row: Duration | Flow Position | Category
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 107, 53);
-      const meta = `${game.actualDuration} min | ${game.flowPosition} | ${game.category || game.theme_clean || 'Activity'}`;
-      doc.text(meta, margin, y);
-      y += 8;
-
-      // 3. Strategic Objective
-      if (game.objective) {
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(100, 100, 100);
-        doc.text('STRATEGIC OBJECTIVE:', margin, y);
-        y += 5;
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(60, 60, 60);
-        const splitObj = doc.splitTextToSize(game.objective, contentWidth);
-        doc.text(splitObj, margin, y);
-        y += (splitObj.length * 4.5) + 4;
-        checkBreak(10);
-      }
-
-      // 4. Context / When to Use
-      if (game.context) {
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(100, 100, 100);
-        doc.text('CONTEXT / WHEN TO USE:', margin, y);
-        y += 5;
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(60, 60, 60);
-        const splitCtx = doc.splitTextToSize(game.context, contentWidth);
-        doc.text(splitCtx, margin, y);
-        y += (splitCtx.length * 4.5) + 4;
-        checkBreak(10);
-      }
-
-      // 5. Anchor Notes (Instructions/Rules)
-      doc.setFontSize(9);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(100, 100, 100);
-      doc.text('ANCHOR NOTES:', margin, y);
-      y += 5;
-      doc.setFont('helvetica', 'normal');
-      doc.setTextColor(40, 40, 40);
-      const noteText = game.notes || game.rules || game.description || 'No notes provided.';
-      const splitNotes = doc.splitTextToSize(noteText, contentWidth);
-      doc.text(splitNotes, margin, y);
-      y += (splitNotes.length * 4.5) + 12;
-
-      // Divider
-      doc.setDrawColor(240, 240, 240);
-      doc.line(margin, y - 6, 190, y - 6);
-    });
-
-    doc.save(`Session_${session.sessionNumber || 'Plan'}.pdf`);
-  } catch (err) {
-    console.error('Failed to generate PDF', err);
-    alert('Error generating PDF. Check console.');
-  }
+// DESIGN TOKENS
+const COLORS = {
+  accent: [255, 107, 53],
+  textMain: [20, 20, 20],
+  textSecondary: [55, 65, 81],
+  textDim: [107, 114, 128],
+  cardBorder: [229, 231, 235],
+  cardBg: [250, 250, 250],
+  divider: [229, 231, 235],
+  headerBg: [249, 250, 251]
 };
 
+const FONTS = {
+  title: { size: 14, weight: 'bold' },
+  body: { size: 11, weight: 'normal' },
+  label: { size: 11, weight: 'bold' },
+  meta: { size: 10, weight: 'normal' },
+  footer: { size: 9, weight: 'normal' }
+};
+
+const MARGINS = {
+  x: 40,
+  y: 30,
+  cardPadding: 14,
+  sectionGap: 18
+};
+
+// HELPERS
 const getLogoDataUrl = async () => {
     try {
         const response = await fetch('/e-logo.png');
@@ -131,351 +37,312 @@ const getLogoDataUrl = async () => {
             reader.onloadend = () => resolve(reader.result);
             reader.readAsDataURL(blob);
         });
-    } catch (e) {
-        return null;
+    } catch (e) { return null; }
+};
+
+const addFooter = (doc) => {
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageCount = doc.internal.getCurrentPageInfo().pageNumber;
+    const totalPages = doc.internal.getNumberOfPages();
+    
+    doc.setFontSize(FONTS.footer.size);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...COLORS.textDim);
+    
+    // Left: Branding
+    doc.text("Confidential – Positive Emotions Lab", MARGINS.x, pageHeight - 30);
+    
+    // Center: Page Numbering
+    doc.text(String(pageCount), pageWidth / 2, pageHeight - 30, { align: 'center' });
+    
+    // Right: Tool Attribution
+    const attribution = "Generated from Session Planner";
+    doc.text(attribution, pageWidth - MARGINS.x - doc.getTextWidth(attribution), pageHeight - 30);
+};
+
+// SHARED CARD RENDERER
+const drawActivityCard = (doc, game, index, y, contentWidth) => {
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const p = MARGINS.cardPadding;
+    const maxWidth = contentWidth - (p * 2);
+    
+    // 1. CALCULATE HEIGHT
+    let h = p; 
+    
+    // Name
+    doc.setFontSize(FONTS.title.size);
+    doc.setFont('helvetica', 'bold');
+    const nameLines = doc.splitTextToSize(`${index + 1}. ${game.title}`, maxWidth);
+    h += (nameLines.length * 16) + 4;
+    
+    // Meta
+    h += 14; 
+    
+    // Sections
+    const sections = [];
+    if (game.objective) sections.push({ label: 'Objective:', text: game.objective });
+    if (game.context) sections.push({ label: 'Context:', text: game.context });
+    
+    const notes = game.notes || game.rules || game.description;
+    if (notes) sections.push({ label: 'Notes:', text: notes });
+    
+    sections.forEach(s => {
+        h += 12; // Gap before label
+        doc.setFontSize(FONTS.body.size);
+        const textLines = doc.splitTextToSize(s.text, maxWidth);
+        h += 15 + (textLines.length * 15); // Label + Text
+    });
+    
+    h += p; // Padding
+    
+    // 2. CHECK PAGE BREAK (Move entire card to next page)
+    if (y + h > pageHeight - 60) {
+        doc.addPage();
+        y = 60; // Start after header area
     }
+    
+    // 3. RENDER CARD
+    doc.setDrawColor(...COLORS.cardBorder);
+    doc.setFillColor(...COLORS.cardBg);
+    doc.setLineWidth(0.5);
+    doc.roundedRect(MARGINS.x, y, contentWidth, h, 8, 8, 'FD');
+    
+    let textY = y + p + 10;
+    
+    // Draw Name
+    doc.setFontSize(FONTS.title.size);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...COLORS.textMain);
+    doc.text(nameLines, MARGINS.x + p, textY);
+    textY += (nameLines.length * 16) + 4;
+    
+    // Draw Meta Row
+    doc.setFontSize(FONTS.meta.size);
+    doc.setFont('helvetica', 'normal');
+    const metaStr = `${game.flowPosition} | ${game.category || game.theme_clean || 'Activity'} | ${game.actualDuration} min`;
+    doc.setTextColor(...COLORS.textDim);
+    doc.text(metaStr, MARGINS.x + p, textY);
+    textY += 14;
+    
+    // Draw Sections
+    sections.forEach(s => {
+        textY += 12;
+        doc.setFontSize(FONTS.body.size);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...COLORS.textSecondary);
+        doc.text(s.label, MARGINS.x + p, textY);
+        
+        textY += 15;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...COLORS.textMain);
+        const textLines = doc.splitTextToSize(s.text, maxWidth);
+        doc.text(textLines, MARGINS.x + p, textY);
+        textY += (textLines.length * 15) - 6;
+    });
+    
+    return { height: h, endY: y + h };
+};
+
+export const generateSessionPDF = async (session) => {
+    try {
+        const doc = new jsPDF({ format: 'a4', unit: 'pt' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const contentWidth = pageWidth - MARGINS.x * 2;
+        let y = 50;
+        
+        const logoDataUrl = await getLogoDataUrl();
+
+        // Logo
+        if (logoDataUrl) {
+            doc.addImage(logoDataUrl, 'PNG', MARGINS.x, y - 20, 24, 24);
+        }
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...COLORS.accent);
+        doc.text("Session Manual", pageWidth - MARGINS.x, y - 5, { align: 'right' });
+        
+        y += 20;
+
+        // Session Header Card
+        const headerPadding = 20;
+        let headerH = headerPadding * 2 + 60;
+        doc.setDrawColor(...COLORS.cardBorder);
+        doc.setFillColor(...COLORS.headerBg);
+        doc.roundedRect(MARGINS.x, y, contentWidth, headerH, 10, 10, 'FD');
+        
+        let headerY = y + headerPadding + 15;
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(...COLORS.textMain);
+        doc.text(session.sessionNumber || 'Session Flow', MARGINS.x + 20, headerY);
+        
+        headerY += 22;
+        doc.setFontSize(11);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...COLORS.textSecondary);
+        doc.text(`${session.programTheme || 'General Theme'} • ${session.college || 'Internal Project'}`, MARGINS.x + 20, headerY);
+        
+        headerY += 18;
+        const totalDuration = session.selectedGames.reduce((acc, g) => acc + (g.actualDuration || 0), 0);
+        doc.setFontSize(10);
+        doc.setTextColor(...COLORS.textDim);
+        doc.text(`Timeline: ${totalDuration} min planned / ${session.baseDuration} min target`, MARGINS.x + 20, headerY);
+        
+        y += headerH + MARGINS.sectionGap;
+
+        // Activities
+        session.selectedGames.forEach((game, index) => {
+            const result = drawActivityCard(doc, game, index, y, contentWidth);
+            y = result.endY + MARGINS.sectionGap;
+        });
+
+        // Footers
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            addFooter(doc);
+        }
+
+        doc.save(`Session_${session.sessionNumber.replace(/\s+/g, '_')}.pdf`);
+    } catch (err) { console.error('Session PDF Error', err); }
 };
 
 export const generateProgramPDF = async (program, sessionsList) => {
-  try {
-    const doc = new jsPDF({ format: 'a4', unit: 'pt' });
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const margin = 40;
-    const contentWidth = pageWidth - margin * 2;
-    let y = margin;
-    
-    const logoDataUrl = await getLogoDataUrl();
-    const accentColor = [255, 122, 47];
-    const textColor = [20, 20, 20];
-    const secondaryColor = [100, 100, 100];
-    const cardBg = [248, 248, 250];
+    try {
+        const doc = new jsPDF({ format: 'a4', unit: 'pt' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        const pageHeight = doc.internal.pageSize.getHeight();
+        const contentWidth = pageWidth - MARGINS.x * 2;
+        let y = 60;
+        
+        const logoDataUrl = await getLogoDataUrl();
 
-    const addHeaderAndWatermark = (pageNumber) => {
-        doc.setFontSize(24);
+        const initializeHeader = () => {
+            if (logoDataUrl) doc.addImage(logoDataUrl, 'PNG', MARGINS.x, 20, 24, 24);
+            doc.setFontSize(10);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(...COLORS.textDim);
+            doc.text("Program Manual", pageWidth - MARGINS.x, 35, { align: 'right' });
+            y = 60;
+        };
+
+        // COVER PAGE
+        if (logoDataUrl) doc.addImage(logoDataUrl, 'PNG', pageWidth/2 - 30, pageHeight/3 - 40, 60, 60);
+        doc.setFontSize(28);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(245, 245, 245);
-        doc.text("e-Socialize Program Tool", pageWidth/2, pageHeight/2, { align: 'center', angle: -45 });
-
-        if (logoDataUrl) {
-            doc.addImage(logoDataUrl, 'PNG', margin, 20, 28, 28);
-        }
-        
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...textColor);
-        doc.text("Session Planner", pageWidth - margin, 32, { align: 'right' });
-        
-        doc.setFontSize(8);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...secondaryColor);
-        doc.text("e-Socialize Program Tool", pageWidth - margin, 44, { align: 'right' });
-        
-        doc.setLineWidth(0.5);
-        doc.setDrawColor(220, 220, 220);
-        doc.line(margin, 54, pageWidth - margin, 54);
-        
-        y = 80;
-    };
-
-    const checkPageBreak = (neededHeight) => {
-        if (y + neededHeight > pageHeight - 60) {
-            doc.addPage();
-            addHeaderAndWatermark(doc.internal.getCurrentPageInfo().pageNumber);
-            return true;
-        }
-        return false;
-    };
-
-    // PAGE 1: COVER PAGE
-    if (logoDataUrl) {
-        doc.addImage(logoDataUrl, 'PNG', pageWidth/2 - 30, pageHeight/3 - 40, 60, 60);
-    }
-    
-    doc.setFontSize(28);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...textColor);
-    doc.text(program.name || 'Program Roadmap', pageWidth/2, pageHeight/3 + 50, { align: 'center' });
-    
-    doc.setFontSize(14);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...secondaryColor);
-    doc.text(program.college || 'General Institution', pageWidth/2, pageHeight/3 + 75, { align: 'center' });
-    
-    doc.setFontSize(12);
-    doc.text("Prepared by Positive Emotions Lab", pageWidth/2, pageHeight/2 + 50, { align: 'center' });
-    
-    const dateOpts = { month: 'long', year: 'numeric' };
-    doc.text(new Date().toLocaleDateString('en-US', dateOpts), pageWidth/2, pageHeight/2 + 70, { align: 'center' });
-
-    // PAGE 2: PROGRAM INFO & OBJECTIVES
-    doc.addPage();
-    addHeaderAndWatermark(2);
-
-    doc.setFontSize(18);
-    doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...textColor);
-    doc.text(program.name || 'Program Overview', margin, y);
-    y += 20;
-    
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...secondaryColor);
-    doc.text(`${program.college || 'General'} | Duration: ${program.duration} Weeks | ${program.totalSessions} Sessions`, margin, y);
-    y += 20;
-    
-    doc.setLineWidth(0.5);
-    doc.setDrawColor(200, 200, 200);
-    doc.line(margin, y, pageWidth - margin, y);
-    y += 30;
-
-    if (program.objective) {
+        doc.setTextColor(...COLORS.textMain);
+        doc.text(program.name || 'Program Overview', pageWidth/2, pageHeight/3 + 50, { align: 'center' });
         doc.setFontSize(14);
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(...COLORS.textDim);
+        doc.text(program.college || 'Consulting deliverable', pageWidth/2, pageHeight/3 + 75, { align: 'center' });
+        doc.text("Professional Facilitation Playbook", pageWidth/2, pageHeight/2 + 50, { align: 'center' });
+        
+        // TOC & OBJECTIVES
+        doc.addPage();
+        initializeHeader();
+        
+        doc.setFontSize(18);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...accentColor);
-        doc.text("Program Objectives", margin, y);
-        y += 15;
+        doc.setTextColor(...COLORS.textMain);
+        doc.text("Program Architecture", MARGINS.x, y);
+        y += 25;
         
         doc.setFontSize(11);
         doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...textColor);
-        const objLines = doc.splitTextToSize(program.objective, contentWidth);
-        doc.text(objLines, margin, y);
-        y += (objLines.length * 15) + 30;
-    }
+        doc.setTextColor(...COLORS.textSecondary);
+        doc.text(`Duration: ${program.duration} Weeks | Format: ${program.totalSessions} Sessions`, MARGINS.x, y);
+        y += 35;
 
-    if (program.duration > 0) {
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...accentColor);
-      doc.text("Program Journey", margin, y);
-      y += 20;
-      
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(255, 255, 255);
-      
-      const maxPillsPerRow = 6;
-      const pillGap = 20;
-      const pillWidth = 80;
-      const pillHeight = 24;
-      const maxItemsThisRow = Math.min(program.duration, maxPillsPerRow);
-      const startX = margin + (contentWidth - ((maxItemsThisRow * pillWidth) + ((maxItemsThisRow - 1) * pillGap))) / 2;
-      
-      for (let w = 1; w <= program.duration; w++) {
-          const wIndex = w - 1;
-          const row = Math.floor(wIndex / maxPillsPerRow);
-          const col = wIndex % maxPillsPerRow;
-          
-          if (col === 0 && row > 0) {
-             y += 40;
-          }
-          
-          const xPos = startX + col * (pillWidth + pillGap);
-          
-          doc.setFillColor(...accentColor);
-          doc.roundedRect(xPos, y, pillWidth, pillHeight, 12, 12, 'F');
-          
-          const textStr = program.duration > 8 ? `W${w}` : `Week ${w}`;
-          doc.text(textStr, xPos + (pillWidth / 2), y + 16, { align: 'center' });
-          
-          if (w < program.duration && col < maxPillsPerRow - 1) {
-              doc.setFillColor(...secondaryColor);
-              const triX = xPos + pillWidth + (pillGap / 2);
-              doc.triangle(triX - 3, y + 8, triX - 3, y + 16, triX + 3, y + 12, 'F');
-          }
-      }
-      y += 60;
-    }
+        if (program.objective) {
+            doc.setFontSize(13);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(...COLORS.accent);
+            doc.text("Strategic Objectives", MARGINS.x, y);
+            y += 18;
+            doc.setFontSize(11);
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(...COLORS.textMain);
+            const objLines = doc.splitTextToSize(program.objective, contentWidth);
+            doc.text(objLines, MARGINS.x, y);
+            y += (objLines.length * 15) + 40;
+        }
 
-    checkPageBreak(50);
-    doc.setFontSize(11);
-    doc.setFont('helvetica', 'italic');
-    doc.setTextColor(...secondaryColor);
-    doc.text("Note: Each session is 45 minutes in duration.", margin, y);
-    y += 30;
+        // JOURNEY MAP
+        if (program.duration > 0) {
+            doc.setFontSize(13);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(...COLORS.accent);
+            doc.text("Curriculum Roadmap", MARGINS.x, y);
+            y += 25;
+            
+            const pillW = 75;
+            const pillH = 22;
+            const gap = 15;
+            const itemsPerRow = Math.floor(contentWidth / (pillW + gap));
+            
+            for (let w = 1; w <= program.duration; w++) {
+                const col = (w - 1) % itemsPerRow;
+                const row = Math.floor((w - 1) / itemsPerRow);
+                const xPos = MARGINS.x + col * (pillW + gap);
+                const currentY = y + row * (pillH + 10);
+                
+                doc.setFillColor(...COLORS.accent);
+                doc.roundedRect(xPos, currentY, pillW, pillH, 11, 11, 'F');
+                doc.setFontSize(9);
+                doc.setTextColor(255, 255, 255);
+                doc.text(`Week ${w}`, xPos + pillW/2, currentY + 14, { align: 'center' });
+                
+                if (w === program.duration) y = currentY + pillH + 40;
+            }
+        }
 
-    const weeklyMap = {};
-    for (let w = 1; w <= program.duration; w++) {
-      weeklyMap[w] = sessionsList.filter(s => s.programWeek === w);
-    }
-    
-    Object.entries(weeklyMap).forEach(([week, weekSessions], index) => {
-      const wData = program.weeks.find(wItem => wItem.week === parseInt(week)) || { theme: '', focus: '' };
-      
-      if (index > 0) {
-          y += 20; // consistent margin above week header
-      }
-      checkPageBreak(80);
-      
-      doc.setFontSize(18);
-      doc.setFont('helvetica', 'bold');
-      doc.setTextColor(...textColor);
-      doc.text(`Week ${week} — ${wData.theme}`, margin, y);
-      y += 25;
+        // WEEKS & ACTIVITIES
+        for (let w = 1; w <= program.duration; w++) {
+            const wData = program.weeks.find(item => item.week === w) || { theme: '', focus: '' };
+            const weekSessions = sessionsList.filter(s => s.programWeek === w);
+            
+            if (y > pageHeight - 100) { doc.addPage(); initializeHeader(); }
+            
+            doc.setFontSize(16);
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(...COLORS.textMain);
+            doc.text(`Week ${w}: ${wData.theme}`, MARGINS.x, y);
+            y += 20;
 
-      if (wData.focus) {
-          doc.setFontSize(11);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(...secondaryColor);
-          doc.text(`Focus Area: `, margin, y);
-          doc.setFont('helvetica', 'normal');
-          
-          const focusHeaderLines = doc.splitTextToSize(wData.focus, contentWidth - 70);
-          focusHeaderLines.forEach((line, i) => {
-              doc.text(line, margin + 70, y + (i * 15));
-          });
-          y += (focusHeaderLines.length * 15) + 10;
-      } else {
-          y += 10;
-      }
+            if (wData.focus) {
+                doc.setFontSize(11);
+                doc.setFont('helvetica', 'normal');
+                doc.setTextColor(...COLORS.textSecondary);
+                doc.text(`Strategic Focus: ${wData.focus}`, MARGINS.x, y);
+                y += 25;
+            }
 
-      weekSessions.forEach((session) => {
-          const cardX = margin;
-          const cardWidth = Math.min(contentWidth, 540); 
-          const p = 16;
-          let contentHeight = p;
-          const maxWidth = cardWidth - (p * 2);
+            weekSessions.forEach(session => {
+                if (y > pageHeight - 100) { doc.addPage(); initializeHeader(); }
+                doc.setFontSize(12);
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(...COLORS.accent);
+                doc.text(session.sessionNumber, MARGINS.x, y);
+                y += 15;
 
-          doc.setFontSize(12);
-          doc.setFont('helvetica', 'bold');
-          const sTitle = session.sessionNumber === "Unassigned" ? "Floating Session" : `Session ${session.sessionNumber.toString().replace('Session ', '')}`;
-          const titleLines = doc.splitTextToSize(sTitle, maxWidth);
-          contentHeight += (titleLines.length * 14) + 8;
-          
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'bold');
-          const themeText = session.programTheme || wData.theme || "General";
-          const themeLines = doc.splitTextToSize(themeText, maxWidth - 45); 
-          contentHeight += (themeLines.length * 12) + 6;
-          
-          doc.setFont('helvetica', 'normal');
-          const focusText = session.programFocus || wData.focus || "Various";
-          const focusLines = doc.splitTextToSize(focusText, maxWidth - 40);
-          contentHeight += (focusLines.length * 15) + 12; 
-          
-          const games = session.selectedGames || [];
-          if (games.length > 0) {
-              games.forEach(game => {
-                  contentHeight += 25; // Activity Header (Title + Meta)
-                  if (game.objective) contentHeight += (doc.splitTextToSize(game.objective, maxWidth - 10).length * 12) + 10;
-                  if (game.context) contentHeight += (doc.splitTextToSize(game.context, maxWidth - 10).length * 12) + 10;
-                  const notes = game.notes || game.rules || game.description || '';
-                  if (notes) contentHeight += (doc.splitTextToSize(notes, maxWidth - 10).length * 12) + 10;
-                  contentHeight += 15; // Padding between activities
-              });
-          }
-          
-          contentHeight += p;
-          const cardHeight = contentHeight;
-          checkPageBreak(cardHeight + 20);
+                session.selectedGames.forEach((game, gIdx) => {
+                    const result = drawActivityCard(doc, game, gIdx, y, contentWidth);
+                    y = result.endY + 10;
+                });
+                y += 20;
+            });
+            y += 20;
+        }
 
-          doc.setFillColor(...cardBg);
-          doc.setDrawColor(220, 220, 225);
-          doc.setLineWidth(1);
-          doc.roundedRect(cardX, y, cardWidth, cardHeight, 8, 8, 'FD');
+        // Final Footers
+        const totalPages = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= totalPages; i++) {
+            doc.setPage(i);
+            addFooter(doc);
+        }
 
-          let textY = y + p + 10;
-          
-          doc.setFontSize(12);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(...textColor);
-          doc.text(titleLines, cardX + p, textY);
-          textY += (titleLines.length * 14) - 10 + 8;
-          
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(...accentColor);
-          doc.text("Theme: ", cardX + p, textY + 10);
-          doc.setTextColor(...textColor);
-          doc.setFont('helvetica', 'normal');
-          doc.text(themeLines, cardX + p + 45, textY + 10);
-          textY += (themeLines.length * 12) + 6;
-          
-          doc.setTextColor(...secondaryColor);
-          doc.setFont('helvetica', 'bold');
-          doc.text("Focus: ", cardX + p, textY + 10);
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(...textColor);
-          focusLines.forEach((line, idx) => {
-              doc.text(line, cardX + p + 40, textY + 10 + (idx * 15)); 
-          });
-          textY += (focusLines.length * 15) + 12;
-
-          // Rich Activity Blocks
-          if (games.length > 0) {
-              games.forEach((game, gIdx) => {
-                  doc.setFontSize(10);
-                  doc.setFont('helvetica', 'bold');
-                  doc.setTextColor(...textColor);
-                  const actTitle = `${gIdx+1}. ${game.title} (${game.actualDuration}m)`;
-                  doc.text(actTitle, cardX + p, textY + 10);
-                  textY += 14;
-
-                  const meta = `${game.flowPosition} | ${game.category || game.theme_clean || 'Activity'}`;
-                  doc.setFontSize(8);
-                  doc.setTextColor(...accentColor);
-                  doc.text(meta, cardX + p, textY + 8);
-                  textY += 12;
-
-                  if (game.objective) {
-                      doc.setFont('helvetica', 'bold');
-                      doc.setTextColor(...secondaryColor);
-                      doc.text("Objective:", cardX + p, textY + 6);
-                      doc.setFont('helvetica', 'normal');
-                      doc.setTextColor(...textColor);
-                      const sObj = doc.splitTextToSize(game.objective, maxWidth - 10);
-                      doc.text(sObj, cardX + p, textY + 18);
-                      textY += (sObj.length * 12) + 12;
-                  }
-
-                  if (game.context) {
-                      doc.setFont('helvetica', 'bold');
-                      doc.setTextColor(...secondaryColor);
-                      doc.text("Context:", cardX + p, textY + 6);
-                      doc.setFont('helvetica', 'normal');
-                      const sCtx = doc.splitTextToSize(game.context, maxWidth - 10);
-                      doc.text(sCtx, cardX + p, textY + 18);
-                      textY += (sCtx.length * 12) + 12;
-                  }
-
-                  const notes = game.notes || game.rules || game.description;
-                  if (notes) {
-                      doc.setFont('helvetica', 'bold');
-                      doc.setTextColor(...secondaryColor);
-                      doc.text("Notes:", cardX + p, textY + 6);
-                      doc.setFont('helvetica', 'normal');
-                      const sNotes = doc.splitTextToSize(notes, maxWidth - 10);
-                      doc.text(sNotes, cardX + p, textY + 18);
-                      textY += (sNotes.length * 12) + 16;
-                  }
-                  
-                  textY += 8;
-              });
-          }
-          
-          y += cardHeight + 20; 
-      });
-    });
-
-    const totalPages = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= totalPages; i++) {
-        doc.setPage(i);
-        
-        doc.setFontSize(9);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(150, 150, 150);
-        
-        doc.text("Confidential – Positive Emotions Lab", margin, pageHeight - 30);
-        const footerRight = "Generated from Session Planner";
-        doc.text(footerRight, pageWidth - margin - doc.getTextWidth(footerRight), pageHeight - 30);
-        
-        doc.text(String(i), pageWidth / 2, pageHeight - 30, { align: 'center' });
-    }
-
-    doc.save(`Program_${program.name || 'Roadmap'}.pdf`);
-  } catch (err) {
-    console.error('Failed to generate Program PDF', err);
-    alert('Error generating Program PDF. Check console.');
-  }
+        doc.save(`Program_${program.name.replace(/\s+/g, '_')}.pdf`);
+    } catch (err) { console.error('Program PDF Error', err); }
 };
