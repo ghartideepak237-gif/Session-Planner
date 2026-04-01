@@ -1,15 +1,19 @@
 import React, { useState } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Search, Save, FileDown, Plus, GripVertical, Trash2, FolderOpen, Copy, Activity, PenTool } from 'lucide-react';
+import { Search, Save, FileDown, Plus, GripVertical, Trash2, FolderOpen, Copy, Activity, PenTool, Pencil, CheckCircle2, RotateCcw } from 'lucide-react';
 import { useStore, computeSessionEnergy } from '../store';
 import { generateSessionPDF } from '../utils/pdfGenerator';
 import ReflectionModal from './ReflectionModal';
+import EditActivityModal from './EditActivityModal';
+import EditSessionModal from './EditSessionModal';
 
 export default function SessionBuilder() {
-  const { builder, setBuilderField, removeGameFromSession, reorderSessionGames, saveSession, games, addGameToSession, sessions, duplicateSession, loadSessionToBuilder, adjustGameDuration, setGameFlowPosition, flowPositions, categories, energyTypes, addGame, engagementTypes, setActiveTab } = useStore();
+  const { builder, setBuilderField, removeGameFromSession, reorderSessionGames, saveSession, games, addGameToSession, sessions, duplicateSession, loadSessionToBuilder, adjustGameDuration, setGameFlowPosition, flowPositions, categories, energyTypes, addGame, engagementTypes, setActiveTab, duplicateActivityInSession, autosaveStatus } = useStore();
   const [search, setSearch] = useState('');
   const [isQuickAddingCustom, setIsQuickAddingCustom] = useState(false);
   const [reflectionSessionId, setReflectionSessionId] = useState(null);
+  const [editingActivity, setEditingActivity] = useState(null);
+  const [isEditingSession, setIsEditingSession] = useState(false);
   const [customForm, setCustomForm] = useState({
     title: '', duration: '', rules: '', context: '', energyType: energyTypes[0], theme_clean: categories[0] || 'General'
   });
@@ -72,19 +76,44 @@ export default function SessionBuilder() {
   return (
     <>
     <ReflectionModal sessionId={reflectionSessionId} onClose={() => setReflectionSessionId(null)} />
+    <EditActivityModal isOpen={!!editingActivity} onClose={() => setEditingActivity(null)} activity={editingActivity} />
+    <EditSessionModal isOpen={isEditingSession} onClose={() => setIsEditingSession(false)} session={builder} />
+    
     <main className="container-max" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 'var(--spacing-4)' }}>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-2)' }}>
           <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-main)', marginBottom: '4px' }}>
-              Session Planning: {builder.sessionNumber || 'Untitled Workspace'}
-            </h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-main)' }}>
+                {builder.sessionNumber || 'Untitled Workspace'}
+              </h2>
+              <button 
+                title="Edit Session Details"
+                onClick={() => setIsEditingSession(true)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', hover: { color: 'var(--text-main)' } }}
+              >
+                <Pencil size={14} />
+              </button>
+            </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontSize: '12px', fontWeight: '600', padding: '2px 8px', borderRadius: '12px', border: `1px solid ${statusColor}`, color: statusColor, background: 'var(--bg-transparent)' }}>
                 {sessionStatus}
               </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-dim)', fontSize: '11px' }}>
+                {autosaveStatus === 'saving' ? (
+                  <>
+                    <RotateCcw size={10} className="spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 size={10} color="#22c55e" />
+                    <span>Saved</span>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -106,18 +135,6 @@ export default function SessionBuilder() {
                 value={builder.baseDuration} 
                 onChange={e => setBuilderField('baseDuration', parseInt(e.target.value) || 45)}
                 className="search-input" 
-              />
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--spacing-2)', borderTop: '1px solid var(--border)', paddingTop: 'var(--spacing-3)' }}>
-            <div style={{ gridColumn: 'span 2' }}>
-              <label className="form-label">Session Name</label>
-              <input 
-                className="search-input"
-                placeholder="e.g. Orientation Icebreaker"
-                value={builder.sessionNumber}
-                onChange={e => setBuilderField('sessionNumber', e.target.value)}
               />
             </div>
           </div>
@@ -160,14 +177,38 @@ export default function SessionBuilder() {
                               <div className="builder-card" style={{ flex: 1, padding: 'var(--spacing-2)', borderColor: snapshot.isDragging ? 'var(--text-secondary)' : 'var(--border)' }}>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-2)' }}>
                                   
-                                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 'var(--spacing-3)' }}>
+                                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
                                     <GripVertical size={16} color="var(--text-dim)" {...provided.dragHandleProps} />
-                                    <div>
-                                      <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)', marginBottom: '4px' }}>{game.title}</h3>
-                                      <div style={{ display: 'flex', gap: 'var(--spacing-2)', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                                    <div style={{ flex: 1 }}>
+                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                        <h3 
+                                          title="Click to edit activity"
+                                          onClick={() => setEditingActivity(game)}
+                                          style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)', cursor: 'pointer' }}
+                                        >
+                                          {game.title}
+                                        </h3>
+                                        <div style={{ display: 'flex', gap: '4px' }}>
+                                          <button 
+                                            title="Edit Activity"
+                                            onClick={() => setEditingActivity(game)}
+                                            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '2px' }}
+                                          >
+                                            <Pencil size={12} />
+                                          </button>
+                                          <button 
+                                            title="Duplicate inside session"
+                                            onClick={() => duplicateActivityInSession(game.instanceId)}
+                                            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '2px' }}
+                                          >
+                                            <Copy size={12} />
+                                          </button>
+                                        </div>
+                                      </div>
+                                      <div style={{ display: 'flex', gap: 'var(--spacing-2)', fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
                                         <span>Org: {game.baseDurationNum}m</span>
                                         <span>Plan: {game.actualDuration}m</span>
-                                        <span>Contrib: {Math.round((game.actualDuration / builder.baseDuration) * 100)}%</span>
+                                        <span style={{ color: 'var(--accent)' }}>{game.flowPosition}</span>
                                       </div>
                                     </div>
                                   </div>
@@ -178,28 +219,24 @@ export default function SessionBuilder() {
                                 </div>
 
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-dark)', padding: 'var(--spacing-1) var(--spacing-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                                  <select 
-                                    className="search-input" 
-                                    style={{ width: '120px', padding: '4px 8px', fontSize: '11px', background: 'transparent', border: 'none' }}
-                                    value={game.flowPosition}
-                                    onChange={(e) => setGameFlowPosition(game.instanceId, e.target.value)}
-                                  >
-                                    {flowPositions.map(fp => <option key={fp} value={fp}>{fp}</option>)}
-                                  </select>
-
-                                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                                    <div style={{ display: 'flex', gap: '4px' }}>
-                                      {[-2, -1, 1, 2].map(delta => (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                    <span style={{ fontSize: '10px', color: 'var(--text-dim)', fontWeight: '600', textTransform: 'uppercase' }}>Timing:</span>
+                                    <div style={{ display: 'flex', gap: '2px' }}>
+                                      {[-5, -1, 1, 5].map(delta => (
                                         <button 
                                           key={delta}
                                           onClick={() => adjustGameDuration(game.instanceId, delta)}
                                           className="btn-secondary" 
-                                          style={{ padding: '2px 6px', fontSize: '10px' }}
+                                          style={{ padding: '2px 4px', fontSize: '9px', minWidth: '24px' }}
                                         >
                                           {delta > 0 ? `+${delta}` : delta}
                                         </button>
                                       ))}
                                     </div>
+                                  </div>
+
+                                  <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-main)' }}>
+                                    {game.actualDuration} min
                                   </div>
                                 </div>
                               </div>
@@ -229,14 +266,15 @@ export default function SessionBuilder() {
         </div>
 
         <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
-          <button className="btn-secondary" onClick={() => { saveSession(); alert('Saved!'); }}>
-            <Save size={14} /> Save Plan
+          <button className="btn-secondary" onClick={() => { saveSession(); }}>
+            <Save size={14} /> {autosaveStatus === 'saving' ? 'Saving...' : 'Save Plan'}
           </button>
           <button className="btn-primary" onClick={() => generateSessionPDF(builder)}>
             <FileDown size={14} /> Export PDF
           </button>
         </div>
       </div>
+
 
       <aside style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
         

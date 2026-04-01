@@ -1,10 +1,15 @@
-import React from 'react';
-import { ArrowLeft, Calendar, FileDown, ArrowRight, CheckCircle2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { ArrowLeft, Calendar, FileDown, ArrowRight, CheckCircle2, Pencil } from 'lucide-react';
 import { useStore } from '../store';
 import { generateProgramPDF } from '../utils/pdfGenerator';
+import EditProgramModal from './EditProgramModal';
+import EditSessionModal from './EditSessionModal';
 
 export default function ProgramDetail() {
   const { programs, sessions, activeProgramId, setActiveTab, loadSessionToBuilder } = useStore();
+  const [isEditingProgram, setIsEditingProgram] = useState(false);
+  const [editingSession, setEditingSession] = useState(null);
+  
   const program = programs.find(p => p.id === activeProgramId);
 
   if (!program) {
@@ -32,6 +37,10 @@ export default function ProgramDetail() {
   };
 
   return (
+    <>
+    <EditProgramModal isOpen={isEditingProgram} onClose={() => setIsEditingProgram(false)} program={program} />
+    <EditSessionModal isOpen={!!editingSession} onClose={() => setEditingSession(null)} session={editingSession} />
+    
     <main className="container-max">
       
       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)', marginBottom: 'var(--spacing-4)' }}>
@@ -39,7 +48,16 @@ export default function ProgramDetail() {
           <ArrowLeft size={18} />
         </button>
         <div>
-          <h2 style={{ fontSize: '20px', fontWeight: '600' }}>{program.name}</h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: '600' }}>{program.name}</h2>
+            <button 
+              title="Edit Program Details"
+              onClick={() => setIsEditingProgram(true)}
+              style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '4px' }}
+            >
+              <Pencil size={14} />
+            </button>
+          </div>
           <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{program.college} • {program.duration} Weeks</p>
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 'var(--spacing-2)' }}>
@@ -62,14 +80,23 @@ export default function ProgramDetail() {
                 <p style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>Focus: {wData.focus}</p>
               </div>
 
-              <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 'var(--spacing-3)' }}>
+              <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-3)' }}>
                 {weekSessions.map(session => {
                   const isPlanned = session.selectedGames && session.selectedGames.length > 0;
                   
                   return (
                     <div key={session.id} className="builder-card" style={{ display: 'flex', flexDirection: 'column', borderColor: isPlanned ? 'var(--text-secondary)' : 'var(--border)' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-2)' }}>
-                        <h4 style={{ fontSize: '13px', fontWeight: '600' }}>{session.sessionNumber}</h4>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <h4 style={{ fontSize: '13px', fontWeight: '600' }}>{session.sessionNumber}</h4>
+                          <button 
+                            title="Edit Session Details"
+                            onClick={() => setEditingSession(session)}
+                            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '2px' }}
+                          >
+                            <Pencil size={12} />
+                          </button>
+                        </div>
                         {isPlanned && <CheckCircle2 size={14} color="var(--accent)" />}
                       </div>
                       
@@ -84,7 +111,7 @@ export default function ProgramDetail() {
                         style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}
                         onClick={() => handlePlanSession(session.id)}
                       >
-                        {isPlanned ? 'Edit Session' : 'Plan Session'} <ArrowRight size={14} />
+                        {isPlanned ? 'Edit Session Flow' : 'Plan Session Flow'} <ArrowRight size={14} />
                       </button>
                     </div>
                   );
@@ -103,13 +130,22 @@ export default function ProgramDetail() {
               <h3 style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-secondary)' }}>Unassigned</h3>
               <p style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>Displaced or unscheduled sessions</p>
             </div>
-            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: 'var(--spacing-3)' }}>
+            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-3)' }}>
               {unassignedSessions.map(session => {
                 const isPlanned = session.selectedGames && session.selectedGames.length > 0;
                 return (
                   <div key={session.id} className="builder-card" style={{ display: 'flex', flexDirection: 'column', borderColor: isPlanned ? 'var(--text-secondary)' : 'var(--border)' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-2)' }}>
-                      <h4 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-dim)' }}>{session.sessionNumber || 'Floating Session'}</h4>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <h4 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-dim)' }}>{session.sessionNumber || 'Floating Session'}</h4>
+                        <button 
+                          title="Edit Session Details"
+                          onClick={() => setEditingSession(session)}
+                          style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '2px' }}
+                        >
+                          <Pencil size={12} />
+                        </button>
+                      </div>
                       {isPlanned && <CheckCircle2 size={14} color="var(--accent)" />}
                     </div>
                     
@@ -118,7 +154,7 @@ export default function ProgramDetail() {
                       style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}
                       onClick={() => handlePlanSession(session.id)}
                     >
-                      {isPlanned ? 'Edit Session' : 'Plan Session'} <ArrowRight size={14} />
+                      {isPlanned ? 'Edit Session Flow' : 'Plan Session Flow'} <ArrowRight size={14} />
                     </button>
                   </div>
                 );
@@ -129,5 +165,7 @@ export default function ProgramDetail() {
       )}
 
     </main>
+    </>
   );
+
 }

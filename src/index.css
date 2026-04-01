@@ -58,7 +58,22 @@ button, input, select, textarea {
   padding: var(--spacing-3);
 }
 
-/* Typography Hierarchy */
-h1, h2, h3, h4, h5, h6 {
-  color: var(--text-main);
+/* Global Animations */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }

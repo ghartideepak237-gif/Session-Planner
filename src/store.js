@@ -42,6 +42,7 @@ export const useStore = create((set, get) => ({
   sessions: [],
   programs: [],
   activeProgramId: null,
+  autosaveStatus: 'saved', // 'saved' | 'saving'
   
   // V3 Options
   energyTypes: ENERGY_TYPES,
@@ -74,6 +75,9 @@ export const useStore = create((set, get) => ({
   })),
   toggleFavorite: (gameTitle) => set((state) => ({
     games: state.games.map(g => g.title === gameTitle ? { ...g, favorite: !g.favorite } : g)
+  })),
+  updateGame: (gameId, updates) => set((state) => ({
+    games: state.games.map(g => (g.id === gameId || g.title === gameId) ? { ...g, ...updates } : g)
   })),
   duplicateGame: (game) => set((state) => ({
     games: [...state.games, { ...game, title: `${game.title} (Copy)`, id: uuidv4() }]
@@ -136,33 +140,60 @@ export const useStore = create((set, get) => ({
       )
     }
   })),
+  updateActivityInSession: (instanceId, updates) => set((state) => ({
+    builder: {
+      ...state.builder,
+      selectedGames: state.builder.selectedGames.map(g => 
+        g.instanceId === instanceId ? { ...g, ...updates } : g
+      )
+    }
+  })),
+  duplicateActivityInSession: (instanceId) => set((state) => {
+    const gameToDup = state.builder.selectedGames.find(g => g.instanceId === instanceId);
+    if (!gameToDup) return state;
+    
+    const newInstance = { ...gameToDup, instanceId: uuidv4(), title: `${gameToDup.title} (Copy)` };
+    const idx = state.builder.selectedGames.findIndex(g => g.instanceId === instanceId);
+    const newGames = [...state.builder.selectedGames];
+    newGames.splice(idx + 1, 0, newInstance);
+    
+    return { builder: { ...state.builder, selectedGames: newGames } };
+  }),
 
   // Actions - Sessions
-  saveSession: () => set((state) => {
-    const totalActual = state.builder.selectedGames.reduce((acc, g) => acc + g.actualDuration, 0);
-    const newSession = { 
-      ...state.builder, 
-      date: new Date().toISOString(),
-      createdAt: state.builder.createdAt || Date.now(),
-      totalActualDuration: totalActual
-    };
-    
-    const existingIndex = state.sessions.findIndex(s => s.id === newSession.id);
-    const updatedSessions = [...state.sessions];
-    
-    if (existingIndex >= 0) {
-      updatedSessions[existingIndex] = newSession;
-    } else {
-      updatedSessions.push(newSession);
-    }
-
-    return {
-      sessions: updatedSessions,
-      builder: {
-        ...newSession, // Stay on the saved session
+  updateSession: (sessionId, updates) => set((state) => ({
+    sessions: state.sessions.map(s => s.id === sessionId ? { ...s, ...updates } : s)
+  })),
+  
+  saveSession: () => {
+    set({ autosaveStatus: 'saving' });
+    set((state) => {
+      const totalActual = state.builder.selectedGames.reduce((acc, g) => acc + g.actualDuration, 0);
+      const newSession = { 
+        ...state.builder, 
+        date: new Date().toISOString(),
+        createdAt: state.builder.createdAt || Date.now(),
+        totalActualDuration: totalActual
+      };
+      
+      const existingIndex = state.sessions.findIndex(s => s.id === newSession.id);
+      const updatedSessions = [...state.sessions];
+      
+      if (existingIndex >= 0) {
+        updatedSessions[existingIndex] = newSession;
+      } else {
+        updatedSessions.push(newSession);
       }
-    };
-  }),
+
+      return {
+        sessions: updatedSessions,
+        builder: {
+          ...newSession,
+        }
+      };
+    });
+    setTimeout(() => set({ autosaveStatus: 'saved' }), 800);
+  },
 
   deleteSession: (sessionId) => set((state) => ({
     sessions: state.sessions.filter(s => s.id !== sessionId)
@@ -173,7 +204,7 @@ export const useStore = create((set, get) => ({
   loadSessionToBuilder: (sessionId) => set((state) => {
     const sessionToLoad = state.sessions.find(s => s.id === sessionId);
     if (sessionToLoad) {
-      return { builder: { ...sessionToLoad, id: uuidv4() } }; 
+      return { builder: { ...sessionToLoad } }; // V3 fix: load into builder properly
     }
     return state;
   }),
@@ -186,6 +217,54 @@ export const useStore = create((set, get) => ({
   })),
 
   // Actions - Programs
+  updateProgram: (programId, updates) => set((state) => {
+    const program = state.programs.find(p => p.id === programId);
+    if (!program) return state;
+
+    const updatedProgram = { ...program, ...updates };
+    const updatedPrograms = state.programs.map(p => p.id === programId ? updatedProgram : p);
+
+    // Handle session scaling if totalSessions changed
+    let updatedSessions = [...state.sessions];
+    if (updates.totalSessions && updates.totalSessions !== program.totalSessions) {
+      const oldTotal = program.totalSessions;
+      const newTotal = updates.totalSessions;
+
+      if (newTotal > oldTotal) {
+        // Add new sessions
+        const startNum = oldTotal + 1;
+        const sessionsPerWeek = Math.ceil(newTotal / updatedProgram.duration);
+        
+        for (let i = startNum; i <= newTotal; i++) {
+          const currentWeek = Math.min(updatedProgram.duration, Math.ceil(i / sessionsPerWeek));
+          const weekData = (updatedProgram.weeks || []).find(w => w.week === currentWeek) || { theme: 'General', focus: 'General' };
+          
+          updatedSessions.push({
+            id: uuidv4(),
+            programId: programId,
+            programWeek: currentWeek,
+            programTheme: weekData.theme,
+            programFocus: weekData.focus,
+            college: updatedProgram.college,
+            sessionNumber: `Session ${i}`,
+            targetGroup: '',
+            objective: updatedProgram.objective,
+            baseDuration: 45,
+            selectedGames: [],
+            notes: '',
+            totalActualDuration: 0
+          });
+        }
+      }
+      // Note: We don't delete sessions automatically if newTotal < oldTotal for safety,
+      // as per user requirement "Program changes must not delete existing session plans".
+      // We just keep them as floating/unassigned if they exceed new bounds? 
+      // Actually, if we decrease sessions, we just keep the session objects but they might not show in roadmap.
+    }
+
+    return { programs: updatedPrograms, sessions: updatedSessions };
+  }),
+
   addProgram: (programData) => set((state) => {
     const programId = uuidv4();
     const { name, college, duration, totalSessions, objective, weeks } = programData;
