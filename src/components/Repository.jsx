@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Shuffle, Star, Clock, Target, Plus, Copy, ArrowRight, Zap, Users, Pencil } from 'lucide-react';
+import { Search, Shuffle, Star, Clock, Target, Plus, Copy, ArrowRight, Zap, Users, Pencil, Trash2 } from 'lucide-react';
 import { useStore } from '../store';
 import AddGameModal from './AddGameModal';
 
@@ -17,8 +17,21 @@ const GameCard = ({ game, onAdd }) => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <h3 className="game-title">{game.title}</h3>
         <div style={{ display: 'flex', gap: '8px' }}>
-          <button onClick={() => toggleFavorite(game.title)} title="Mark as go-to activity" style={{ background: 'none', border: 'none', cursor: 'pointer', color: game.favorite ? 'var(--accent)' : 'var(--text-dim)' }}>
+          <button onClick={() => toggleFavorite(game.id || game.title)} title="Mark as go-to activity" style={{ background: 'none', border: 'none', cursor: 'pointer', color: game.favorite ? 'var(--accent)' : 'var(--text-dim)' }}>
             <Star size={16} fill={game.favorite ? 'var(--accent)' : 'none'} />
+          </button>
+          <button 
+            onClick={() => {
+              if (window.confirm(`Are you sure you want to delete "${game.title}"?`)) {
+                useStore.getState().deleteActivity(game.id);
+              }
+            }} 
+            title="Delete activity" 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)', transition: 'color 0.2s' }}
+            onMouseOver={(e) => e.currentTarget.style.color = '#ef4444'}
+            onMouseOut={(e) => e.currentTarget.style.color = 'var(--text-dim)'}
+          >
+            <Trash2 size={16} />
           </button>
         </div>
       </div>

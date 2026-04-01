@@ -78,7 +78,7 @@ export default function App() {
         <a href="/" className="logo-wrapper" style={{ textDecoration: 'none' }}>
           <img src="/e-logo.png?v=2" alt="e-Socialize Logo" style={{ height: '28px', width: 'auto' }} />
           <div className="logo-text">
-            <h1>Session Planner</h1>
+            <h1 style={{ color: '#FFFFFF' }}>Session Planner</h1>
             <p>e-Socialize Program Tool</p>
           </div>
         </a>
