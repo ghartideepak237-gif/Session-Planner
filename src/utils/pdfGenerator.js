@@ -131,40 +131,54 @@ const drawActivityCard = (doc, game, index, y, contentWidth, isNested = false) =
 };
 
 // FOCUS TAGS RENDERER
+// FOCUS TAGS RENDERER
 const drawFocusTags = (doc, focusString, x, y, maxWidth) => {
     if (!focusString) return 0;
     const tags = focusString.split(/[,\n]/).map(t => t.trim()).filter(Boolean);
     if (tags.length === 0) return 0;
 
+    const safeMaxWidth = maxWidth - 10; // Extra safety right margin
+    const maxTagW = safeMaxWidth * 0.48; // Force at least 2 per row if long
+    const tagPaddingX = 10;
+    const tagPaddingY = 5;
+    
     let currentX = x;
     let currentY = y;
-    const tagPaddingX = 10;
-    const tagPaddingY = 6;
-    const rowHeight = 28;
-    let totalHeight = rowHeight;
+    let maxRowH = 0;
+    let totalHeight = 0;
 
     doc.setFontSize(FONTS.tag.size);
     doc.setFont('helvetica', 'normal');
 
     tags.forEach(tag => {
-        const textWidth = doc.getTextWidth(tag);
-        const tagW = textWidth + tagPaddingX * 2;
-        
-        if (currentX + tagW > x + maxWidth) {
+        // Calculate lines and dimensions for this tag
+        const textLines = doc.splitTextToSize(tag, maxTagW - (tagPaddingX * 2));
+        const textW = Math.max(...textLines.map(l => doc.getTextWidth(l)));
+        const tagW = textW + (tagPaddingX * 2);
+        const tagH = (textLines.length * 12) + (tagPaddingY * 2);
+
+        // Check horizontal overflow
+        if (currentX + tagW > x + safeMaxWidth) {
             currentX = x;
-            currentY += rowHeight;
-            totalHeight += rowHeight;
+            currentY += maxRowH + 8;
+            totalHeight += maxRowH + 8;
+            maxRowH = 0;
         }
 
+        // Draw Tag Background
         doc.setFillColor(...COLORS.tagBg);
-        doc.roundedRect(currentX, currentY, tagW, 20, 6, 6, 'F');
-        doc.setTextColor(...COLORS.textSecondary);
-        doc.text(tag, currentX + tagPaddingX, currentY + 13);
+        doc.roundedRect(currentX, currentY, tagW, tagH, 6, 6, 'F');
         
+        // Draw Wrapped Text
+        doc.setTextColor(...COLORS.textSecondary);
+        doc.text(textLines, currentX + tagPaddingX, currentY + tagPaddingY + 9);
+        
+        // Update trackers
         currentX += tagW + 8;
+        maxRowH = Math.max(maxRowH, tagH);
     });
 
-    return totalHeight;
+    return totalHeight + maxRowH;
 };
 
 // MAIN EXPORTS
