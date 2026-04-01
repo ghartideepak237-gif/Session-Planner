@@ -5,6 +5,7 @@ import SessionBuilder from './components/SessionBuilder';
 import Programs from './components/Programs';
 import ProgramDetail from './components/ProgramDetail';
 import GameForm from './components/GameForm';
+import AnchorGuidelines from './components/AnchorGuidelines';
 import { useStore } from './store';
 import './index.css';
 import './components.css';
@@ -74,6 +75,7 @@ export default function App() {
             <button className={`nav-link ${activeTab === 'repository' ? 'active' : ''}`} onClick={() => setActiveTab('repository')}>Repository</button>
             <button className={`nav-link ${(activeTab === 'builder' || activeTab === 'plan') ? 'active' : ''}`} onClick={() => setActiveTab('builder')}>Planner</button>
             <button className={`nav-link ${(activeTab === 'programs' || activeTab === 'roadmap') ? 'active' : ''}`} onClick={() => setActiveTab('programs')}>Programs</button>
+            <button className={`nav-link ${activeTab === 'guidelines' ? 'active' : ''}`} onClick={() => setActiveTab('guidelines')}>Guidelines</button>
           </nav>
         </div>
 
@@ -93,6 +95,7 @@ export default function App() {
       {activeTab === 'builder' && <SessionBuilder />}
       {activeTab === 'programs' && <Programs />}
       {activeTab === 'roadmap' && activeProgramId && <ProgramDetail />}
+      {activeTab === 'guidelines' && <AnchorGuidelines />}
 
       <footer style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
         <p style={{ fontSize: '11px', color: 'var(--text-dim)', fontWeight: '500' }}>
