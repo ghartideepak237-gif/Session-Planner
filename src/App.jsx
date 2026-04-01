@@ -99,7 +99,7 @@ export default function App() {
 
       <footer style={{ padding: 'var(--spacing-4)', textAlign: 'center' }}>
         <p style={{ fontSize: '11px', color: 'var(--text-dim)', fontWeight: '500' }}>
-          Prepared by e-Socialize Brainstorm Tool • {new Date().getFullYear()}
+          Prepared by Positive Emotions Lab Team • {new Date().getFullYear()}
         </p>
       </footer>
     </div>

@@ -220,13 +220,6 @@ export default function AnchorGuidelines() {
 
       </div>
 
-      <footer style={{ marginTop: 'var(--spacing-6)', paddingTop: 'var(--spacing-4)', borderTop: '1px solid var(--border)', textAlign: 'center', color: 'var(--text-dim)', fontSize: '12px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '8px' }}>
-          <Heart size={14} fill="var(--accent)" color="var(--accent)" />
-          <span>Prepared by Positive Emotions Lab Team</span>
-        </div>
-        <p>Keep it fast. Keep it interactive. Keep everyone involved.</p>
-      </footer>
     </main>
   );
 }
