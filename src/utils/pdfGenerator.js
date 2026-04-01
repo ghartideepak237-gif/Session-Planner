@@ -27,6 +27,7 @@ const FONTS = {
 const MARGINS = {
   x: 40,
   y: 30,
+  bottom: 40, // SAFE FOOTER ZONE
   cardPadding: 16,
   sectionGap: 24,
   sessionGap: 14
@@ -53,41 +54,44 @@ const addFooter = (doc) => {
     doc.setFontSize(FONTS.footer.size);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(...COLORS.textDim);
-    doc.text("Confidential – Positive Emotions Lab", MARGINS.x, pageHeight - 30);
-    doc.text(String(pageCount), pageWidth / 2, pageHeight - 30, { align: 'center' });
+    
+    // Bottom Safe Line
+    doc.text("Confidential – Positive Emotions Lab", MARGINS.x, pageHeight - 25);
+    doc.text(String(pageCount), pageWidth / 2, pageHeight - 25, { align: 'center' });
     const attr = "Generated from Session Planner";
-    doc.text(attr, pageWidth - MARGINS.x - doc.getTextWidth(attr), pageHeight - 30);
+    doc.text(attr, pageWidth - MARGINS.x - doc.getTextWidth(attr), pageHeight - 25);
 };
 
-// SHARED CARD RENDERER (Used in Individual Session PDF)
-const drawActivityCard = (doc, game, index, y, contentWidth, isNested = false) => {
-    const pageHeight = doc.internal.pageSize.getHeight();
+// ATOMIC HEIGHT CALCULATORS
+const getActivityCardHeight = (doc, game, contentWidth) => {
     const p = MARGINS.cardPadding;
     const maxWidth = contentWidth - (p * 2);
-    
-    // Calculate Height
     let h = p; 
-    doc.setFontSize(FONTS.title.size);
-    doc.setFont('helvetica', 'bold');
-    const nameLines = doc.splitTextToSize(`${index + 1}. ${game.title}`, maxWidth);
-    h += (nameLines.length * 16) + 4;
-    h += 14; // Meta
-
-    const sections = [];
-    if (game.objective) sections.push({ label: 'Objective:', text: game.objective });
-    if (game.context) sections.push({ label: 'Context:', text: game.context });
-    const notes = game.notes || game.rules || game.description;
-    if (notes) sections.push({ label: 'Notes:', text: notes });
     
-    sections.forEach(s => {
-        h += 12;
-        doc.setFontSize(FONTS.body.size);
-        const textLines = doc.splitTextToSize(s.text, maxWidth);
-        h += 15 + (textLines.length * 15);
-    });
-    h += p; 
+    doc.setFontSize(FONTS.title.size);
+    const nameLines = doc.splitTextToSize(game.title, maxWidth);
+    h += (nameLines.length * 16) + 4;
+    h += 14; // Meta Row
 
-    if (!isNested && y + h > pageHeight - 60) {
+    const sections = [game.objective, game.context, game.notes || game.rules || game.description].filter(Boolean);
+    sections.forEach(text => {
+        h += 12; // Label Gap
+        doc.setFontSize(FONTS.body.size);
+        const textLines = doc.splitTextToSize(text, maxWidth);
+        h += 15 + (textLines.length * 15); // Label + Text
+    });
+    return h + p;
+};
+
+// SHARED CARD RENDERER
+const drawActivityCard = (doc, game, index, y, contentWidth, isNested = false) => {
+    const p = MARGINS.cardPadding;
+    const maxWidth = contentWidth - (p * 2);
+    const h = getActivityCardHeight(doc, game, contentWidth);
+    const pageHeight = doc.internal.pageSize.getHeight();
+
+    // Atomic Page Break
+    if (!isNested && y + h > pageHeight - MARGINS.bottom) {
         doc.addPage();
         y = 60;
     }
@@ -103,6 +107,7 @@ const drawActivityCard = (doc, game, index, y, contentWidth, isNested = false) =
     doc.setFontSize(FONTS.title.size);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(...COLORS.textMain);
+    const nameLines = doc.splitTextToSize(`${index + 1}. ${game.title}`, maxWidth);
     doc.text(nameLines, drawX, textY);
     textY += (nameLines.length * 16) + 4;
     
@@ -113,6 +118,12 @@ const drawActivityCard = (doc, game, index, y, contentWidth, isNested = false) =
     doc.text(metaStr, drawX, textY);
     textY += 14;
     
+    const sections = [];
+    if (game.objective) sections.push({ label: 'Objective:', text: game.objective });
+    if (game.context) sections.push({ label: 'Context:', text: game.context });
+    const notes = game.notes || game.rules || game.description;
+    if (notes) sections.push({ label: 'Notes:', text: notes });
+
     sections.forEach(s => {
         textY += 12;
         doc.setFontSize(FONTS.body.size);
@@ -130,55 +141,53 @@ const drawActivityCard = (doc, game, index, y, contentWidth, isNested = false) =
     return { height: h, endY: y + h };
 };
 
-// FOCUS TAGS RENDERER
-// FOCUS TAGS RENDERER
+// FOCUS TAGS RENDERER (Grid Layout 2-column force)
+// FOCUS TAGS RENDERER (Grid Layout 2-column force)
 const drawFocusTags = (doc, focusString, x, y, maxWidth) => {
     if (!focusString) return 0;
-    const tags = focusString.split(/[,\n]/).map(t => t.trim()).filter(Boolean);
+    // Aggressively split by bullets, commas, or newlines
+    const tags = focusString
+        .split(/[•\-\*\n,]/)
+        .map(t => t.trim()) 
+        .filter(Boolean);
+    
     if (tags.length === 0) return 0;
 
-    const safeMaxWidth = maxWidth - 10; // Extra safety right margin
-    const maxTagW = safeMaxWidth * 0.48; // Force at least 2 per row if long
+    const colW = (maxWidth / 2) - 12;
     const tagPaddingX = 10;
-    const tagPaddingY = 5;
+    const tagPaddingY = 8;
     
     let currentX = x;
     let currentY = y;
     let maxRowH = 0;
-    let totalHeight = 0;
+    let totalH = 0;
 
     doc.setFontSize(FONTS.tag.size);
     doc.setFont('helvetica', 'normal');
 
-    tags.forEach(tag => {
-        // Calculate lines and dimensions for this tag
-        const textLines = doc.splitTextToSize(tag, maxTagW - (tagPaddingX * 2));
-        const textW = Math.max(...textLines.map(l => doc.getTextWidth(l)));
-        const tagW = textW + (tagPaddingX * 2);
-        const tagH = (textLines.length * 12) + (tagPaddingY * 2);
-
-        // Check horizontal overflow
-        if (currentX + tagW > x + safeMaxWidth) {
+    tags.forEach((tag, idx) => {
+        const textLines = doc.splitTextToSize(tag, colW - (tagPaddingX * 2));
+        const tagH = (textLines.length * 13) + (tagPaddingY * 2);
+        
+        if (idx > 0 && idx % 2 === 0) {
             currentX = x;
-            currentY += maxRowH + 8;
-            totalHeight += maxRowH + 8;
+            currentY += maxRowH + 10;
+            totalH += maxRowH + 10;
             maxRowH = 0;
         }
 
-        // Draw Tag Background
-        doc.setFillColor(...COLORS.tagBg);
-        doc.roundedRect(currentX, currentY, tagW, tagH, 6, 6, 'F');
+        // Draw Tag Background (slightly darker for visibility)
+        doc.setFillColor(235, 237, 240); 
+        doc.roundedRect(currentX, currentY, colW, tagH, 6, 6, 'F');
         
-        // Draw Wrapped Text
         doc.setTextColor(...COLORS.textSecondary);
-        doc.text(textLines, currentX + tagPaddingX, currentY + tagPaddingY + 9);
+        doc.text(textLines, currentX + tagPaddingX, currentY + tagPaddingY + 10);
         
-        // Update trackers
-        currentX += tagW + 8;
         maxRowH = Math.max(maxRowH, tagH);
+        currentX += colW + 15;
     });
 
-    return totalHeight + maxRowH;
+    return totalH + maxRowH;
 };
 
 // MAIN EXPORTS
@@ -315,19 +324,26 @@ export const generateProgramPDF = async (program, sessionsList) => {
             const wData = program.weeks.find(item => item.week === w) || { theme: '', focus: '' };
             const weekSessions = sessionsList.filter(s => s.programWeek === w);
             
-            // HEIGHT CALCULATION (To keep week on one page where possible)
+            // ATOMIC HEIGHT CALCULATION
             let wH = 18 + 40; // Card Padding + Header
-            if (wData.focus) wH += 40; // Approx Focus area
+            if (wData.focus) {
+                const tags = wData.focus.split(/[,\n]/).map(t => t.trim()).filter(Boolean);
+                const rows = Math.ceil(tags.length / 2);
+                wH += 30 + (rows * 36); // STRATEGIC FOCUS label + Tags
+            }
             weekSessions.forEach(s => {
                 if (s.selectedGames.length > 0) {
-                    wH += 30; // Session info
-                    s.selectedGames.forEach(() => { wH += 120; }); // Shared activity card approx
-                } else { wH += 50; } // Placeholder
+                    wH += 45; // Session title card + gap
+                    s.selectedGames.forEach(g => { 
+                        wH += getActivityCardHeight(doc, g, contentWidth - 20) + 12; 
+                    });
+                } else { wH += 60; } // Placeholder + gap
                 wH += MARGINS.sessionGap;
             });
-            wH += 18; // Bottom Padding
+            wH += 25; // Bottom Padding + Visual Buffer
+            wH += 25; // EXTRA SAFETY BUFFER FOR FOOTER PROTECTION
 
-            if (y + wH > pageHeight - 80) { doc.addPage(); initializeHeader(); }
+            if (y + wH > pageHeight - MARGINS.bottom) { doc.addPage(); initializeHeader(); }
 
             // DRAW WEEK CARD
             doc.setDrawColor(...COLORS.cardBorder);
@@ -354,7 +370,7 @@ export const generateProgramPDF = async (program, sessionsList) => {
                 doc.text("STRATEGIC FOCUS:", MARGINS.x + 18, innerY);
                 innerY += 8;
                 const focusH = drawFocusTags(doc, wData.focus, MARGINS.x + 18, innerY, contentWidth - 36);
-                innerY += focusH + 10;
+                innerY += focusH + 15;
             }
 
             // Sessions
@@ -363,39 +379,35 @@ export const generateProgramPDF = async (program, sessionsList) => {
                 const sW = contentWidth - 20;
                 
                 if (session.selectedGames.length > 0) {
-                    // Session Card
                     doc.setDrawColor(...COLORS.cardBorder);
                     doc.setFillColor(...COLORS.cardBg);
-                    doc.roundedRect(sX, innerY, sW, 30, 8, 8, 'FD'); // Initial title bar
+                    doc.roundedRect(sX, innerY, sW, 35, 8, 8, 'FD');
                     doc.setFontSize(FONTS.sessionTitle.size);
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(...COLORS.textMain);
-                    doc.text(`Session ${sIdx + 1}: ${session.programTheme || 'Facilitation'}`, sX + 12, innerY + 20);
-                    innerY += 35;
+                    doc.text(`Session ${sIdx + 1}: ${session.programTheme || 'Facilitation'}`, sX + 12, innerY + 22);
+                    innerY += 45;
 
                     session.selectedGames.forEach((game, gIdx) => {
                         const res = drawActivityCard(doc, game, gIdx, innerY, sW, true);
-                        innerY = res.endY + 10;
+                        innerY = res.endY + 12;
                     });
                 } else {
-                    // Placeholder
-                    doc.setDrawColor(209, 163, 175); // #9CA3AF approx for dash
+                    doc.setDrawColor(209, 163, 175); 
                     doc.setLineDash([3, 3], 0);
-                    doc.roundedRect(sX, innerY, sW, 40, 8, 8, 'D');
+                    doc.roundedRect(sX, innerY, sW, 45, 8, 8, 'D');
                     doc.setLineDash([], 0);
                     doc.setFontSize(FONTS.sessionTitle.size);
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(156, 163, 175);
-                    doc.text(`Session ${sIdx + 1} (Not planned yet)`, sX + 12, innerY + 25);
-                    innerY += 50;
+                    doc.text(`Session ${sIdx + 1} (Not planned yet)`, sX + 12, innerY + 28);
+                    innerY += 60;
                 }
                 innerY += MARGINS.sessionGap;
             });
 
-            // Update Y
             y += wH + 26;
             
-            // Visual Divider between weeks (if not at end)
             if (w < program.duration) {
                 doc.setDrawColor(...COLORS.tagBg);
                 doc.setLineWidth(2);
