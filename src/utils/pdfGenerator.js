@@ -5,68 +5,114 @@ export const generateSessionPDF = (session) => {
     const doc = new jsPDF({ format: 'a4', unit: 'mm' });
     let y = 20;
     const margin = 20;
+    const contentWidth = 170;
 
     // Header
     doc.setFontSize(24);
     doc.setFont('helvetica', 'bold');
     doc.setTextColor(255, 107, 53); // Accent color
-    doc.text('Facilitation Flow', margin, y);
+    doc.text('Session Flow Guide', margin, y);
     y += 10;
 
     doc.setFontSize(12);
     doc.setFont('helvetica', 'normal');
     doc.setTextColor(100, 100, 100);
-    doc.text(`${session.college || 'General'} | Session: ${session.sessionNumber || 'N/A'}`, margin, y);
+    doc.text(`${session.college || 'General Group'} | ${session.sessionNumber || 'N/A'}`, margin, y);
     y += 6;
     
-    const totalDuration = session.selectedGames.reduce((acc, g) => acc + g.actualDuration, 0);
+    const totalDuration = session.selectedGames.reduce((acc, g) => acc + (g.actualDuration || 0), 0);
     doc.text(`Target: ${session.baseDuration} min | Planned: ${totalDuration} min`, margin, y);
     y += 10;
     
-    // Notes block if exists
     if (session.notes) {
        doc.setFontSize(10);
        doc.setTextColor(80, 80, 80);
        doc.setFont('helvetica', 'italic');
-       const splitNotes = doc.splitTextToSize(`Notes: ${session.notes}`, 170);
+       const splitNotes = doc.splitTextToSize(`Global Session Notes: ${session.notes}`, contentWidth);
        doc.text(splitNotes, margin, y);
        y += (splitNotes.length * 5) + 5;
     }
 
-    doc.setLineWidth(0.5);
+    doc.setLineWidth(0.2);
     doc.setDrawColor(200, 200, 200);
     doc.line(margin, y, 190, y);
     y += 10;
 
-    // Games Iteration
-    session.selectedGames.forEach((game, index) => {
-      // Check for page break
-      if (y > 260) {
+    // Helper to check for page break and reset y
+    const checkBreak = (needed) => {
+      if (y + needed > 275) {
         doc.addPage();
         y = 20;
+        return true;
       }
+      return false;
+    };
 
-      // Game Title & Duration
+    // Games Iteration
+    session.selectedGames.forEach((game, index) => {
+      checkBreak(30);
+
+      // 1. Activity Name
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(40, 40, 40);
-      doc.text(`${index + 1}. ${game.title} - ${game.actualDuration} min`, margin, y);
+      doc.setTextColor(20, 20, 20);
+      doc.text(`${index + 1}. ${game.title}`, margin, y);
       y += 6;
 
-      // Type / Objective / Flow
-      doc.setFontSize(10);
+      // 2. Meta row: Duration | Flow Position | Category
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
-      doc.setTextColor(150, 150, 150);
-      doc.text(`Flow: ${game.flowPosition} | Energy: ${game.energyType} | Engagement: ${game.engagementType}`, margin, y);
-      y += 7;
+      doc.setTextColor(255, 107, 53);
+      const meta = `${game.actualDuration} min | ${game.flowPosition} | ${game.category || game.theme_clean || 'Activity'}`;
+      doc.text(meta, margin, y);
+      y += 8;
 
-      // Instructions
-      doc.setFontSize(11);
+      // 3. Strategic Objective
+      if (game.objective) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(100, 100, 100);
+        doc.text('STRATEGIC OBJECTIVE:', margin, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(60, 60, 60);
+        const splitObj = doc.splitTextToSize(game.objective, contentWidth);
+        doc.text(splitObj, margin, y);
+        y += (splitObj.length * 4.5) + 4;
+        checkBreak(10);
+      }
+
+      // 4. Context / When to Use
+      if (game.context) {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(100, 100, 100);
+        doc.text('CONTEXT / WHEN TO USE:', margin, y);
+        y += 5;
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(60, 60, 60);
+        const splitCtx = doc.splitTextToSize(game.context, contentWidth);
+        doc.text(splitCtx, margin, y);
+        y += (splitCtx.length * 4.5) + 4;
+        checkBreak(10);
+      }
+
+      // 5. Anchor Notes (Instructions/Rules)
+      doc.setFontSize(9);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(100, 100, 100);
+      doc.text('ANCHOR NOTES:', margin, y);
+      y += 5;
       doc.setFont('helvetica', 'normal');
-      doc.setTextColor(60, 60, 60);
-      const splitRules = doc.splitTextToSize(game.rules || game.description || 'No rules provided.', 170);
-      doc.text(splitRules, margin, y);
-      y += (splitRules.length * 5) + 8;
+      doc.setTextColor(40, 40, 40);
+      const noteText = game.notes || game.rules || game.description || 'No notes provided.';
+      const splitNotes = doc.splitTextToSize(noteText, contentWidth);
+      doc.text(splitNotes, margin, y);
+      y += (splitNotes.length * 4.5) + 12;
+
+      // Divider
+      doc.setDrawColor(240, 240, 240);
+      doc.line(margin, y - 6, 190, y - 6);
     });
 
     doc.save(`Session_${session.sessionNumber || 'Plan'}.pdf`);
@@ -286,7 +332,7 @@ export const generateProgramPDF = async (program, sessionsList) => {
 
       weekSessions.forEach((session) => {
           const cardX = margin;
-          const cardWidth = Math.min(contentWidth, 540); // max card width constraint
+          const cardWidth = Math.min(contentWidth, 540); 
           const p = 16;
           let contentHeight = p;
           const maxWidth = cardWidth - (p * 2);
@@ -306,35 +352,23 @@ export const generateProgramPDF = async (program, sessionsList) => {
           doc.setFont('helvetica', 'normal');
           const focusText = session.programFocus || wData.focus || "Various";
           const focusLines = doc.splitTextToSize(focusText, maxWidth - 40);
-          contentHeight += (focusLines.length * 15) + 8; 
-          
-          doc.setFont('helvetica', 'bold');
-          contentHeight += 12 + 10; 
+          contentHeight += (focusLines.length * 15) + 12; 
           
           const games = session.selectedGames || [];
-          const activitiesRaw = [];
-          doc.setFont('helvetica', 'normal');
           if (games.length > 0) {
               games.forEach(game => {
-                  const text = `• ${game.title} - ${game.actualDuration} min`;
-                  const lines = doc.splitTextToSize(text, maxWidth - 10);
-                  activitiesRaw.push(lines);
-                  contentHeight += (lines.length * 14);
+                  contentHeight += 25; // Activity Header (Title + Meta)
+                  if (game.objective) contentHeight += (doc.splitTextToSize(game.objective, maxWidth - 10).length * 12) + 10;
+                  if (game.context) contentHeight += (doc.splitTextToSize(game.context, maxWidth - 10).length * 12) + 10;
+                  const notes = game.notes || game.rules || game.description || '';
+                  if (notes) contentHeight += (doc.splitTextToSize(notes, maxWidth - 10).length * 12) + 10;
+                  contentHeight += 15; // Padding between activities
               });
-          } else {
-              const lines = doc.splitTextToSize(`No activities planned yet.`, maxWidth - 10);
-              activitiesRaw.push(lines);
-              contentHeight += (lines.length * 14);
           }
           
           contentHeight += p;
-          
-          const cardHeight = Math.max(120, contentHeight);
-          
+          const cardHeight = contentHeight;
           checkPageBreak(cardHeight + 20);
-
-          doc.setFillColor(242, 242, 244);
-          doc.roundedRect(cardX + 2, y + 2, cardWidth, cardHeight, 8, 8, 'F');
 
           doc.setFillColor(...cardBg);
           doc.setDrawColor(220, 220, 225);
@@ -358,38 +392,66 @@ export const generateProgramPDF = async (program, sessionsList) => {
           doc.text(themeLines, cardX + p + 45, textY + 10);
           textY += (themeLines.length * 12) + 6;
           
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'bold');
           doc.setTextColor(...secondaryColor);
+          doc.setFont('helvetica', 'bold');
           doc.text("Focus: ", cardX + p, textY + 10);
           doc.setFont('helvetica', 'normal');
           doc.setTextColor(...textColor);
           focusLines.forEach((line, idx) => {
               doc.text(line, cardX + p + 40, textY + 10 + (idx * 15)); 
           });
-          textY += (focusLines.length * 15) + 8;
-          
-          doc.setFontSize(10);
-          doc.setFont('helvetica', 'bold');
-          doc.setTextColor(...textColor);
-          doc.text("Planned Activities:", cardX + p, textY + 10);
-          textY += 12 + 10;
-          
+          textY += (focusLines.length * 15) + 12;
+
+          // Rich Activity Blocks
           if (games.length > 0) {
-              doc.setFont('helvetica', 'normal');
-              activitiesRaw.forEach(lines => {
-                  lines.forEach((line, idx) => {
-                      doc.text(line, cardX + p + 10, textY + 10 + (idx * 14));
-                  });
-                  textY += (lines.length * 14);
+              games.forEach((game, gIdx) => {
+                  doc.setFontSize(10);
+                  doc.setFont('helvetica', 'bold');
+                  doc.setTextColor(...textColor);
+                  const actTitle = `${gIdx+1}. ${game.title} (${game.actualDuration}m)`;
+                  doc.text(actTitle, cardX + p, textY + 10);
+                  textY += 14;
+
+                  const meta = `${game.flowPosition} | ${game.category || game.theme_clean || 'Activity'}`;
+                  doc.setFontSize(8);
+                  doc.setTextColor(...accentColor);
+                  doc.text(meta, cardX + p, textY + 8);
+                  textY += 12;
+
+                  if (game.objective) {
+                      doc.setFont('helvetica', 'bold');
+                      doc.setTextColor(...secondaryColor);
+                      doc.text("Objective:", cardX + p, textY + 6);
+                      doc.setFont('helvetica', 'normal');
+                      doc.setTextColor(...textColor);
+                      const sObj = doc.splitTextToSize(game.objective, maxWidth - 10);
+                      doc.text(sObj, cardX + p, textY + 18);
+                      textY += (sObj.length * 12) + 12;
+                  }
+
+                  if (game.context) {
+                      doc.setFont('helvetica', 'bold');
+                      doc.setTextColor(...secondaryColor);
+                      doc.text("Context:", cardX + p, textY + 6);
+                      doc.setFont('helvetica', 'normal');
+                      const sCtx = doc.splitTextToSize(game.context, maxWidth - 10);
+                      doc.text(sCtx, cardX + p, textY + 18);
+                      textY += (sCtx.length * 12) + 12;
+                  }
+
+                  const notes = game.notes || game.rules || game.description;
+                  if (notes) {
+                      doc.setFont('helvetica', 'bold');
+                      doc.setTextColor(...secondaryColor);
+                      doc.text("Notes:", cardX + p, textY + 6);
+                      doc.setFont('helvetica', 'normal');
+                      const sNotes = doc.splitTextToSize(notes, maxWidth - 10);
+                      doc.text(sNotes, cardX + p, textY + 18);
+                      textY += (sNotes.length * 12) + 16;
+                  }
+                  
+                  textY += 8;
               });
-          } else {
-              doc.setFont('helvetica', 'italic');
-              doc.setTextColor(180, 180, 180);
-              activitiesRaw[0].forEach((line, idx) => {
-                  doc.text(line, cardX + p + 10, textY + 10 + (idx * 14));
-              });
-              textY += (activitiesRaw[0].length * 14);
           }
           
           y += cardHeight + 20; 

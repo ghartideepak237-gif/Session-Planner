@@ -11,7 +11,8 @@ CREATE TABLE IF NOT EXISTS programs (
     objective TEXT,
     weeks JSONB, -- Array of week themes/focus
     date TIMESTAMPTZ DEFAULT NOW(),
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
 );
 
 -- 2. Sessions Table (Session Plans)
@@ -33,7 +34,8 @@ CREATE TABLE IF NOT EXISTS sessions (
     "totalActualDuration" INTEGER DEFAULT 0,
     "targetActualDuration" INTEGER DEFAULT 0,
     reflection JSONB,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
 );
 
 -- 3. Activities Table (The Repository)
@@ -57,7 +59,8 @@ CREATE TABLE IF NOT EXISTS activities (
     objective TEXT,
     favorite BOOLEAN DEFAULT FALSE,
     instructions TEXT,
-    created_at TIMESTAMPTZ DEFAULT NOW()
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    deleted_at TIMESTAMPTZ
 );
 
 -- Disable RLS for testing/migration session

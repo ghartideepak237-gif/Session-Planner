@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
-import { FolderOpen, Plus, Trash2, Calendar } from 'lucide-react';
+import { FolderOpen, Plus, Trash2, Calendar, Download, Upload } from 'lucide-react';
 import { useStore } from '../store';
 
 export default function Programs() {
-  const { programs, addProgram, deleteProgram, setActiveProgram } = useStore();
+  const { programs, addProgram, deleteProgram, setActiveProgram, exportBackup, importBackup } = useStore();
   const [showForm, setShowForm] = useState(false);
   
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (file) importBackup(file);
+  };
+
   const [form, setForm] = useState({
     name: '', college: '', duration: 4, totalSessions: 8, objective: '', weeks: []
   });
@@ -34,7 +39,23 @@ export default function Programs() {
   return (
     <main className="container-max">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-4)' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: '600' }}>Program Hub</h2>
+        <div>
+          <h2 style={{ fontSize: '20px', fontWeight: '600', marginBottom: '4px' }}>Program Hub</h2>
+          <div style={{ display: 'flex', gap: 'var(--spacing-3)' }}>
+            <button 
+              onClick={exportBackup}
+              style={{ background: 'none', border: 'none', color: 'var(--brand-primary)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', padding: 0 }}
+            >
+              <Download size={12} /> Export All Data (JSON)
+            </button>
+            
+            <label style={{ color: 'var(--text-dim)', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer' }}>
+              <Upload size={12} /> Import Backup
+              <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
+            </label>
+          </div>
+        </div>
+        
         <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
           <Plus size={14} /> {showForm ? 'Cancel' : 'Create Program'}
         </button>

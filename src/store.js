@@ -75,35 +75,35 @@ export const useStore = create((set, get) => ({
 
   // Initialization & Migration
   initialize: async () => {
-    console.log('[Supabase] Initializing connection...');
+    console.log('[Supabase] Initializing connection (Soft Delete active)...');
     set({ isLoading: true });
     try {
-      // 1. Fetch from Supabase
-      const { data: dbGames, error: gErr } = await supabase.from('activities').select('*');
-      const { data: dbPrograms, error: pErr } = await supabase.from('programs').select('*');
-      const { data: dbSessions, error: sErr } = await supabase.from('sessions').select('*');
+      // 1. Fetch from Supabase - Filter only active (non-deleted) items
+      const { data: dbGames, error: gErr } = await supabase.from('activities').select('*').is('deleted_at', null);
+      const { data: dbPrograms, error: pErr } = await supabase.from('programs').select('*').is('deleted_at', null);
+      const { data: dbSessions, error: sErr } = await supabase.from('sessions').select('*').is('deleted_at', null);
 
       if (gErr || pErr || sErr) {
         console.error('[Supabase] Fetch error:', gErr || pErr || sErr);
         throw new Error('Database tables missing or unreachable');
       }
 
-      console.log(`[Supabase] Loaded: ${dbPrograms?.length || 0} programs, ${dbSessions?.length || 0} sessions, ${dbGames?.length || 0} activities`);
+      console.log(`[Supabase] Loaded Active: ${dbPrograms?.length || 0} programs, ${dbSessions?.length || 0} sessions, ${dbGames?.length || 0} activities`);
 
-      // 2. Check if migration needed (if Supabase is empty but legacy local data exists)
+      // 2. Check if migration needed
       const hasLocalData = localStorage.getItem('socialize-programs');
-      if ((!dbPrograms || dbPrograms.length === 0) && hasLocalData) {
+      if ((!dbPrograms || dbPrograms.length === 0) && hasLocalData && !localStorage.getItem('socialize-migrated')) {
         console.log('[Supabase] Empty database detected, but local data found. Triggering migration...');
         await get().migrateFromLocalStorage();
         return;
       }
 
-      // 3. Fallback to initial games ONLY if DB is totally empty and no migration happened
+      // 3. Fallback to initial games ONLY if DB is totally empty
       let games = dbGames || [];
       if (games.length === 0) {
         console.log('[Supabase] Repository empty. Seeding initial activities...');
         await supabase.from('activities').insert(initializedGames);
-        const { data: reloadedGames } = await supabase.from('activities').select('*');
+        const { data: reloadedGames } = await supabase.from('activities').select('*').is('deleted_at', null);
         games = reloadedGames || initializedGames;
       }
 
@@ -117,7 +117,6 @@ export const useStore = create((set, get) => ({
       });
     } catch (error) {
       console.error('[Supabase] Initialization failed:', error.message);
-      // Fallback to local only as emergency, but set status to disconnected
       const localPrograms = JSON.parse(localStorage.getItem('socialize-programs') || '[]');
       const localSessions = JSON.parse(localStorage.getItem('socialize-sessions') || '[]');
       
@@ -354,10 +353,10 @@ export const useStore = create((set, get) => ({
   },
 
   deleteSession: async (sessionId) => {
-    console.log('[Supabase] Deleting session from Supabase...');
-    const { error } = await supabase.from('sessions').delete().eq('id', sessionId);
+    console.log('[Supabase] Soft deleting session...');
+    const { error } = await supabase.from('sessions').update({ deleted_at: new Date().toISOString() }).eq('id', sessionId);
     if (!error) {
-      console.log('[Supabase] Session deleted successfully');
+      console.log('[Supabase] Session soft deleted successfully');
       set((state) => ({
         sessions: state.sessions.filter(s => s.id !== sessionId)
       }));
@@ -475,17 +474,95 @@ export const useStore = create((set, get) => ({
   },
 
   deleteProgram: async (programId) => {
-    console.log('[Supabase] Deleting program and associated sessions...');
-    await supabase.from('sessions').delete().eq('programId', programId);
-    const { error } = await supabase.from('programs').delete().eq('id', programId);
+    console.log('[Supabase] Soft deleting program and associated sessions...');
+    const now = new Date().toISOString();
+    // Soft delete associated sessions
+    await supabase.from('sessions').update({ deleted_at: now }).eq('programId', programId);
+    // Soft delete program
+    const { error } = await supabase.from('programs').update({ deleted_at: now }).eq('id', programId);
+    
     if (!error) {
-      console.log('[Supabase] Program deleted successfully');
+      console.log('[Supabase] Program soft deleted successfully');
       set((state) => ({
         programs: state.programs.filter(p => p.id !== programId),
         sessions: state.sessions.filter(s => s.programId !== programId)
       }));
     } else {
       console.error('[Supabase] Error deleting program:', error.message);
+    }
+  },
+
+  deleteActivity: async (activityId) => {
+    console.log('[Supabase] Soft deleting activity...');
+    const { error } = await supabase.from('activities').update({ deleted_at: new Date().toISOString() }).eq('id', activityId);
+    if (!error) {
+      console.log('[Supabase] Activity soft deleted successfully');
+      set((state) => ({
+        games: state.games.filter(g => g.id !== activityId)
+      }));
+    } else {
+      console.error('[Supabase] Error deleting activity:', error.message);
+    }
+  },
+
+  // Backup & Restore
+  exportBackup: async () => {
+    try {
+      console.log('[Supabase] Preparing full data backup...');
+      const { data: programs } = await supabase.from('programs').select('*');
+      const { data: sessions } = await supabase.from('sessions').select('*');
+      const { data: activities } = await supabase.from('activities').select('*');
+
+      const backupData = {
+        version: '1.0',
+        exportedAt: new Date().toISOString(),
+        programs: programs || [],
+        sessions: sessions || [],
+        activities: activities || []
+      };
+
+      const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `e-socialize-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      console.log('[Supabase] Backup exported successfully');
+    } catch (err) {
+      console.error('[Supabase] Backup export failed:', err);
+    }
+  },
+
+  importBackup: async (jsonFile) => {
+    try {
+      console.log('[Supabase] Importing data from backup...');
+      set({ isMigrating: true });
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        const backupData = JSON.parse(e.target.result);
+        
+        if (backupData.programs?.length > 0) {
+          await supabase.from('programs').upsert(backupData.programs);
+        }
+        if (backupData.sessions?.length > 0) {
+          await supabase.from('sessions').upsert(backupData.sessions);
+        }
+        if (backupData.activities?.length > 0) {
+          await supabase.from('activities').upsert(backupData.activities);
+        }
+
+        console.log('[Supabase] Backup imported and synced successfully');
+        await get().initialize();
+        set({ isMigrating: false });
+      };
+      
+      reader.readAsText(jsonFile);
+    } catch (err) {
+      console.error('[Supabase] Backup import failed:', err);
+      set({ isMigrating: false });
     }
   },
 
