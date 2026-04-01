@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { GAMES } from './gamesData';
 import { v4 as uuidv4 } from 'uuid';
+import { supabase } from './supabaseClient';
 
 const ENERGY_TYPES = ['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing'];
 const ENGAGEMENT_TYPES = ['Talking', 'Movement', 'Thinking', 'Laughing', 'Storytelling', 'Team interaction'];
@@ -36,9 +37,12 @@ const mapLegacyToNewFields = (game) => {
 const initializedGames = GAMES.map(mapLegacyToNewFields);
 
 export const useStore = create((set, get) => ({
+  isLoading: true,
+  isMigrating: false,
+  dbStatus: 'loading', // 'connected' | 'disconnected' | 'loading'
   activeTab: 'repository',
-  games: initializedGames,
-  categories: [...new Set(GAMES.map(g => g.theme_clean))], // Legacy categories
+  games: [],
+  categories: [],
   sessions: [],
   programs: [],
   activeProgramId: null,
@@ -69,26 +73,174 @@ export const useStore = create((set, get) => ({
   setActiveTab: (tab) => set({ activeTab: tab }),
   setActiveProgram: (id) => set({ activeProgramId: id, activeTab: 'roadmap' }),
 
+  // Initialization & Migration
+  initialize: async () => {
+    console.log('[Supabase] Initializing connection...');
+    set({ isLoading: true });
+    try {
+      // 1. Fetch from Supabase
+      const { data: dbGames, error: gErr } = await supabase.from('activities').select('*');
+      const { data: dbPrograms, error: pErr } = await supabase.from('programs').select('*');
+      const { data: dbSessions, error: sErr } = await supabase.from('sessions').select('*');
+
+      if (gErr || pErr || sErr) {
+        console.error('[Supabase] Fetch error:', gErr || pErr || sErr);
+        throw new Error('Database tables missing or unreachable');
+      }
+
+      console.log(`[Supabase] Loaded: ${dbPrograms?.length || 0} programs, ${dbSessions?.length || 0} sessions, ${dbGames?.length || 0} activities`);
+
+      // 2. Check if migration needed (if Supabase is empty but legacy local data exists)
+      const hasLocalData = localStorage.getItem('socialize-programs');
+      if ((!dbPrograms || dbPrograms.length === 0) && hasLocalData) {
+        console.log('[Supabase] Empty database detected, but local data found. Triggering migration...');
+        await get().migrateFromLocalStorage();
+        return;
+      }
+
+      // 3. Fallback to initial games ONLY if DB is totally empty and no migration happened
+      let games = dbGames || [];
+      if (games.length === 0) {
+        console.log('[Supabase] Repository empty. Seeding initial activities...');
+        await supabase.from('activities').insert(initializedGames);
+        const { data: reloadedGames } = await supabase.from('activities').select('*');
+        games = reloadedGames || initializedGames;
+      }
+
+      set({ 
+        games,
+        programs: dbPrograms || [], 
+        sessions: dbSessions || [],
+        categories: [...new Set(games.map(g => g.theme_clean))],
+        dbStatus: 'connected',
+        isLoading: false 
+      });
+    } catch (error) {
+      console.error('[Supabase] Initialization failed:', error.message);
+      // Fallback to local only as emergency, but set status to disconnected
+      const localPrograms = JSON.parse(localStorage.getItem('socialize-programs') || '[]');
+      const localSessions = JSON.parse(localStorage.getItem('socialize-sessions') || '[]');
+      
+      set({ 
+        games: initializedGames,
+        programs: localPrograms,
+        sessions: localSessions,
+        categories: [...new Set(initializedGames.map(g => g.theme_clean))],
+        dbStatus: 'disconnected',
+        isLoading: false 
+      });
+    }
+  },
+
+  migrateFromLocalStorage: async () => {
+    console.log('[Supabase] Migration started...');
+    set({ isMigrating: true });
+    try {
+      const localPrograms = JSON.parse(localStorage.getItem('socialize-programs') || '[]');
+      const localSessions = JSON.parse(localStorage.getItem('socialize-sessions') || '[]');
+      
+      console.log(`[Supabase] Pushing ${localPrograms.length} programs and ${localSessions.length} sessions from localStorage...`);
+
+      // Upsert local data to Supabase
+      if (localPrograms.length > 0) {
+        const { error: pErr } = await supabase.from('programs').upsert(localPrograms.map(p => ({
+          ...p,
+          created_at: p.date || new Date().toISOString()
+        })));
+        if (pErr) throw pErr;
+      }
+      
+      if (localSessions.length > 0) {
+        const { error: sErr } = await supabase.from('sessions').upsert(localSessions);
+        if (sErr) throw sErr;
+      }
+
+      console.log('[Supabase] Migration successful! Clearing local cache markers...');
+      // We don't delete local data for safety, but we could mark it as migrated
+      localStorage.setItem('socialize-migrated', 'true');
+
+      // Re-initialize to pull from DB
+      await get().initialize();
+      set({ isMigrating: false });
+    } catch (error) {
+      console.error('[Supabase] Migration failed:', error);
+      set({ isMigrating: false, isLoading: false });
+    }
+  },
+
   // Actions - Games
-  addGame: (game) => set((state) => ({ 
-    games: [...state.games, { ...game, id: uuidv4(), baseDurationNum: parseDuration(game.duration) }] 
-  })),
-  toggleFavorite: (gameTitle) => set((state) => ({
-    games: state.games.map(g => g.title === gameTitle ? { ...g, favorite: !g.favorite } : g)
-  })),
-  updateGame: (gameId, updates) => set((state) => ({
-    games: state.games.map(g => (g.id === gameId || g.title === gameId) ? { ...g, ...updates } : g)
-  })),
-  duplicateGame: (game) => set((state) => ({
-    games: [...state.games, { ...game, title: `${game.title} (Copy)`, id: uuidv4() }]
-  })),
+  addGame: async (game) => {
+    console.log('[Supabase] Saving new activity to Supabase...');
+    const newGame = { ...game, id: uuidv4(), baseDurationNum: parseDuration(game.duration) };
+    set({ autosaveStatus: 'saving' });
+    const { error } = await supabase.from('activities').insert([newGame]);
+    if (!error) {
+      console.log('[Supabase] Activity saved successfully');
+      const newGames = [...get().games, newGame];
+      set({ 
+        games: newGames, 
+        categories: [...new Set(newGames.map(g => g.theme_clean))],
+        autosaveStatus: 'saved' 
+      });
+    } else {
+      console.error('[Supabase] Error saving activity:', error.message);
+      set({ autosaveStatus: 'saved' });
+    }
+  },
+  toggleFavorite: async (gameIdOrTitle) => {
+    const game = get().games.find(g => g.id === gameIdOrTitle || g.title === gameIdOrTitle);
+    if (!game) return;
+    const newFavorite = !game.favorite;
+    console.log(`[Supabase] Toggling favorite for "${game.title}"...`);
+    const { error } = await supabase.from('activities').update({ favorite: newFavorite }).eq('id', game.id);
+    if (!error) {
+      console.log('[Supabase] Favorite sync successful');
+      set((state) => ({
+        games: state.games.map(g => g.id === game.id ? { ...g, favorite: newFavorite } : g)
+      }));
+    } else {
+      console.error('[Supabase] Error syncing favorite:', error.message);
+    }
+  },
+  updateGame: async (gameId, updates) => {
+    console.log('[Supabase] Updating activity in Supabase...');
+    set({ autosaveStatus: 'saving' });
+    const { error } = await supabase.from('activities').update(updates).eq('id', gameId);
+    if (!error) {
+      console.log('[Supabase] Activity updated successfully');
+      const newGames = get().games.map(g => g.id === gameId ? { ...g, ...updates } : g);
+      set({ 
+        games: newGames,
+        categories: [...new Set(newGames.map(g => g.theme_clean))],
+        autosaveStatus: 'saved' 
+      });
+    } else {
+      console.error('[Supabase] Error updating activity:', error.message);
+      set({ autosaveStatus: 'saved' });
+    }
+  },
+  duplicateGame: async (game) => {
+    console.log('[Supabase] Duplicating activity in Supabase...');
+    const newGame = { ...game, title: `${game.title} (Copy)`, id: uuidv4() };
+    const { error } = await supabase.from('activities').insert([newGame]);
+    if (!error) {
+      console.log('[Supabase] Duplication successful');
+      const newGames = [...get().games, newGame];
+      set({ 
+        games: newGames,
+        categories: [...new Set(newGames.map(g => g.theme_clean))]
+      });
+    } else {
+      console.error('[Supabase] Duplication failed:', error.message);
+    }
+  },
 
   // Actions - Builder
+  // ... (keeping sync builder actions as provided)
   setBuilderField: (field, value) => set((state) => ({
     builder: { ...state.builder, [field]: value }
   })),
   addGameToSession: (game) => set((state) => {
-    // V3: Initialize flow defaults based on order or hard defaults
     const currentLen = state.builder.selectedGames.length;
     let newFlowPos = 'Core';
     if (currentLen === 0) newFlowPos = 'Opening';
@@ -102,7 +254,7 @@ export const useStore = create((set, get) => ({
           { 
             ...game, 
             instanceId: uuidv4(),
-            actualDuration: game.baseDurationNum, // starts as base
+            actualDuration: game.baseDurationNum,
             flowPosition: newFlowPos
           }
         ] 
@@ -119,7 +271,6 @@ export const useStore = create((set, get) => ({
     return { builder: { ...state.builder, selectedGames: result } };
   }),
   
-  // V3 Dynamics Timeline Actions
   adjustGameDuration: (instanceId, delta) => set((state) => ({
     builder: {
       ...state.builder,
@@ -151,264 +302,251 @@ export const useStore = create((set, get) => ({
   duplicateActivityInSession: (instanceId) => set((state) => {
     const gameToDup = state.builder.selectedGames.find(g => g.instanceId === instanceId);
     if (!gameToDup) return state;
-    
     const newInstance = { ...gameToDup, instanceId: uuidv4(), title: `${gameToDup.title} (Copy)` };
     const idx = state.builder.selectedGames.findIndex(g => g.instanceId === instanceId);
     const newGames = [...state.builder.selectedGames];
     newGames.splice(idx + 1, 0, newInstance);
-    
     return { builder: { ...state.builder, selectedGames: newGames } };
   }),
 
   // Actions - Sessions
-  updateSession: (sessionId, updates) => set((state) => ({
-    sessions: state.sessions.map(s => s.id === sessionId ? { ...s, ...updates } : s)
-  })),
+  updateSession: async (sessionId, updates) => {
+    console.log('[Supabase] Updating session in Supabase...');
+    const { error } = await supabase.from('sessions').update(updates).eq('id', sessionId);
+    if (!error) {
+      console.log('[Supabase] Session updated successfully');
+      set((state) => ({
+        sessions: state.sessions.map(s => s.id === sessionId ? { ...s, ...updates } : s)
+      }));
+    } else {
+      console.error('[Supabase] Error updating session:', error.message);
+    }
+  },
   
-  saveSession: () => {
+  saveSession: async () => {
+    console.log('[Supabase] Saving session to Supabase...');
     set({ autosaveStatus: 'saving' });
-    set((state) => {
-      const totalActual = state.builder.selectedGames.reduce((acc, g) => acc + g.actualDuration, 0);
-      const newSession = { 
-        ...state.builder, 
-        date: new Date().toISOString(),
-        createdAt: state.builder.createdAt || Date.now(),
-        totalActualDuration: totalActual
-      };
-      
-      const existingIndex = state.sessions.findIndex(s => s.id === newSession.id);
-      const updatedSessions = [...state.sessions];
-      
-      if (existingIndex >= 0) {
-        updatedSessions[existingIndex] = newSession;
-      } else {
-        updatedSessions.push(newSession);
-      }
-
-      return {
-        sessions: updatedSessions,
-        builder: {
-          ...newSession,
-        }
-      };
-    });
-    setTimeout(() => set({ autosaveStatus: 'saved' }), 800);
+    const sessionData = get().builder;
+    const totalActual = sessionData.selectedGames.reduce((acc, g) => acc + (g.actualDuration || 0), 0);
+    
+    const finalSession = { 
+      ...sessionData, 
+      date: new Date().toISOString(),
+      createdAt: sessionData.createdAt || Date.now(),
+      totalActualDuration: totalActual
+    };
+    
+    const { data, error } = await supabase.from('sessions').upsert([finalSession]).select();
+    
+    if (!error && data) {
+      console.log('[Supabase] Session saved successfully');
+      set((state) => {
+        const existingIndex = state.sessions.findIndex(s => s.id === finalSession.id);
+        const updatedSessions = [...state.sessions];
+        if (existingIndex >= 0) updatedSessions[existingIndex] = data[0];
+        else updatedSessions.push(data[0]);
+        return { sessions: updatedSessions, builder: data[0], autosaveStatus: 'saved' };
+      });
+    } else {
+      console.error('[Supabase] Error saving session:', error?.message);
+      set({ autosaveStatus: 'saved' });
+    }
   },
 
-  deleteSession: (sessionId) => set((state) => ({
-    sessions: state.sessions.filter(s => s.id !== sessionId)
-  })),
-  duplicateSession: (session) => set((state) => ({
-    sessions: [...state.sessions, { ...session, id: uuidv4(), date: new Date().toISOString(), college: `${session.college} (Copy)` }]
-  })),
+  deleteSession: async (sessionId) => {
+    console.log('[Supabase] Deleting session from Supabase...');
+    const { error } = await supabase.from('sessions').delete().eq('id', sessionId);
+    if (!error) {
+      console.log('[Supabase] Session deleted successfully');
+      set((state) => ({
+        sessions: state.sessions.filter(s => s.id !== sessionId)
+      }));
+    } else {
+      console.error('[Supabase] Error deleting session:', error.message);
+    }
+  },
+  duplicateSession: async (session) => {
+    console.log('[Supabase] Duplicating session in Supabase...');
+    const newSession = { ...session, id: uuidv4(), date: new Date().toISOString(), college: `${session.college} (Copy)` };
+    const { error } = await supabase.from('sessions').insert([newSession]);
+    if (!error) {
+      console.log('[Supabase] Session duplication successful');
+      set((state) => ({ sessions: [...state.sessions, newSession] }));
+    } else {
+      console.error('[Supabase] Error duplicating session:', error.message);
+    }
+  },
   loadSessionToBuilder: (sessionId) => set((state) => {
     const sessionToLoad = state.sessions.find(s => s.id === sessionId);
-    if (sessionToLoad) {
-      return { builder: { ...sessionToLoad } }; // V3 fix: load into builder properly
-    }
+    if (sessionToLoad) return { builder: { ...sessionToLoad } };
     return state;
   }),
   saveSessionReflection: (sessionId, reflectionObj) => set((state) => ({
-    sessions: state.sessions.map(s => 
-      s.id === sessionId 
-        ? { ...s, reflection: reflectionObj }
-        : s
-    )
+    sessions: state.sessions.map(s => s.id === sessionId ? { ...s, reflection: reflectionObj } : s)
   })),
 
   // Actions - Programs
-  updateProgram: (programId, updates) => set((state) => {
-    const program = state.programs.find(p => p.id === programId);
-    if (!program) return state;
+  updateProgram: async (programId, updates) => {
+    console.log('[Supabase] Updating program in Supabase...');
+    const program = get().programs.find(p => p.id === programId);
+    if (!program) return;
 
-    const updatedProgram = { ...program, ...updates };
-    const updatedPrograms = state.programs.map(p => p.id === programId ? updatedProgram : p);
+    const { error } = await supabase.from('programs').update(updates).eq('id', programId);
+    if (error) {
+      console.error('[Supabase] Error updating program:', error.message);
+      return;
+    }
 
-    // Handle session scaling if totalSessions changed
-    let updatedSessions = [...state.sessions];
+    console.log('[Supabase] Program updated successfully');
+    set((state) => {
+      const updatedProgram = { ...program, ...updates };
+      const updatedPrograms = state.programs.map(p => p.id === programId ? updatedProgram : p);
+      return { programs: updatedPrograms };
+    });
+
     if (updates.totalSessions && updates.totalSessions !== program.totalSessions) {
       const oldTotal = program.totalSessions;
       const newTotal = updates.totalSessions;
-
+      const programObj = get().programs.find(p => p.id === programId);
+      
       if (newTotal > oldTotal) {
-        // Add new sessions
+        console.log(`[Supabase] Scaling program: Adding ${newTotal - oldTotal} sessions...`);
         const startNum = oldTotal + 1;
-        const sessionsPerWeek = Math.ceil(newTotal / updatedProgram.duration);
+        const sessionsPerWeek = Math.ceil(newTotal / programObj.duration);
+        const newSessions = [];
         
         for (let i = startNum; i <= newTotal; i++) {
-          const currentWeek = Math.min(updatedProgram.duration, Math.ceil(i / sessionsPerWeek));
-          const weekData = (updatedProgram.weeks || []).find(w => w.week === currentWeek) || { theme: 'General', focus: 'General' };
-          
-          updatedSessions.push({
-            id: uuidv4(),
-            programId: programId,
-            programWeek: currentWeek,
-            programTheme: weekData.theme,
-            programFocus: weekData.focus,
-            college: updatedProgram.college,
-            sessionNumber: `Session ${i}`,
-            targetGroup: '',
-            objective: updatedProgram.objective,
-            baseDuration: 45,
-            selectedGames: [],
-            notes: '',
-            totalActualDuration: 0
+          const currentWeek = Math.min(programObj.duration, Math.ceil(i / sessionsPerWeek));
+          const weekData = (programObj.weeks || []).find(w => w.week === currentWeek) || { theme: 'General', focus: 'General' };
+          newSessions.push({
+            id: uuidv4(), programId: programId, programWeek: currentWeek, programTheme: weekData.theme,
+            programFocus: weekData.focus, college: programObj.college, sessionNumber: `Session ${i}`,
+            targetActualDuration: 0, selectedGames: [], objective: programObj.objective || ''
           });
         }
+        await supabase.from('sessions').insert(newSessions);
+        await get().initialize();
       }
-      // Note: We don't delete sessions automatically if newTotal < oldTotal for safety,
-      // as per user requirement "Program changes must not delete existing session plans".
-      // We just keep them as floating/unassigned if they exceed new bounds? 
-      // Actually, if we decrease sessions, we just keep the session objects but they might not show in roadmap.
     }
+  },
 
-    return { programs: updatedPrograms, sessions: updatedSessions };
-  }),
-
-  addProgram: (programData) => set((state) => {
+  addProgram: async (programData) => {
+    console.log('[Supabase] Saving program to Supabase...');
     const programId = uuidv4();
     const { name, college, duration, totalSessions, objective, weeks } = programData;
-    
     const newProgram = {
-      id: programId,
-      name, college, duration, totalSessions, objective, weeks, date: new Date().toISOString()
+      id: programId, name, college, duration, totalSessions, objective, weeks, 
+      created_at: new Date().toISOString()
     };
     
-    // Auto-scaffold empty sessions
+    const { error } = await supabase.from('programs').insert([newProgram]);
+    if (error) {
+      console.error('[Supabase] Error saving program:', error.message);
+      return;
+    }
+
+    console.log('[Supabase] Program saved successfully');
+    set((state) => ({ programs: [...state.programs, newProgram] }));
+    
+    console.log('[Supabase] Scaffolding program sessions...');
     const newSessions = [];
     const sessionsPerWeek = Math.ceil(totalSessions / duration);
-    
     let currentWeek = 1;
     let weekSessionCount = 0;
 
     for (let i = 1; i <= totalSessions; i++) {
        const weekData = weeks.find(w => w.week === currentWeek) || { theme: 'General', focus: 'General' };
-       
        newSessions.push({
-         id: uuidv4(),
-         programId: programId,
-         programWeek: currentWeek,
-         programTheme: weekData.theme,
-         programFocus: weekData.focus,
-         college: college,
-         sessionNumber: `Session ${i}`,
-         targetGroup: '',
-         objective: objective,
-         baseDuration: 45,
-         selectedGames: [],
-         notes: '',
-         totalActualDuration: 0
+         id: uuidv4(), programId: programId, programWeek: currentWeek, programTheme: weekData.theme,
+         programFocus: weekData.focus, college: college, sessionNumber: `Session ${i}`,
+         targetActualDuration: 0, selectedGames: [], objective: objective || ''
        });
-
        weekSessionCount++;
        if (weekSessionCount >= sessionsPerWeek && currentWeek < duration) {
           currentWeek++;
           weekSessionCount = 0;
        }
     }
+    const { error: sErr } = await supabase.from('sessions').insert(newSessions);
+    if (!sErr) console.log('[Supabase] Sessions scaffolded successfully');
+    else console.error('[Supabase] Error scaffolding sessions:', sErr.message);
+    
+    await get().initialize();
+  },
 
-    return {
-      programs: [...state.programs, newProgram],
-      sessions: [...state.sessions, ...newSessions]
-    };
-  }),
-
-  deleteProgram: (programId) => set((state) => ({
-    programs: state.programs.filter(p => p.id !== programId),
-    sessions: state.sessions.filter(s => s.programId !== programId)
-  })),
+  deleteProgram: async (programId) => {
+    console.log('[Supabase] Deleting program and associated sessions...');
+    await supabase.from('sessions').delete().eq('programId', programId);
+    const { error } = await supabase.from('programs').delete().eq('id', programId);
+    if (!error) {
+      console.log('[Supabase] Program deleted successfully');
+      set((state) => ({
+        programs: state.programs.filter(p => p.id !== programId),
+        sessions: state.sessions.filter(s => s.programId !== programId)
+      }));
+    } else {
+      console.error('[Supabase] Error deleting program:', error.message);
+    }
+  },
 
   // Phase 8: Smart Slot Assignment
-  assignSessionToProgram: (sessionId, programId, week, slotStr) => set((state) => {
-    // Determine the new properties
+  assignSessionToProgram: async (sessionId, programId, week, slotStr) => {
     const newWeek = week ? parseInt(week, 10) : null;
     const newSlotStr = slotStr;
-
-    const programSessions = state.sessions.filter(s => s.programId === programId);
+    const state = get();
     let updatedSessions = [...state.sessions];
     
-    // Find the session we are moving
     const movingSessionIndex = updatedSessions.findIndex(s => s.id === sessionId);
-    if (movingSessionIndex === -1) return state;
+    if (movingSessionIndex === -1) return;
 
     const movingSession = { ...updatedSessions[movingSessionIndex], programId, programWeek: newWeek, sessionNumber: newSlotStr };
+    const sessionsToUpsert = [movingSession];
 
-    // If unassigning, just clear out properties
-    if (!programId) {
-      movingSession.programId = null;
-      movingSession.programWeek = null;
-      movingSession.sessionNumber = '';
-      updatedSessions[movingSessionIndex] = movingSession;
-      return { sessions: updatedSessions, builder: state.builder.id === sessionId ? movingSession : state.builder };
-    }
+    if (programId && newWeek !== null && newSlotStr) {
+      const occupantIndex = updatedSessions.findIndex(s => s.programId === programId && s.programWeek === newWeek && s.sessionNumber === newSlotStr && s.id !== sessionId);
 
-    // Unassigned Pool Target
-    if (newWeek === null || !newSlotStr) {
-      movingSession.programWeek = null;
-      movingSession.sessionNumber = '';
-      updatedSessions[movingSessionIndex] = movingSession;
-      return { sessions: updatedSessions, builder: state.builder.id === sessionId ? movingSession : state.builder };
-    }
-
-    // Displacement Logic
-    // Check if slot currently occupied by another session
-    const occupantIndex = updatedSessions.findIndex(s => s.programId === programId && s.programWeek === newWeek && s.sessionNumber === newSlotStr && s.id !== sessionId);
-
-    if (occupantIndex >= 0) {
-      // Slot Occupied: We need to bump the occupant forward.
-      const occupant = { ...updatedSessions[occupantIndex] };
-      
-      // We will place movingSession in the target spot first
-      updatedSessions[movingSessionIndex] = movingSession;
-
-      // Now we find the next empty slot for occupant
-      const program = state.programs.find(p => p.id === programId);
-      if (program) {
-        let placed = false;
-        
-        // Let's look forward week by week, and session by session
-        const sessionsPerWeek = Math.ceil(program.totalSessions / program.duration);
-        
-        outerLoop: for (let w = newWeek; w <= program.duration; w++) {
-          for (let slot = 1; slot <= sessionsPerWeek; slot++) {
-            const potentialSlotStr = `Session ${(w - 1) * sessionsPerWeek + slot}`;
-            // If checking the initial week, skip slots before the target slot
-            if (w === newWeek && slot < parseInt(newSlotStr.replace('Session ', ''), 10)) continue;
-            
-            // Is this potential slot empty?
-            const isOccupied = updatedSessions.some(s => s.programId === programId && s.programWeek === w && s.sessionNumber === potentialSlotStr);
-            if (!isOccupied) {
-              occupant.programWeek = w;
-              occupant.sessionNumber = potentialSlotStr;
-              placed = true;
-              break outerLoop;
+      if (occupantIndex >= 0) {
+        const occupant = { ...updatedSessions[occupantIndex] };
+        const program = state.programs.find(p => p.id === programId);
+        if (program) {
+          let placed = false;
+          const sessionsPerWeek = Math.ceil(program.totalSessions / program.duration);
+          
+          outerLoop: for (let w = newWeek; w <= program.duration; w++) {
+            for (let slot = 1; slot <= sessionsPerWeek; slot++) {
+              const potentialSlotStr = `Session ${(w - 1) * sessionsPerWeek + slot}`;
+              if (w === newWeek && slot < parseInt(newSlotStr.replace('Session ', ''), 10)) continue;
+              const isOccupied = updatedSessions.some(s => s.programId === programId && s.programWeek === w && s.sessionNumber === potentialSlotStr && s.id !== sessionId && s.id !== occupant.id);
+              if (!isOccupied) {
+                occupant.programWeek = w;
+                occupant.sessionNumber = potentialSlotStr;
+                placed = true;
+                break outerLoop;
+              }
             }
           }
-        }
-
-        if (!placed) {
-          // No empty slots remaining in the program
+          if (!placed) {
+            occupant.programWeek = null;
+            occupant.sessionNumber = 'Unassigned';
+          }
+        } else {
           occupant.programWeek = null;
-          occupant.sessionNumber = 'Unassigned';
         }
-      } else {
-        occupant.programWeek = null;
+        sessionsToUpsert.push(occupant);
       }
-      
-      updatedSessions[occupantIndex] = occupant;
-
-    } else {
-      updatedSessions[movingSessionIndex] = movingSession;
     }
 
-    // Sync builder if it's currently open
-    let newBuilder = state.builder;
-    if (state.builder.id === sessionId) {
-      newBuilder = { ...movingSession };
+    // Unassign logic handled by initial values of movingSession if programId is null
+    if (!programId) {
+      movingSession.programWeek = null;
+      movingSession.sessionNumber = '';
     }
 
-    return { sessions: updatedSessions, builder: newBuilder };
-  })
+    const { error } = await supabase.from('sessions').upsert(sessionsToUpsert);
+    if (!error) {
+      await get().initialize(); // Full sync
+    }
+  }
 
 }));
 
