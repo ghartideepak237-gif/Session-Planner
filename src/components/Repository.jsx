@@ -1,10 +1,16 @@
 import React, { useState, useMemo } from 'react';
-import { Search, Shuffle, Star, Clock, Target, Plus, Copy, ArrowRight, Zap, Users } from 'lucide-react';
+import { Search, Shuffle, Star, Clock, Target, Plus, Copy, ArrowRight, Zap, Users, Pencil } from 'lucide-react';
 import { useStore } from '../store';
 import AddGameModal from './AddGameModal';
 
 const GameCard = ({ game, onAdd }) => {
-  const { toggleFavorite } = useStore();
+  const { toggleFavorite, updateGame, categories } = useStore();
+  const [isEditingCategory, setIsEditingCategory] = useState(false);
+
+  const handleCategoryChange = (newCategory) => {
+    updateGame(game.id || game.title, { theme_clean: newCategory });
+    setIsEditingCategory(false);
+  };
 
   return (
     <div className="game-card">
@@ -38,7 +44,28 @@ const GameCard = ({ game, onAdd }) => {
       )}
 
       <div className="game-footer">
-        <span className="category-label">{game.theme_clean}</span>
+        {isEditingCategory ? (
+          <select 
+            autoFocus
+            className="search-input"
+            style={{ fontSize: '11px', padding: '2px 4px', height: 'auto', width: 'auto' }}
+            value={game.theme_clean}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            onBlur={() => setIsEditingCategory(false)}
+          >
+            {categories.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        ) : (
+          <div 
+            className="category-label" 
+            onClick={() => setIsEditingCategory(true)}
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+            title="Click to edit category"
+          >
+            {game.theme_clean}
+            <Pencil size={10} color="var(--text-dim)" />
+          </div>
+        )}
         <button 
           onClick={() => onAdd(game)}
           style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '500' }}
