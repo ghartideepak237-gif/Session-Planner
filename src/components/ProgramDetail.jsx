@@ -1,14 +1,16 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Calendar, FileDown, ArrowRight, CheckCircle2, Pencil } from 'lucide-react';
+import { ArrowLeft, Calendar, FileDown, ArrowRight, CheckCircle2, Pencil, Play } from 'lucide-react';
 import { useStore } from '../store';
 import { generateProgramPDF } from '../utils/pdfGenerator';
 import EditProgramModal from './EditProgramModal';
 import EditSessionModal from './EditSessionModal';
+import SessionOverviewModal from './SessionOverviewModal';
 
 export default function ProgramDetail() {
   const { programs, sessions, activeProgramId, setActiveTab, loadSessionToBuilder } = useStore();
   const [isEditingProgram, setIsEditingProgram] = useState(false);
   const [editingSession, setEditingSession] = useState(null);
+  const [sessionOverview, setSessionOverview] = useState(null);
   
   const program = programs.find(p => p.id === activeProgramId);
 
@@ -40,6 +42,7 @@ export default function ProgramDetail() {
     <>
     <EditProgramModal isOpen={isEditingProgram} onClose={() => setIsEditingProgram(false)} program={program} />
     <EditSessionModal isOpen={!!editingSession} onClose={() => setEditingSession(null)} session={editingSession} />
+    <SessionOverviewModal isOpen={!!sessionOverview} onClose={() => setSessionOverview(null)} session={sessionOverview} />
     
     <main className="container-max">
       
@@ -82,10 +85,11 @@ export default function ProgramDetail() {
 
               <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 'var(--spacing-3)' }}>
                 {weekSessions.map(session => {
-                  const isPlanned = session.selectedGames && session.selectedGames.length > 0;
+                  const games = session.selectedGames || [];
+                  const isPlanned = games.length > 0 && session.totalActualDuration > 0;
                   
                   return (
-                    <div key={session.id} className="builder-card" style={{ display: 'flex', flexDirection: 'column', borderColor: isPlanned ? 'var(--text-secondary)' : 'var(--border)' }}>
+                    <div key={session.id} className="builder-card" style={{ display: 'flex', flexDirection: 'column', borderColor: isPlanned ? 'var(--text-secondary)' : 'var(--border)', minHeight: '180px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-2)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <h4 style={{ fontSize: '13px', fontWeight: '600' }}>{session.sessionNumber}</h4>
@@ -97,22 +101,48 @@ export default function ProgramDetail() {
                             <Pencil size={12} />
                           </button>
                         </div>
-                        {isPlanned && <CheckCircle2 size={14} color="var(--accent)" />}
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPlanned ? '#22c55e' : 'var(--text-dim)' }}></div>
+                          <span style={{ fontSize: '10px', color: 'var(--text-dim)', fontWeight: 'bold', textTransform: 'uppercase' }}>
+                            {isPlanned ? 'Planned' : 'Not Planned'}
+                          </span>
+                        </div>
                       </div>
                       
                       <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-3)' }}>
-                        <p style={{ marginBottom: '2px' }}><span style={{ color: 'var(--text-dim)' }}>Theme:</span> {session.programTheme}</p>
-                        <p><span style={{ color: 'var(--text-dim)' }}>Focus:</span> {session.programFocus}</p>
-                        {isPlanned && <p style={{ marginTop: '8px', color: 'var(--text-main)', fontWeight: '500' }}>{session.totalActualDuration} min structured</p>}
+                        <p style={{ marginBottom: '2px' }}><span style={{ color: 'var(--text-dim)' }}>Theme:</span> {session.programTheme || wData.theme || 'General'}</p>
+                        <p><span style={{ color: 'var(--text-dim)' }}>Focus:</span> {session.programFocus || wData.focus || '-'}</p>
+                        {isPlanned && <p style={{ marginTop: '8px', color: 'var(--text-main)', fontWeight: '600' }}>{session.totalActualDuration} min structured</p>}
                       </div>
                       
-                      <button 
-                        className="btn-secondary" 
-                        style={{ marginTop: 'auto', width: '100%', justifyContent: 'center' }}
-                        onClick={() => handlePlanSession(session.id)}
-                      >
-                        {isPlanned ? 'Edit Session Flow' : 'Plan Session Flow'} <ArrowRight size={14} />
-                      </button>
+                      <div style={{ marginTop: 'auto', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {isPlanned ? (
+                          <>
+                            <button 
+                              className="btn-primary" 
+                              style={{ width: '100%', justifyContent: 'center' }}
+                              onClick={() => setSessionOverview(session)}
+                            >
+                              View Flow <Play size={12} fill="white" style={{ marginLeft: '4px' }} />
+                            </button>
+                            <button 
+                              className="btn-secondary" 
+                              style={{ width: '100%', justifyContent: 'center', borderStyle: 'dashed' }}
+                              onClick={() => handlePlanSession(session.id)}
+                            >
+                              Edit Session Flow
+                            </button>
+                          </>
+                        ) : (
+                          <button 
+                            className="btn-primary" 
+                            style={{ width: '100%', justifyContent: 'center' }}
+                            onClick={() => handlePlanSession(session.id)}
+                          >
+                            Plan Session Flow <ArrowRight size={14} />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })}
