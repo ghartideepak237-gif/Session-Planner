@@ -30,7 +30,11 @@ const mapLegacyToNewFields = (game) => {
     baseDurationNum: parseDuration(game.duration),
     energyType: game.energyType || energyType,
     engagementType: game.engagementType || engagementType,
-    // Removed difficulty via strict extraction if needed, but leaving it harmlessly attached is ok
+    description: game.description || game.rules || game.comments || '',
+    objective: game.objective || '',
+    context: game.context || '',
+    notes: game.notes || '',
+    facilitatorNotes: game.facilitatorNotes || ''
   };
 };
 
@@ -293,9 +297,13 @@ export const useStore = create((set, get) => ({
   })),
   addGameToSession: (game) => set((state) => {
     const currentLen = state.builder.selectedGames.length;
-    let newFlowPos = 'Core';
-    if (currentLen === 0) newFlowPos = 'Opening';
-    if (currentLen === 1) newFlowPos = 'Warm up';
+    let newFlowPos = FLOW_POSITIONS[0]; // Quick Engage ⚡
+    if (currentLen === 1) newFlowPos = FLOW_POSITIONS[1]; // Build Energy 🎯
+    if (currentLen === 2) newFlowPos = FLOW_POSITIONS[2]; // Core Interaction 🧠
+    if (currentLen >= 3) newFlowPos = FLOW_POSITIONS[2]; // Core Interaction 🧠
+    
+    // PEL Logic: If it's the last one being added, it could be Tadka 
+    // but usually user adds sequentially. 
     
     return {
       builder: { 
@@ -306,7 +314,15 @@ export const useStore = create((set, get) => ({
             ...game, 
             instanceId: uuidv4(),
             actualDuration: game.baseDurationNum,
-            flowPosition: newFlowPos
+            flowPosition: newFlowPos,
+            // Ensure zero info loss - explicitly map all fields
+            description: game.description || game.rules || '',
+            objective: game.objective || '',
+            context: game.context || '',
+            notes: game.notes || '',
+            facilitatorNotes: game.facilitatorNotes || '',
+            energyType: game.energyType || 'Interactive',
+            category: game.theme_clean || game.category || 'General'
           }
         ] 
       }

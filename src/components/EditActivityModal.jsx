@@ -17,6 +17,7 @@ export default function EditActivityModal({ isOpen, onClose, activity }) {
         category: activity.theme_clean || 'General',
         context: activity.context || '',
         objective: activity.objective || '',
+        description: activity.description || activity.rules || '',
         notes: activity.notes || '',
         facilitatorNotes: activity.facilitatorNotes || '',
         difficulty: activity.difficulty || 'Medium'
@@ -113,6 +114,16 @@ export default function EditActivityModal({ isOpen, onClose, activity }) {
               placeholder="e.g. Break silos, build trust..."
               value={formData.objective} 
               onChange={e => setFormData({...formData, objective: e.target.value})} 
+            />
+          </div>
+
+          <div>
+            <label className="form-label">Activity Description (Master)</label>
+            <textarea 
+              className="search-input" 
+              style={{ height: '80px' }}
+              value={formData.description} 
+              onChange={e => setFormData({...formData, description: e.target.value})} 
             />
           </div>
 

@@ -194,35 +194,41 @@ export default function SessionBuilder() {
         {/* GUIDANCE MODULES */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div className="builder-card" style={{ padding: '12px' }}>
-            <h3 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '8px' }}>PEL Session Flow</h3>
-            <p style={{ fontSize: '11px', color: 'var(--text-primary)', marginBottom: '4px', fontWeight: '500' }}>
-              Quick Engage → Build Energy → Core Interaction → Tadka
-            </p>
-            <ul style={{ fontSize: '11px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: 0 }}>
-              <li>Start fast.</li>
-              <li>Build interaction.</li>
-              <li>Go deeper.</li>
-              <li>End with energy.</li>
-            </ul>
+            <h3 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '8px' }}>PEL Flow Model</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--text-primary)', marginBottom: '2px', fontWeight: '600' }}>Quick Engage ⚡ (2-5 min)</p>
+                <p style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Fast, low-barrier activities to break silence.</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--text-primary)', marginBottom: '2px', fontWeight: '600' }}>Build Energy 🎯 (5-10 min)</p>
+                <p style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Interactive games: movement & collaboration.</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--text-primary)', marginBottom: '2px', fontWeight: '600' }}>Core Interaction 🧠 (10-20 min)</p>
+                <p style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Cognitive or emotional heart of the session.</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--text-primary)', marginBottom: '2px', fontWeight: '600' }}>Tadka 🔥 (High Energy)</p>
+                <p style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>Humor/Energy closing to leave on a high.</p>
+              </div>
+            </div>
           </div>
 
           <div className="builder-card" style={{ padding: '12px' }}>
             <h3 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '8px' }}>Execution Principles</h3>
-            <ul style={{ fontSize: '11px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: 0 }}>
-              <li>Keep transitions fast.</li>
-              <li>Avoid long pauses.</li>
-              <li>Maintain participation.</li>
-              <li>Move quickly between activities.</li>
+            <ul style={{ fontSize: '11px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: 0, display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <li><strong>Zero Dead Time</strong>: Transitions &lt; 15s.</li>
+              <li><strong>High Participation</strong>: No eliminations.</li>
+              <li><strong>Energy Discipline</strong>: Pivot if energy dips.</li>
+              <li><strong>Peak-End Rule</strong>: Stop while it's still fun.</li>
             </ul>
-            <div style={{ marginTop: '8px', padding: '4px', background: 'var(--bg-main)', borderRadius: '4px', fontSize: '10px', color: 'var(--text-dim)', textAlign: 'center' }}>
-              Ideal transition time &lt; 20 seconds.
-            </div>
           </div>
         </div>
 
         {suggestions.length > 0 && (
-          <div style={{ padding: '12px', background: 'rgba(255, 122, 47, 0.05)', border: '1px solid rgba(255, 122, 47, 0.2)', borderRadius: 'var(--radius-sm)' }}>
-            <h3 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '6px' }}>Smart Suggestions</h3>
+          <div style={{ padding: '12px', background: 'rgba(255, 122, 47, 0.05)', border: '1px solid rgba(255, 122, 47, 0.3)', borderRadius: 'var(--radius-sm)' }}>
+            <h3 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '6px' }}>SESSION STRUCTURE REQUIREMENTS</h3>
             <ul style={{ fontSize: '11px', color: 'var(--text-primary)', margin: 0, paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
               {suggestions.map((s, i) => <li key={i}>{s}</li>)}
             </ul>

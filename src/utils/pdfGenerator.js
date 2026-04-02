@@ -2,15 +2,16 @@ import jsPDF from 'jspdf';
 
 // DESIGN TOKENS
 const COLORS = {
-  accent: [255, 107, 53],
-  textMain: [20, 20, 20],
-  textSecondary: [55, 65, 81],
-  textDim: [107, 114, 128],
-  cardBorder: [229, 231, 235],
-  cardBg: [250, 250, 250],
-  divider: [229, 231, 235],
-  headerBg: [249, 250, 251],
-  tagBg: [243, 244, 246]
+  accent: [255, 122, 47],
+  lightAccent: [255, 248, 242],
+  textMain: [15, 23, 42],
+  textSecondary: [51, 65, 85],
+  textDim: [100, 116, 139],
+  cardBorder: [226, 232, 240],
+  cardBg: [255, 255, 255],
+  divider: [226, 232, 240],
+  headerBg: [248, 250, 252],
+  tagBg: [241, 245, 249]
 };
 
 const FONTS = {
@@ -66,21 +67,56 @@ const addFooter = (doc) => {
 const getActivityCardHeight = (doc, game, contentWidth) => {
     const p = MARGINS.cardPadding;
     const maxWidth = contentWidth - (p * 2);
-    let h = p; 
+    let h = p + 25; // Start padding + Title space
     
+    // Title
     doc.setFontSize(FONTS.title.size);
     const nameLines = doc.splitTextToSize(game.title, maxWidth);
-    h += (nameLines.length * 16) + 4;
+    h += (nameLines.length * 16);
     h += 14; // Meta Row
 
-    const sections = [game.objective, game.context, game.notes || game.rules || game.description].filter(Boolean);
-    sections.forEach(text => {
-        h += 12; // Label Gap
+    const sections = [
+        { label: 'Activity Description:', text: game.description || game.rules },
+        { label: 'Strategic Objective:', text: game.objective },
+        { label: 'Context / When to use:', text: game.context },
+        { label: 'Activity Notes:', text: game.notes },
+        { label: 'Facilitator Notes:', text: game.facilitatorNotes }
+    ].filter(s => s.text);
+
+    sections.forEach(s => {
+        h += 12; // Gap
         doc.setFontSize(FONTS.body.size);
-        const textLines = doc.splitTextToSize(text, maxWidth);
+        const textLines = doc.splitTextToSize(s.text, maxWidth);
         h += 15 + (textLines.length * 15); // Label + Text
     });
     return h + p;
+};
+
+const drawSessionNotes = (doc, notes, y, contentWidth) => {
+    if (!notes) return y;
+    const p = 15;
+    const maxWidth = contentWidth - (p * 2) - 10;
+    doc.setFontSize(FONTS.body.size);
+    const lines = doc.splitTextToSize(notes, maxWidth);
+    const h = (lines.length * 15) + (p * 2) + 20;
+
+    doc.setFillColor(...COLORS.lightAccent);
+    doc.roundedRect(MARGINS.x, y, contentWidth, h, 8, 8, 'F');
+    
+    doc.setFillColor(...COLORS.accent);
+    doc.rect(MARGINS.x, y, 4, h, 'F');
+
+    doc.setFontSize(FONTS.label.size);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(...COLORS.accent);
+    doc.text('SESSION NOTES (IMPORTANT FOR FACILITATOR)', MARGINS.x + 15, y + p + 5);
+    
+    doc.setFontSize(FONTS.body.size);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(...COLORS.textMain);
+    doc.text(lines, MARGINS.x + 15, y + p + 22);
+
+    return y + h + 30;
 };
 
 // SHARED CARD RENDERER
@@ -90,45 +126,46 @@ const drawActivityCard = (doc, game, index, y, contentWidth, isNested = false, o
     const h = getActivityCardHeight(doc, game, contentWidth);
     const pageHeight = doc.internal.pageSize.getHeight();
 
-    // STRICT ATOMIC PAGE BREAK
     if (y + h > pageHeight - MARGINS.bottom) {
         doc.addPage();
         if (onPageBreak) onPageBreak();
-        y = MARGINS.y + 30; // Start below header
+        y = MARGINS.y + 30;
         addFooter(doc);
     }
 
     doc.setDrawColor(...COLORS.cardBorder);
     doc.setFillColor(...(isNested ? [255, 255, 255] : COLORS.cardBg));
-    doc.setLineWidth(0.5);
+    doc.setLineWidth(1);
     doc.roundedRect(isNested ? MARGINS.x + 10 : MARGINS.x, y, isNested ? contentWidth - 20 : contentWidth, h, 8, 8, 'FD');
     
     let textY = y + p + 10;
     const drawX = (isNested ? MARGINS.x + 10 : MARGINS.x) + p;
     
-    // Title
     doc.setFontSize(FONTS.title.size);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...COLORS.textMain);
+    doc.setTextColor(...COLORS.accent);
     const nameLines = doc.splitTextToSize(`${index + 1}. ${game.title}`, maxWidth);
     doc.text(nameLines, drawX, textY);
     textY += (nameLines.length * 16) + 4;
     
-    // Meta
     doc.setFontSize(FONTS.meta.size);
+    doc.setFont('helvetica', 'bold');
+    const stageStr = (game.flowPosition || 'Activity').toUpperCase();
+    doc.setTextColor(...COLORS.textSecondary);
+    doc.text(stageStr, drawX, textY);
+    
     doc.setFont('helvetica', 'normal');
-    const metaStr = `${game.flowPosition} | ${game.category || game.theme_clean || 'Activity'} | ${game.actualDuration} min`;
+    const metaStr = `  |  ${game.category || 'General'}  |  ${game.actualDuration} min`;
     doc.setTextColor(...COLORS.textDim);
-    doc.text(metaStr, drawX, textY);
-    textY += 14;
+    doc.text(metaStr, drawX + doc.getTextWidth(stageStr), textY);
+    textY += 18;
     
     const sections = [];
-    if (game.objective) sections.push({ label: 'Objective:', text: game.objective });
-    if (game.context) sections.push({ label: 'Context:', text: game.context });
-    
-    const notes = game.notes || game.rules || game.description;
-    if (notes) sections.push({ label: 'Notes:', text: notes });
-    if (game.facilitatorNotes) sections.push({ label: 'Facilitator Notes:', text: game.facilitatorNotes });
+    if (game.description || game.rules) sections.push({ label: 'Activity Description:', text: game.description || game.rules });
+    if (game.objective) sections.push({ label: 'Strategic Objective:', text: game.objective });
+    if (game.context) sections.push({ label: 'Context / When to use:', text: game.context });
+    if (game.notes) sections.push({ label: 'Activity Notes:', text: game.notes });
+    if (game.facilitatorNotes) sections.push({ label: 'Facilitator Notes (Customized):', text: game.facilitatorNotes });
 
     sections.forEach(s => {
         textY += 12;
@@ -236,20 +273,7 @@ export const generateSessionPDF = async (session) => {
         y += headerH + 20;
 
         // --- SESSION NOTES ---
-        if (session.notes) {
-            doc.setFontSize(FONTS.label.size);
-            doc.setFont('helvetica', 'bold');
-            doc.setTextColor(...COLORS.textSecondary);
-            doc.text('SESSION NOTES:', MARGINS.x, y);
-            y += 18;
-            
-            doc.setFontSize(FONTS.body.size);
-            doc.setFont('helvetica', 'normal');
-            doc.setTextColor(...COLORS.textMain);
-            const notesLines = doc.splitTextToSize(session.notes, contentWidth);
-            doc.text(notesLines, MARGINS.x, y);
-            y += (notesLines.length * 15) + 20; // 20px gap after notes
-        }
+        y = drawSessionNotes(doc, session.notes, y, contentWidth);
 
         // --- SESSION FLOW STRUCTURE (PEL MODEL) ---
         if (session.selectedGames && session.selectedGames.length > 0) {
@@ -355,7 +379,12 @@ export const generateProgramPDF = async (program, sessionsList) => {
             doc.setTextColor(...COLORS.textMain);
             const objLines = doc.splitTextToSize(program.objective, contentWidth);
             doc.text(objLines, MARGINS.x, y);
-            y += (objLines.length * 15) + 40;
+            y += (objLines.length * 15) + 25;
+        }
+
+        // Program Level Session Notes
+        if (program.notes) {
+            y = drawSessionNotes(doc, program.notes, y, contentWidth);
         }
 
         if (program.duration > 0) {
