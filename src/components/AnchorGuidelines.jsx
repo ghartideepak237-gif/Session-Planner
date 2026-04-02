@@ -10,6 +10,7 @@ export default function AnchorGuidelines() {
     {
       id: 1,
       title: "Camera Policy (Friendly but Firm)",
+      accent: 'var(--glow-blue)',
       icon: <Video size={20} />,
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -35,6 +36,7 @@ export default function AnchorGuidelines() {
     {
       id: 2,
       title: "Session Opening Strategy (First 10 Mins)",
+      accent: 'var(--glow-gold)',
       icon: <Rocket size={20} />,
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -68,6 +70,7 @@ export default function AnchorGuidelines() {
     {
       id: 3,
       title: "Energy & Flow of Session",
+      accent: 'var(--glow-pink)',
       icon: <Wind size={20} />,
       content: (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -267,211 +270,133 @@ export default function AnchorGuidelines() {
   ];
 
   return (
-    <main className="container-max" style={{ paddingBottom: 'var(--spacing-6)' }}>
+    <main className="container-max v8-theme" style={{ padding: '60px 0', minHeight: '100vh' }}>
       <style>{`
-        .guidelines-grid {
+        .guidelines-grid-v9 {
           display: grid;
           grid-template-columns: repeat(2, 1fr);
-          gap: 20px;
+          gap: 32px;
         }
-        .guideline-card {
-          background: var(--bg-panel);
-          border: 1px solid var(--border);
-          border-radius: 12px;
-          padding: 20px;
-          display: flex;
-          flex-direction: column;
-          gap: 16px;
-          transition: all 0.2s ease;
-        }
-        .guideline-card:hover {
-          border-color: var(--accent);
-          box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        }
-        .guideline-header {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          color: var(--text-main);
-        }
-        .icon-wrapper {
-          width: 36px;
-          height: 36px;
-          border-radius: 8px;
-          background: var(--accent-glow);
-          color: var(--accent);
-          display: flex;
-          align-items: center;
-          justify-content: center;
-        }
-        .guideline-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-        .guideline-list li {
-          font-size: 13px;
-          color: var(--text-secondary);
-          padding-left: 20px;
+ 
+        .guideline-card-v9 {
+          background: var(--card-grad);
+          backdrop-filter: blur(20px);
+          -webkit-backdrop-filter: blur(20px);
+          border: 0.5px solid var(--border-main);
+          border-radius: 24px;
+          padding: 32px;
+          transition: all 0.4s var(--smooth);
           position: relative;
+          overflow: hidden;
         }
-        .guideline-list li::before {
-          content: '•';
-          position: absolute;
-          left: 0;
-          color: var(--accent);
+ 
+        .guideline-card-v9:hover {
+          background: linear-gradient(145deg, #11161C, #0C1015);
+          border-color: var(--border-accent);
+          transform: translateY(-4px);
+          box-shadow: 0 30px 60px rgba(0,0,0,0.5);
         }
-        .guideline-list-small {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
-        }
-        .guideline-list-small li {
-          font-size: 11px;
-          color: var(--text-dim);
-          padding-left: 12px;
-          position: relative;
-        }
-        .guideline-list-small li::before {
-          content: '-';
-          position: absolute;
-          left: 0;
-        }
-        .quote-box {
-          background: var(--bg-main);
-          border-left: 3px solid var(--accent);
-          padding: 10px 14px;
-          font-style: italic;
-          font-size: 12px;
-          color: var(--text-dim);
-        }
-        .status-pill {
-          font-size: 11px;
-          font-weight: 600;
-          padding: 4px 10px;
-          border-radius: 20px;
-        }
-        .status-success { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
-        .status-error { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
-        .note-box {
-          display: flex;
-          gap: 8px;
-          padding: 10px;
-          background: var(--bg-main);
-          border-radius: 6px;
-          font-size: 11px;
-          color: var(--text-dim);
-          align-items: flex-start;
-        }
-        .rule-box {
-          padding: 10px;
-          background: var(--bg-main);
-          border-right: 3px solid #ef4444;
-          font-size: 12px;
-          color: var(--text-secondary);
-        }
-        .sub-card {
-          padding: 12px;
-          background: var(--bg-main);
-          border: 1px solid var(--border);
-          border-radius: 8px;
-        }
-        .highlight-banner {
-          padding: 10px;
-          background: var(--bg-main);
-          border-left: 3px solid #f97316;
-          font-size: 13px;
+ 
+        .v9-guideline-header {
+          font-family: var(--font-serif);
+          font-size: 20px;
           font-weight: 700;
-          color: var(--text-main);
+          color: var(--text-primary);
+          margin-bottom: 20px;
         }
-        .principle-box {
-          background: var(--accent);
-          color: white;
-          padding: 10px;
-          border-radius: 6px;
-          font-size: 12px;
-          text-align: center;
-        }
-        .pill {
-          font-size: 11px;
-          padding: 4px 10px;
-          background: var(--bg-main);
-          border: 1px solid var(--border);
-          border-radius: 20px;
-          color: var(--text-secondary);
-        }
-        .check-item {
+ 
+        .v9-list {
+          list-style: none;
+          padding: 0;
+          margin: 0;
           display: flex;
-          align-items: center;
-          gap: 6px;
-          font-size: 12px;
+          flex-direction: column;
+          gap: 12px;
+        }
+ 
+        .v9-list li {
+          font-size: 14px;
           color: var(--text-secondary);
+          padding-left: 24px;
+          position: relative;
+          line-height: 1.6;
         }
-        .focus-box {
-          background: var(--bg-main);
-          border: 1px solid var(--accent);
-          padding: 10px;
-          border-radius: 6px;
-          font-size: 12px;
-          color: var(--text-secondary);
-          text-align: center;
+ 
+        .v9-list li::before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 10px;
+          width: 6px;
+          height: 1px;
+          background: var(--text-primary);
+          opacity: 0.4;
         }
-        .tiny-pill {
-          font-size: 10px;
-          padding: 2px 6px;
-          background: rgba(34, 197, 94, 0.1);
-          color: #22c55e;
-          border-radius: 4px;
+ 
+        .v9-quote {
+          background: rgba(255, 255, 255, 0.03);
+          border-left: 2px solid var(--accent-silver);
+          padding: 16px 20px;
+          font-style: italic;
+          font-size: 13px;
+          color: var(--text-muted);
+          margin-top: 16px;
+          border-radius: 0 12px 12px 0;
         }
-        .tiny-pill-error {
-          font-size: 10px;
-          padding: 2px 6px;
-          background: rgba(239, 68, 68, 0.1);
-          color: #ef4444;
-          border-radius: 4px;
+
+        .v7-subcard {
+          padding: 16px;
+          background: rgba(255, 255, 255, 0.02);
+          border: 0.5px solid rgba(255, 255, 255, 0.08);
+          border-radius: 16px;
+        }
+
+        .v7-highlight {
+          padding: 12px 16px;
+          background: rgba(255, 255, 255, 0.05);
+          border-left: 3px solid #FFFFFF;
+          font-size: 14px;
+          font-weight: 700;
+          color: #FFFFFF;
         }
       `}</style>
 
       {/* Header */}
-      <header style={{ marginBottom: '40px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '8px' }}>
-          <Zap color="var(--accent)" fill="var(--accent)" size={24} />
-          <h1 style={{ fontSize: '32px', fontWeight: '800', letterSpacing: '-0.02em', color: 'var(--text-main)' }}>SPIT Sessions</h1>
+      <header style={{ marginBottom: '60px', textAlign: 'center' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '12px' }}>
+          <Zap color="var(--accent-gold)" fill="var(--accent-gold)" size={28} />
+          <h1 style={{ fontSize: '42px', fontWeight: '800', fontFamily: 'var(--font-serif)', background: 'linear-gradient(to right, #FFF, var(--accent-gold))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>
+            Anchor <span style={{ fontStyle: 'italic', opacity: 0.7 }}>Playbook</span>
+          </h1>
         </div>
-        <p style={{ fontSize: '18px', color: 'var(--accent)', fontWeight: '600', marginBottom: '12px' }}>
-          Key Execution Guidelines (PEL)
-        </p>
-        <p style={{ fontSize: '14px', color: 'var(--text-dim)', maxWidth: '600px', margin: '0 auto' }}>
-          Facilitator execution playbook for high-fidelity social interaction and zero-loss engagement.
+        <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.4em', fontWeight: '700' }}>
+          Operational Excellence Protocols
         </p>
       </header>
-
-      <div className="guidelines-grid">
+ 
+      <div className="guidelines-grid-v9">
         {sections.map(section => (
-          <section key={section.id} className="guideline-card">
-            <div className="guideline-header">
-              <div className="icon-wrapper">
-                {section.icon}
-              </div>
-              <h2 style={{ fontSize: '16px', fontWeight: '700' }}>{section.title}</h2>
+          <section key={section.id} className="guideline-card-v9" style={{ boxShadow: section.accent ? `0 0 40px ${section.accent}` : 'none' }}>
+            <div style={{ 
+              width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(255,255,255,0.03)', 
+              color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', 
+              marginBottom: '20px', border: '0.5px solid var(--border-soft)'
+            }}>
+              {section.icon}
             </div>
-            <div className="guideline-content">
+            <h2 className="v9-guideline-header">{section.title}</h2>
+            <div className="guideline-content" style={{ position: 'relative', zIndex: 2 }}>
               {section.content}
             </div>
           </section>
         ))}
       </div>
-
-      <div style={{ marginTop: '40px', padding: '24px', background: 'var(--bg-panel)', border: '1px solid var(--accent)', borderRadius: '16px', textAlign: 'center' }}>
-        <h3 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--accent)', textTransform: 'uppercase', marginBottom: '12px', letterSpacing: '0.1em' }}>Core Execution Philosophy</h3>
-        <p style={{ fontSize: '18px', fontWeight: '700', color: 'var(--text-primary)' }}>
-          FAST • INTERACTIVE • PHYSICAL • ENGAGING • STRUCTURED • PREPARED
+ 
+      <div style={{ marginTop: '60px', padding: '60px 40px', background: 'var(--bg-panel)', border: '0.5px solid var(--border-main)', borderRadius: '32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'radial-gradient(circle at center, var(--glow-gold), transparent)', opacity: 0.1 }}></div>
+        <h3 style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '24px', letterSpacing: '0.3em' }}>System Core Philosophy</h3>
+        <p style={{ fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)', letterSpacing: '0.05em' }}>
+          FAST • <span style={{ color: 'var(--accent-gold)' }}>INTERACTIVE</span> • PHYSICAL • ENGAGING • STRUCTURED • PREPARED
         </p>
       </div>
 

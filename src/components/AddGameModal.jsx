@@ -66,31 +66,36 @@ export default function AddGameModal({ game, onClose }) {
 
   return (
     <AnimatePresence>
-      <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1000, padding: 'var(--spacing-4)' }}>
+      <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1000, padding: '40px' }}>
         <motion.div 
-          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          initial={{ opacity: 0, y: 30, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: 20, scale: 0.95 }}
-          className="modal-content"
-          style={{ maxWidth: '400px' }}
+          exit={{ opacity: 0, y: 30, scale: 0.98 }}
+          className="modal-content-v8"
+          style={{ maxWidth: '440px', background: 'var(--bg-deep)', border: '0.5px solid var(--border-main)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.8)' }}
           onClick={e => e.stopPropagation()}
         >
-          <div style={{ padding: 'var(--spacing-3)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2 style={{ fontSize: '16px', fontWeight: '600' }}>Route Activity</h2>
-            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}><X size={18} /></button>
+          <div style={{ padding: '24px', borderBottom: '0.5px solid var(--border-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <h2 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', margin: 0 }}>Route <span style={{ fontStyle: 'italic', color: 'var(--accent-gold)' }}>Activity</span></h2>
+            <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-inactive)', cursor: 'pointer' }}><X size={20} /></button>
           </div>
 
-          <div style={{ padding: 'var(--spacing-3)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+          <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
             
-            <div style={{ background: 'var(--bg-dark)', padding: 'var(--spacing-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-              <h3 style={{ fontSize: '14px', fontWeight: '600', marginBottom: '4px' }}>{game.title}</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Game duration: <strong style={{ color: 'var(--text-main)' }}>{originalDuration} min</strong></p>
+            <div style={{ background: 'var(--secondary)', padding: '20px', borderRadius: '16px', border: '0.5px solid var(--border-soft)' }}>
+              <h3 style={{ fontSize: '15px', fontWeight: '600', marginBottom: '4px', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)' }}>{game.title}</h3>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', margin: 0, fontFamily: 'var(--font-sans)' }}>Initial Allocation: <strong style={{ color: 'var(--text-primary)' }}>{originalDuration} min</strong></p>
             </div>
 
             <div>
-              <label className="form-label">Select Destination</label>
-              <select className="search-input" value={selectedTargetId} onChange={e => setSelectedTargetId(e.target.value)}>
-                <option value="new">+ Create new session flow</option>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '10px', fontFamily: 'var(--font-sans)' }}>Select Destination</label>
+              <select 
+                value={selectedTargetId} 
+                onChange={e => setSelectedTargetId(e.target.value)}
+                className="v8-input"
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border-soft)', color: 'var(--text-primary)', borderRadius: '12px', padding: '12px' }}
+              >
+                <option value="new">+ Initialize fresh session track</option>
                 {targetOptions.map(opt => (
                   <option key={opt.id} value={opt.id}>{opt.label}</option>
                 ))}
@@ -98,21 +103,25 @@ export default function AddGameModal({ game, onClose }) {
             </div>
 
             {selectedTargetId !== 'new' && (
-              <div style={{ padding: 'var(--spacing-2)', borderRadius: 'var(--radius-sm)', background: exceedsTime ? 'rgba(255, 60, 60, 0.05)' : 'var(--bg-dark)', border: `1px solid ${exceedsTime ? 'rgba(255, 60, 60, 0.2)' : 'var(--border)'}` }}>
-                <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginBottom: '4px' }}>Session Remaining Time: <strong style={{ color: 'var(--text-main)' }}>{remainingTime} min</strong></p>
-                <p style={{ fontSize: '13px', fontWeight: '600', color: exceedsTime ? '#ef4444' : 'var(--accent)' }}>
-                  Remaining after adding: {remainingAfter} min
+              <div style={{ padding: '16px', borderRadius: '16px', background: exceedsTime ? 'rgba(239, 68, 68, 0.05)' : 'rgba(125, 200, 255, 0.03)', border: `0.5px solid ${exceedsTime ? 'var(--danger)' : 'var(--border-accent)'}` }}>
+                <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px', fontFamily: 'var(--font-sans)' }}>Current Capacity: <strong style={{ color: 'var(--text-primary)' }}>{remainingTime} min</strong></p>
+                <p style={{ fontSize: '14px', fontWeight: '700', color: exceedsTime ? 'var(--danger)' : 'var(--accent-silver)', margin: 0, fontFamily: 'var(--font-serif)' }}>
+                  Projected remaining: {remainingAfter} min
                 </p>
                 {exceedsTime && (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#ef4444', fontSize: '12px', marginTop: 'var(--spacing-2)' }}>
-                    <AlertTriangle size={14} /> <span>This may exceed your session target time.</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--danger)', fontSize: '12px', marginTop: '12px', fontFamily: 'var(--font-sans)' }}>
+                    <AlertTriangle size={14} /> <span>Threshold exceeded: Duration exceeds available capacity.</span>
                   </div>
                 )}
               </div>
             )}
 
-            <button className="btn-primary" style={{ justifyContent: 'center', padding: '10px' }} onClick={handleRouteGame}>
-              Confirm Routing <ArrowRight size={14} />
+            <button 
+              className="btn-primary" 
+              style={{ justifyContent: 'center', padding: '14px', borderRadius: '14px', background: '#FFFFFF', color: '#000000', fontWeight: '700' }} 
+              onClick={handleRouteGame}
+            >
+              Confirm Deployment <ArrowRight size={14} style={{ marginLeft: '8px' }} />
             </button>
 
           </div>

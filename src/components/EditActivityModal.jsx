@@ -59,30 +59,34 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
   };
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 1000 }}>
-      <div className="modal-content" style={{ maxWidth: '500px' }}>
-        <div style={{ padding: 'var(--spacing-3)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600' }}>Edit Activity: {activity.title}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}>
+    <div className="modal-overlay" style={{ zIndex: 1000, background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(12px)' }}>
+      <div className="modal-content-v8" style={{ maxWidth: '600px', background: 'var(--bg-deep)', border: '0.5px solid var(--border-main)', borderRadius: '24px', overflow: 'hidden', boxShadow: '0 40px 100px rgba(0,0,0,0.8)' }}>
+        <div style={{ padding: '24px', borderBottom: '0.5px solid var(--border-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', margin: 0 }}>
+            Edit <span style={{ fontStyle: 'italic', color: 'var(--accent-gold)' }}>Activity</span>
+          </h3>
+          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-inactive)', cursor: 'pointer' }}>
             <X size={20} />
           </button>
         </div>
 
-        <div style={{ padding: 'var(--spacing-3)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)', maxHeight: '70vh', overflowY: 'auto' }}>
+        <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '24px', maxHeight: '75vh', overflowY: 'auto' }}>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-2)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label className="form-label">Activity Name</label>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>Activity Name</label>
               <input 
-                className="search-input" 
+                className="v8-input"
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border-soft)', color: 'var(--text-primary)', borderRadius: '12px', padding: '12px' }}
                 value={formData.title} 
                 onChange={e => setFormData({...formData, title: e.target.value})} 
               />
             </div>
             <div>
-              <label className="form-label">Category</label>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>Category</label>
               <select 
-                className="search-input" 
+                className="v8-input"
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border-soft)', color: 'var(--text-primary)', borderRadius: '12px', padding: '12px' }}
                 value={formData.category} 
                 onChange={e => setFormData({...formData, category: e.target.value})}
               >
@@ -91,20 +95,22 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
             </div>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-2)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
-              <label className="form-label">Planned Duration (min)</label>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>Planned Duration (min)</label>
               <input 
                 type="number" 
-                className="search-input" 
+                className="v8-input"
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border-soft)', color: 'var(--text-primary)', borderRadius: '12px', padding: '12px' }}
                 value={formData.actualDuration} 
                 onChange={e => setFormData({...formData, actualDuration: parseInt(e.target.value) || 0})} 
               />
             </div>
             <div>
-              <label className="form-label">Energy Stage (PEL Flow)</label>
+              <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>Energy Stage (PEL Flow)</label>
               <select 
-                className="search-input" 
+                className="v8-input"
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border-soft)', color: 'var(--text-primary)', borderRadius: '12px', padding: '12px' }}
                 value={formData.flowPosition} 
                 onChange={e => {
                    const val = e.target.value;
@@ -117,8 +123,8 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
           </div>
 
           <div>
-            <label className="form-label">Interaction Types (Multi-select)</label>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+            <label style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '10px' }}>Interaction Types</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
               {interactionTypes.map(type => {
                 const isSelected = formData.interaction_types?.includes(type);
                 return (
@@ -132,15 +138,16 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
                       setFormData({...formData, interaction_types: next});
                     }}
                     style={{
-                      padding: '4px 10px',
-                      borderRadius: '16px',
+                      padding: '6px 14px',
+                      borderRadius: '99px',
                       fontSize: '11px',
+                      fontWeight: '600',
                       cursor: 'pointer',
-                      border: '1px solid',
+                      border: '0.5px solid',
                       transition: 'all 0.2s',
-                      background: isSelected ? 'rgba(255, 122, 47, 0.15)' : 'var(--bg-surface)',
-                      borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
-                      color: isSelected ? 'var(--accent)' : 'var(--text-dim)'
+                      background: isSelected ? 'rgba(125,200,255,0.15)' : 'rgba(255,255,255,0.04)',
+                      borderColor: isSelected ? '#7dc8ff' : 'rgba(255,255,255,0.1)',
+                      color: isSelected ? '#7dc8ff' : 'rgba(255,255,255,0.4)'
                     }}
                   >
                     {type}
@@ -151,9 +158,10 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
           </div>
 
           <div>
-            <label className="form-label">Strategic Objective</label>
+            <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>Strategic Objective</label>
             <input 
-              className="search-input" 
+              className="v8-input"
+              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border-soft)', color: 'var(--text-primary)', borderRadius: '12px', padding: '12px' }}
               placeholder="e.g. Break silos, build trust..."
               value={formData.objective} 
               onChange={e => setFormData({...formData, objective: e.target.value})} 
@@ -161,100 +169,47 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
           </div>
 
           <div>
-            <label className="form-label">Activity Description (Master)</label>
+            <label style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>Activity Description</label>
             <textarea 
-              className="search-input" 
-              style={{ height: '80px' }}
+              className="v8-input"
+              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border-soft)', color: 'var(--text-primary)', borderRadius: '12px', padding: '12px', height: '100px', resize: 'none' }}
               value={formData.description} 
               onChange={e => setFormData({...formData, description: e.target.value})} 
             />
           </div>
 
-          <div>
-            <label className="form-label">Context / When to use</label>
-            <textarea 
-              className="search-input" 
-              style={{ height: '60px' }}
-              value={formData.context} 
-              onChange={e => setFormData({...formData, context: e.target.value})} 
-            />
-          </div>
-
-          <div>
-            <label className="form-label">Activity Notes</label>
-            <textarea 
-              className="search-input" 
-              style={{ height: '80px' }}
-              value={formData.notes} 
-              onChange={e => setFormData({...formData, notes: e.target.value})} 
-            />
-          </div>
-
-          <div>
-            <label className="form-label">Facilitator Notes (Customized for this session)</label>
-            <textarea 
-              className="search-input" 
-              style={{ height: '60px' }}
-              placeholder="e.g., Use the red markers for team A..."
-              value={formData.facilitatorNotes} 
-              onChange={e => setFormData({...formData, facilitatorNotes: e.target.value})} 
-            />
-          </div>
-
-          <div style={{ marginTop: 'var(--spacing-2)', paddingTop: 'var(--spacing-3)', borderTop: '1px solid var(--border)' }}>
-            <label className="form-label" style={{ marginBottom: '12px' }}>Save Method</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
-              <div 
-                onClick={() => setSaveMode('session')}
-                style={{ 
-                  padding: '12px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
-                  background: saveMode === 'session' ? 'rgba(255, 122, 47, 0.05)' : 'transparent',
-                  borderColor: saveMode === 'session' ? 'var(--accent)' : 'var(--border)'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Save size={14} color={saveMode === 'session' ? 'var(--accent)' : 'var(--text-dim)'} />
-                  <span style={{ fontSize: '13px', fontWeight: '600' }}>Edit this session only</span>
+          <div style={{ marginTop: '16px', paddingTop: '24px', borderTop: '0.5px solid rgba(255,255,255,0.1)' }}>
+            <label style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(255,255,255,0.2)', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '16px' }}>Save Specification</label>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
+              {[
+                { id: 'session', icon: <Save size={14} />, label: 'Current Session Only', desc: 'Local override only' },
+                { id: 'repository', icon: <Share2 size={14} />, label: 'Update Master', desc: 'Sync to library' },
+                { id: 'new', icon: <PlusCircle size={14} />, label: 'Save as New', desc: 'Create copy' }
+              ].map(opt => (
+                <div 
+                  key={opt.id}
+                  onClick={() => setSaveMode(opt.id)}
+                  style={{ 
+                    padding: '16px', border: '0.5px solid', borderRadius: '16px', cursor: 'pointer',
+                    background: saveMode === opt.id ? 'rgba(255, 255, 255, 0.08)' : 'rgba(255,255,255,0.02)',
+                    borderColor: saveMode === opt.id ? '#FFFFFF' : 'rgba(255,255,255,0.1)',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: saveMode === opt.id ? '#FFFFFF' : 'rgba(255,255,255,0.4)' }}>
+                    {opt.icon}
+                    <span style={{ fontSize: '12px', fontWeight: '700' }}>{opt.label}</span>
+                  </div>
+                  <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>{opt.desc}</p>
                 </div>
-                <p style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>Local override, does not affect the master repository.</p>
-              </div>
-
-              <div 
-                onClick={() => setSaveMode('repository')}
-                style={{ 
-                  padding: '12px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
-                  background: saveMode === 'repository' ? 'rgba(255, 122, 47, 0.05)' : 'transparent',
-                  borderColor: saveMode === 'repository' ? 'var(--accent)' : 'var(--border)'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Share2 size={14} color={saveMode === 'repository' ? 'var(--accent)' : 'var(--text-dim)'} />
-                  <span style={{ fontSize: '13px', fontWeight: '600' }}>Update repository version</span>
-                </div>
-                <p style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>Sync these changes back to the main activity library.</p>
-              </div>
-
-              <div 
-                onClick={() => setSaveMode('new')}
-                style={{ 
-                  padding: '12px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)', cursor: 'pointer',
-                  background: saveMode === 'new' ? 'rgba(255, 122, 47, 0.05)' : 'transparent',
-                  borderColor: saveMode === 'new' ? 'var(--accent)' : 'var(--border)'
-                }}
-              >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <PlusCircle size={14} color={saveMode === 'new' ? 'var(--accent)' : 'var(--text-dim)'} />
-                  <span style={{ fontSize: '13px', fontWeight: '600' }}>Save as new activity</span>
-                </div>
-                <p style={{ fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>Create a separate copy in the repository library.</p>
-              </div>
+              ))}
             </div>
           </div>
         </div>
 
-        <div style={{ padding: 'var(--spacing-3)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-2)' }}>
+        <div style={{ padding: '24px', borderTop: '0.5px solid rgba(255,255,255,0.1)', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
           <button className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn-primary" onClick={handleSave}>Apply Changes</button>
+          <button className="btn-primary" onClick={handleSave}>Confirm Changes</button>
         </div>
       </div>
     </div>
