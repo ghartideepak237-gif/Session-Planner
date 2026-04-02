@@ -56,24 +56,95 @@ export default function App() {
 
   if (!isAuthenticated) {
     return (
-      <div className="page-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', background: 'var(--bg-dark)' }}>
-        <div style={{ background: 'var(--bg-surface)', padding: 'var(--spacing-4)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border)', width: '100%', maxWidth: '400px', textAlign: 'center' }}>
-          <img src="/e-logo.png?v=2" alt="Logo" style={{ height: '48px', marginBottom: 'var(--spacing-2)' }} />
-          <h1 style={{ color: 'var(--text-main)', fontSize: '20px', marginBottom: '4px' }}>Session Planner Access</h1>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', marginBottom: 'var(--spacing-4)' }}>e-Socialize Program Tool</p>
-          
-          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
-            <input 
-              type="password" 
-              placeholder="Enter password" 
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{ padding: '10px 14px', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)', background: 'var(--bg-dark)', color: 'var(--text-main)', fontSize: '14px', outline: 'none' }}
-              autoFocus
-            />
-            {error && <p style={{ color: 'var(--accent)', fontSize: '12px', textAlign: 'left', marginTop: '-4px' }}>{error}</p>}
-            <button type="submit" className="btn-primary" style={{ justifyContent: 'center', padding: '10px' }}>Login</button>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        background: '#0B0D10',
+        fontFamily: "'DM Sans', sans-serif",
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Ambient glow */}
+        <div style={{ position: 'absolute', top: '-100px', left: '50%', transform: 'translateX(-50%)', width: '600px', height: '400px', background: 'radial-gradient(ellipse at center, rgba(125,211,252,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <div style={{ position: 'absolute', bottom: '-80px', right: '20%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(234,179,8,0.05) 0%, transparent 70%)', pointerEvents: 'none' }} />
+
+        <div style={{
+          background: 'rgba(15, 19, 24, 0.8)',
+          backdropFilter: 'blur(24px)',
+          WebkitBackdropFilter: 'blur(24px)',
+          border: '0.5px solid rgba(255,255,255,0.08)',
+          borderRadius: '24px',
+          padding: '48px 40px',
+          width: '100%',
+          maxWidth: '420px',
+          textAlign: 'center',
+          boxShadow: '0 40px 80px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.05) inset'
+        }}>
+          {/* Logo */}
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
+            <div style={{ width: '56px', height: '56px', background: 'linear-gradient(135deg, #EAB308, #F59E0B)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(234,179,8,0.3)' }}>
+              <img src="/e-logo.png?v=2" alt="Logo" style={{ height: '36px', width: '36px', objectFit: 'contain' }} />
+            </div>
+          </div>
+
+          {/* Heading */}
+          <h1 style={{ color: '#FFFFFF', fontSize: '22px', fontWeight: '700', margin: '0 0 6px 0', fontFamily: "'Playfair Display', serif", letterSpacing: '-0.01em' }}>Session Planner</h1>
+          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', margin: '0 0 32px 0', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '500' }}>e-Socialize Program Tool</p>
+
+          {/* Divider */}
+          <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent)', marginBottom: '32px' }} />
+
+          {/* Form */}
+          <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            <div style={{ position: 'relative' }}>
+              <input
+                type="password"
+                placeholder="Enter access password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '14px 16px',
+                  borderRadius: '12px',
+                  border: '0.5px solid rgba(255,255,255,0.1)',
+                  background: 'rgba(255,255,255,0.04)',
+                  color: '#FFFFFF',
+                  fontSize: '14px',
+                  outline: 'none',
+                  boxSizing: 'border-box',
+                  transition: 'border-color 0.2s',
+                  fontFamily: "'DM Sans', sans-serif"
+                }}
+                onFocus={(e) => e.target.style.borderColor = 'rgba(125,211,252,0.4)'}
+                onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
+                autoFocus
+              />
+            </div>
+            {error && <p style={{ color: '#F97316', fontSize: '12px', textAlign: 'left', margin: '-4px 0 0 4px', fontWeight: '500' }}>{error}</p>}
+            <button
+              type="submit"
+              style={{
+                padding: '14px',
+                borderRadius: '12px',
+                background: 'linear-gradient(135deg, rgba(125,211,252,0.15), rgba(125,211,252,0.05))',
+                border: '0.5px solid rgba(125,211,252,0.25)',
+                color: '#7DD3FC',
+                fontSize: '14px',
+                fontWeight: '700',
+                cursor: 'pointer',
+                transition: 'all 0.2s',
+                fontFamily: "'DM Sans', sans-serif",
+                letterSpacing: '0.02em'
+              }}
+              onMouseEnter={(e) => { e.target.style.background = 'linear-gradient(135deg, rgba(125,211,252,0.25), rgba(125,211,252,0.1))'; e.target.style.boxShadow = '0 8px 24px rgba(125,211,252,0.15)'; }}
+              onMouseLeave={(e) => { e.target.style.background = 'linear-gradient(135deg, rgba(125,211,252,0.15), rgba(125,211,252,0.05))'; e.target.style.boxShadow = 'none'; }}
+            >Access Planner →</button>
           </form>
+
+          {/* Footer */}
+          <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: '11px', marginTop: '28px', marginBottom: '0' }}>Positive Emotions Lab • Restricted Access</p>
         </div>
       </div>
     );
@@ -145,11 +216,7 @@ export default function App() {
               padding: 0
             }}
           >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="force-logout-svg" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
+            <span style={{ color: '#FFFFFF', fontSize: '11px', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Out</span>
           </button>
         </div>
       </nav>
