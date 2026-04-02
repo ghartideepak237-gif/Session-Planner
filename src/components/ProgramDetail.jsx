@@ -98,7 +98,7 @@ export default function ProgramDetail() {
         })()}
 
         {/* Weekly Roadmap */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '56px' }}>
           {Object.entries(weeklyMap).map(([week, weekSessions]) => {
             const wData = program.weeks?.find(wi => wi.week === parseInt(week)) || { theme: 'General', focus: '' };
             const focusPoints = wData.focus ? wData.focus.split(/[•\n,]+/).map(f => f.trim()).filter(Boolean) : [];
@@ -120,9 +120,9 @@ export default function ProgramDetail() {
                   )}
                 </div>
 
-                {/* Session Cards Grid - 2 columns */}
-                <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                  {weekSessions.map(session => {
+                {/* Session Cards - fixed width, left-aligned, no stretching */}
+                <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'flex-start' }}>
+                  {weekSessions.map((session, sessionIndex) => {
                     const isPlanned = session.selectedGames && session.selectedGames.length > 0 && session.totalActualDuration > 0;
                     const theme = session.programTheme || wData.theme || '';
                     const focus = session.programFocus || wData.focus || '';
@@ -130,6 +130,8 @@ export default function ProgramDetail() {
 
                     return (
                       <div key={session.id} style={{
+                        width: '270px',
+                        flexShrink: 0,
                         background: 'rgba(12,16,20,0.9)',
                         border: `0.5px solid ${isPlanned ? 'rgba(125,211,252,0.2)' : 'rgba(255,255,255,0.07)'}`,
                         borderRadius: '14px',
@@ -140,8 +142,12 @@ export default function ProgramDetail() {
                       }}>
                         {/* Card top: session number + status */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <span style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>{session.sessionNumber}</span>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            {/* Session order badge */}
+                            <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: isPlanned ? 'rgba(234,179,8,0.15)' : 'rgba(255,255,255,0.06)', border: `0.5px solid ${isPlanned ? 'rgba(234,179,8,0.3)' : 'rgba(255,255,255,0.1)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <span style={{ fontSize: '11px', fontWeight: '800', color: isPlanned ? 'var(--accent-gold)' : 'rgba(255,255,255,0.3)' }}>{sessionIndex + 1}</span>
+                            </div>
+                            <span style={{ fontSize: '13px', fontWeight: '700', color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>{session.sessionNumber}</span>
                             <button title="Edit" onClick={() => setEditingSession(session)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', padding: '2px' }}>
                               <Pencil size={11} />
                             </button>
