@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Plus } from 'lucide-react';
+import { Users, Plus, ArrowRight, LogOut, Zap } from 'lucide-react';
 import Repository from './components/Repository';
 import SessionBuilder from './components/SessionBuilder';
 import Programs from './components/Programs';
@@ -16,6 +16,13 @@ export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(() => localStorage.getItem('eSocializeAuth') === 'true');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => setScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     initialize();
@@ -74,31 +81,76 @@ export default function App() {
 
   return (
     <div className="page-wrapper">
-      <nav className="navbar">
-        <a href="/" className="logo-wrapper" style={{ textDecoration: 'none' }}>
-          <img src="/e-logo.png?v=2" alt="e-Socialize Logo" style={{ height: '28px', width: 'auto' }} />
+      <nav className={`glass-header ${scrolled ? 'scrolled' : ''}`} style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        padding: '20px 48px',
+      }}>
+        <a href="/" onClick={(e) => { e.preventDefault(); setActiveTab('repository'); }} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <div style={{ width: '40px', height: '40px', background: 'var(--accent-gold)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Zap size={22} color="#000" fill="#000" />
+          </div>
           <div className="logo-text">
-            <h1 style={{ color: 'var(--text-primary)' }}>Session Planner</h1>
-            <p>e-Socialize Program Tool</p>
+            <h1 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '18px', fontWeight: '700' }}>Session Planner</h1>
+            <p style={{ margin: 0, fontSize: '10px', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>e-Socialize Program Tool</p>
           </div>
         </a>
 
         <div className="nav-center">
-          <nav className="header-nav">
-            <button className={`nav-link ${activeTab === 'repository' ? 'active' : ''}`} onClick={() => setActiveTab('repository')}>Repository</button>
-            <button className={`nav-link ${(activeTab === 'builder' || activeTab === 'plan') ? 'active' : ''}`} onClick={() => setActiveTab('builder')}>Planner</button>
-            <button className={`nav-link ${(activeTab === 'programs' || activeTab === 'roadmap') ? 'active' : ''}`} onClick={() => setActiveTab('programs')}>Programs</button>
-            <button className={`nav-link ${activeTab === 'guidelines' ? 'active' : ''}`} onClick={() => setActiveTab('guidelines')}>Guidelines</button>
+          <nav className="header-nav" style={{ display: 'flex', gap: '8px' }}>
+            {['repository', 'builder', 'programs', 'guidelines'].map(tab => (
+              <button 
+                key={tab}
+                className={`nav-link ${activeTab === tab || (tab === 'builder' && activeTab === 'plan') || (tab === 'programs' && activeTab === 'roadmap') ? 'active' : ''}`} 
+                onClick={() => setActiveTab(tab)}
+                style={{
+                  background: activeTab === tab ? 'rgba(255,255,255,0.08)' : 'none',
+                  border: 'none',
+                  color: activeTab === tab ? 'var(--text-primary)' : 'var(--text-inactive)',
+                  padding: '8px 16px',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  fontWeight: '600',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {tab.charAt(0).toUpperCase() + tab.slice(1)}
+              </button>
+            ))}
           </nav>
         </div>
 
-        <div className="nav-actions">
+        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           {activeTab === 'repository' && (
-             <button className="btn-primary" onClick={() => setShowAddGame(true)}>
+             <button className="btn-primary" onClick={() => setShowAddGame(true)} style={{ padding: '10px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                <Plus size={14} /> Add Game
              </button>
           )}
-          <button className="btn-secondary" onClick={handleLogout} style={{ border: 'none', background: 'transparent' }}>Logout</button>
+          <button 
+            className="btn-secondary" 
+            onClick={handleLogout} 
+            title="Logout"
+            style={{ 
+              display: 'flex', 
+              alignItems: 'center', 
+              justifyContent: 'center', 
+              width: '40px', 
+              height: '40px', 
+              borderRadius: '50%',
+              background: 'rgba(255,255,255,0.05)',
+              border: '0.5px solid var(--border-soft)',
+              color: 'var(--text-primary)',
+              padding: 0
+            }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="force-logout-svg" strokeLinecap="round" strokeLinejoin="round" style={{ pointerEvents: 'none' }}>
+              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+              <polyline points="16 17 21 12 16 7" />
+              <line x1="21" y1="12" x2="9" y2="12" />
+            </svg>
+          </button>
         </div>
       </nav>
 
