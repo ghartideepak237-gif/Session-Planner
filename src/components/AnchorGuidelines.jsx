@@ -1,402 +1,402 @@
 import React from 'react';
-import { 
-  Video, Rocket, Wind, MessageCircle, Layers, CalendarCheck, 
-  Monitor, Heart, UserCheck, Timer, Layout, Globe, Star, 
-  Smartphone, CheckCircle2, AlertCircle, XCircle, Zap
+import {
+  Video, Rocket, Wind, MessageCircle, Layers, CalendarCheck,
+  Monitor, Heart, UserCheck, Timer, Layout, Globe, Star,
+  Smartphone, CheckCircle2, AlertCircle, XCircle, Zap, ArrowRight
 } from 'lucide-react';
 
+/* ─── Primitive components ─── */
+
+const Tag = ({ children, type = 'neutral' }) => {
+  const map = {
+    green:  { bg: 'rgba(34,197,94,0.1)',   border: 'rgba(34,197,94,0.25)',   color: '#4ade80'  },
+    red:    { bg: 'rgba(239,68,68,0.1)',    border: 'rgba(239,68,68,0.25)',   color: '#f87171'  },
+    orange: { bg: 'rgba(249,115,22,0.1)',   border: 'rgba(249,115,22,0.25)',  color: '#fb923c'  },
+    blue:   { bg: 'rgba(125,211,252,0.1)',  border: 'rgba(125,211,252,0.25)', color: '#7DD3FC'  },
+    gold:   { bg: 'rgba(234,179,8,0.1)',    border: 'rgba(234,179,8,0.3)',    color: '#EAB308'  },
+    neutral:{ bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)',  color: 'rgba(255,255,255,0.6)' },
+  };
+  const s = map[type];
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center',
+      padding: '2px 9px', background: s.bg, border: `0.5px solid ${s.border}`,
+      borderRadius: '99px', fontSize: '10px', fontWeight: '700',
+      color: s.color, whiteSpace: 'nowrap', letterSpacing: '0.02em'
+    }}>{children}</span>
+  );
+};
+
+const Bullet = ({ children }) => (
+  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: 1.55 }}>
+    <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', marginTop: '7px', flexShrink: 0 }} />
+    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>{children}</span>
+  </div>
+);
+
+const Callout = ({ children, type = 'info' }) => {
+  const map = {
+    info:    { border: '#7DD3FC', bg: 'rgba(125,211,252,0.04)' },
+    warning: { border: '#EAB308', bg: 'rgba(234,179,8,0.04)'   },
+    danger:  { border: '#f87171', bg: 'rgba(239,68,68,0.04)'   },
+    success: { border: '#4ade80', bg: 'rgba(34,197,94,0.04)'   },
+  };
+  const s = map[type];
+  return (
+    <div style={{
+      borderLeft: `2.5px solid ${s.border}`, background: s.bg,
+      padding: '8px 12px', borderRadius: '0 8px 8px 0',
+      fontSize: '11px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5
+    }}>{children}</div>
+  );
+};
+
+const Quote = ({ children }) => (
+  <div style={{
+    padding: '10px 14px', background: 'rgba(255,255,255,0.03)',
+    borderLeft: '2px solid rgba(125,211,252,0.3)',
+    borderRadius: '0 10px 10px 0',
+    fontSize: '11px', fontStyle: 'italic',
+    color: 'rgba(255,255,255,0.45)', lineHeight: 1.6
+  }}>{children}</div>
+);
+
+const Flow = ({ steps }) => (
+  <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '4px' }}>
+    {steps.map((s, i) => (
+      <React.Fragment key={i}>
+        <span style={{ padding: '3px 10px', background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '10px', fontWeight: '600', color: 'rgba(255,255,255,0.65)' }}>
+          {s}
+        </span>
+        {i < steps.length - 1 && <ArrowRight size={10} color="rgba(255,255,255,0.2)" />}
+      </React.Fragment>
+    ))}
+  </div>
+);
+
+const Divider = () => <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)', margin: '12px 0' }} />;
+
+const CardIcon = ({ icon, color }) => (
+  <div style={{
+    width: '36px', height: '36px', borderRadius: '10px', flexShrink: 0,
+    background: `${color}18`, border: `0.5px solid ${color}35`,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color
+  }}>{icon}</div>
+);
+
 export default function AnchorGuidelines() {
+  const card = {
+    background: 'rgba(11,16,22,0.85)',
+    backdropFilter: 'blur(20px)',
+    WebkitBackdropFilter: 'blur(20px)',
+    border: '0.5px solid rgba(255,255,255,0.08)',
+    borderRadius: '20px',
+    padding: '22px',
+    display: 'flex', flexDirection: 'column', gap: '12px',
+    transition: 'border-color 0.25s, box-shadow 0.25s',
+  };
+
   const sections = [
     {
-      id: 1,
-      title: "Camera Policy (Friendly but Firm)",
-      accent: 'var(--glow-blue)',
-      icon: <Video size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <ul className="guideline-list">
-            <li>Students should keep cameras <strong>ON</strong> from the first session itself.</li>
-            <li>Attendance should be linked to camera participation (except genuine technical issues).</li>
-            <li>Communicate this in a friendly but firm tone.</li>
-          </ul>
-          <div className="quote-box">
-            "We keep cameras on because these are social interaction sessions, not lectures. It helps everyone connect better."
+      icon: <Video size={16} />, iconColor: '#7DD3FC',
+      title: 'Camera Policy',
+      subtitle: 'Friendly but Firm',
+      body: (
+        <>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <Tag type="green">Camera ON → High Engagement</Tag>
+            <Tag type="red">No Camera → Disengaged</Tag>
           </div>
-          <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
-            <div className="status-pill status-success">Camera ON = High Engagement</div>
-            <div className="status-pill status-error">No Camera = Low Engagement</div>
-          </div>
-          <div className="note-box">
-            <AlertCircle size={14} />
-            <span>When someone is speaking, others may turn cameras off if mediator suggests to reduce distraction.</span>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 2,
-      title: "Session Opening Strategy (First 10 Mins)",
-      accent: 'var(--glow-gold)',
-      icon: <Rocket size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>We need 3–5 highly engaging starter activities which are Simple, Low-effort, and Create instant interaction.</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div className="sub-card">
-              <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--accent)', marginBottom: '8px' }}>QUICK INTERACTION</h4>
-              <ul className="guideline-list-small">
-                <li>Which colour do you feel like?</li>
-                <li>Show 1 object near you</li>
-                <li>Do something unique (tongue to nose etc)</li>
-                <li>Gesture games (mini dumb charades)</li>
-              </ul>
-            </div>
-            <div className="sub-card">
-              <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--accent)', marginBottom: '8px' }}>FASTEST FINGERS</h4>
-              <ul className="guideline-list-small">
-                <li>Type names on screen fastest</li>
-                <li>Team typing challenge</li>
-                <li>Touch the body part (Nose/Ear)</li>
-                <li>Quick team formation</li>
-              </ul>
-            </div>
-          </div>
-          <div className="rule-box">
-            <strong>IMPORTANT RULE:</strong> Games should be Short + High engagement (Best) or Long + High engagement (Acceptable). Avoid Long + Low engagement.
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 3,
-      title: "Energy & Flow of Session",
-      accent: 'var(--glow-pink)',
-      icon: <Wind size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div className="highlight-banner">Main objective: Session should feel lively, not slow.</div>
-          <ul className="guideline-list">
-            <li>Do not stay on one activity too long.</li>
-            <li>Maintain pace even with multiple activities.</li>
-            <li>Keep transitions smooth and quick.</li>
-            <li>Avoid dead silence. Keep students involved.</li>
-          </ul>
-          <div className="principle-box">
-            <strong>CORE PRINCIPLE:</strong> Do not give students time to judge each other — keep them engaged.
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 4,
-      title: "Speaking Participation Goal",
-      icon: <MessageCircle size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Outcome after Session 1: Students start speaking more, reduce hesitation, and increase comfort.</p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-            <div className="pill">Micro speaking opportunities</div>
-            <div className="pill">Small prompts</div>
-            <div className="pill">Quick sharing rounds</div>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 5,
-      title: "Standard Structure After Session 1",
-      icon: <Layers size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <p style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-secondary)' }}>EVERY SESSION MUST INCLUDE:</p>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <div className="check-item"><CheckCircle2 size={14} color="var(--accent)" /> Word cloud activity</div>
-            <div className="check-item"><CheckCircle2 size={14} color="var(--accent)" /> Session ratings</div>
-            <div className="check-item"><CheckCircle2 size={14} color="var(--accent)" /> Interactive participation</div>
-            <div className="check-item"><CheckCircle2 size={14} color="var(--accent)" /> Speaking opportunities</div>
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 6,
-      title: "Preparation Requirement",
-      icon: <CalendarCheck size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <ul className="guideline-list">
-            <li>Prepare sessions beforehand.</li>
-            <li>Finalize activities before session.</li>
-            <li>Do NOT improvise everything live.</li>
-          </ul>
-          <div className="rule-box" style={{ borderColor: 'var(--accent)' }}>
-            <strong>RULE:</strong> Prepared anchors perform better than spontaneous anchors.
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 7,
-      title: "Experience Enhancement Ideas",
-      icon: <Monitor size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Encourage students to Cast session to TV or join from bigger screens.</p>
-          <div className="note-box" style={{ background: 'rgba(255, 122, 47, 0.05)' }}>
-            <strong>REASON:</strong> Improves Experience, Engagement, and Seriousness toward session.
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 8,
-      title: "Engagement Philosophy",
-      icon: <Heart size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <p style={{ fontSize: '13px', fontWeight: '600' }}>We are different and unconventional.</p>
-          <ul className="guideline-list">
-            <li>Address awkwardness naturally.</li>
-            <li>Reduce social oddness through interaction.</li>
-            <li>Normalize participation.</li>
-          </ul>
-          <div className="focus-box">
-            <strong>FOCUS:</strong> Remove hesitation through activity, not lecture. Make interaction natural.
-          </div>
-        </div>
-      )
-    },
-    {
-      id: 9,
-      title: "Physical Involvement Requirement",
-      icon: <UserCheck size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div className="highlight-banner" style={{ borderLeftColor: '#22c55e' }}>Physical involvement = Higher engagement.</div>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Examples: Gesture games, Touch activities, Show objects, Movement prompts.</p>
-        </div>
-      )
-    },
-    {
-      id: 10,
-      title: "Time Discipline",
-      icon: <Timer size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-main)', padding: '12px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text-dim)' }}>DURATION</div>
-              <div style={{ fontSize: '16px', fontWeight: 'bold' }}>45 Min</div>
-            </div>
-            <div style={{ width: '1px', height: '24px', background: 'var(--border)' }}></div>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '10px', color: 'var(--text-dim)' }}>MAX LIMIT</div>
-              <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#ef4444' }}>50 Min</div>
-            </div>
-          </div>
-          <ul className="guideline-list">
-            <li>Start on time. End on time.</li>
-            <li>No overextension. Professional delivery matters.</li>
-          </ul>
-        </div>
-      )
-    },
-    {
-      id: 11,
-      title: "Session Design Principle",
-      icon: <Layout size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: 'rgba(34, 197, 94, 0.1)', color: '#22c55e', borderRadius: '6px', fontSize: '12px' }}>
-              <CheckCircle2 size={14} /> <strong>BEST:</strong> Short + High Engagement
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: 'rgba(255, 122, 47, 0.1)', color: 'var(--accent)', borderRadius: '6px', fontSize: '12px' }}>
-              <AlertCircle size={14} /> <strong>ACCEPTABLE:</strong> Long + High Engagement
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', borderRadius: '6px', fontSize: '12px' }}>
-              <XCircle size={14} /> <strong>AVOID:</strong> Long + Low Engagement
-            </div>
+            <Bullet>Cameras <strong style={{ color: '#FFFFFF' }}>ON</strong> from session 1. Link attendance to participation.</Bullet>
+            <Bullet>Communicate policy warmly — not as a punishment.</Bullet>
+            <Bullet>Exception only for genuine technical issues.</Bullet>
           </div>
-        </div>
+          <Quote>"Social interaction sessions — cameras help everyone connect, not lectures."</Quote>
+          <Callout type="info">When someone is speaking, mediator may suggest others turn off temporarily to reduce distraction.</Callout>
+        </>
       )
     },
     {
-      id: 12,
-      title: "Culture Communication Approach",
-      icon: <Globe size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>We do NOT need to repeatedly talk about Respect, Equality, or No judgment.</p>
-          <div className="highlight-banner" style={{ borderLeftColor: 'var(--accent)' }}>Show culture through design, not speeches.</div>
-          <p style={{ fontSize: '12px', color: 'var(--text-dim)' }}>Behavior should demonstrate values. Culture should reflect naturally through facilitation.</p>
-        </div>
+      icon: <Rocket size={16} />, iconColor: '#EAB308',
+      title: 'Session Opening',
+      subtitle: 'First 10 Minutes',
+      body: (
+        <>
+          <Callout type="warning">3–5 highly engaging starters needed — Simple. Low-effort. Instant interaction.</Callout>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '10px' }}>
+              <div style={{ fontSize: '9px', fontWeight: '800', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>Quick Interaction</div>
+              {['Colour you feel like?', 'Show 1 near object', 'Do something unique', 'Gesture game (dumb charades)'].map(t => <Bullet key={t}>{t}</Bullet>)}
+            </div>
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '10px' }}>
+              <div style={{ fontSize: '9px', fontWeight: '800', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>Fastest Fingers</div>
+              {['Type names fastest', 'Team typing challenge', 'Touch body part (Nose/Ear)', 'Quick team formation'].map(t => <Bullet key={t}>{t}</Bullet>)}
+            </div>
+          </div>
+        </>
       )
     },
     {
-      id: 13,
-      title: "Core Execution Philosophy",
-      icon: <Star size={20} />,
-      content: (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-          <div className="sub-card" style={{ borderColor: '#22c55e' }}>
-            <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: '#22c55e', marginBottom: '8px' }}>KEEP IT</h4>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-              {['Fast', 'Interactive', 'Physical', 'Engaging', 'Structured', 'Prepared'].map(t => <span key={t} className="tiny-pill">{t}</span>)}
-            </div>
+      icon: <Wind size={16} />, iconColor: '#f472b6',
+      title: 'Energy & Flow',
+      subtitle: 'Session Momentum',
+      body: (
+        <>
+          <div style={{ padding: '8px 12px', background: 'rgba(244,114,182,0.07)', border: '0.5px solid rgba(244,114,182,0.2)', borderRadius: '10px', fontSize: '12px', fontWeight: '600', color: '#f472b6', textAlign: 'center' }}>
+            Goal: Session feels lively, never slow
           </div>
-          <div className="sub-card" style={{ borderColor: '#ef4444' }}>
-            <h4 style={{ fontSize: '12px', fontWeight: 'bold', color: '#ef4444', marginBottom: '8px' }}>AVOID</h4>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-              {['Long explanations', 'Slow activities', 'Passive listening', 'Over explaining'].map(t => <span key={t} className="tiny-pill-error">{t}</span>)}
-            </div>
+          <Flow steps={['Opener', 'Core Activity', 'Quick Transition', 'Close — No Dead Silence']} />
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <Bullet>Don't stay on one activity too long.</Bullet>
+            <Bullet>Avoid dead silence — keep students continuously engaged.</Bullet>
+            <Bullet>Keep transitions smooth and quick.</Bullet>
           </div>
-        </div>
+          <Callout type="warning">Don't give students time to judge each other — momentum is your shield.</Callout>
+        </>
       )
     },
     {
-      id: 14,
-      title: "Participation Prediction",
-      icon: <Smartphone size={20} />,
-      content: (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-          <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Predict attendance by checking personally through WhatsApp.</p>
-          <div className="check-item"><CheckCircle2 size={14} color="var(--accent)" /> Estimate participation</div>
-          <div className="check-item"><CheckCircle2 size={14} color="var(--accent)" /> Improve preparation</div>
-          <div className="check-item"><CheckCircle2 size={14} color="var(--accent)" /> Reduce uncertainty</div>
-        </div>
+      icon: <Layout size={16} />, iconColor: '#a78bfa',
+      title: 'Activity Design Principle',
+      subtitle: 'Engagement Formula',
+      body: (
+        <>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {[
+              { icon: <CheckCircle2 size={13} />, color: '#4ade80', label: 'BEST', desc: 'Short + High Engagement' },
+              { icon: <AlertCircle size={13} />,   color: '#fb923c', label: 'OK',   desc: 'Long + High Engagement' },
+              { icon: <XCircle size={13} />,       color: '#f87171', label: 'AVOID',desc: 'Long + Low Engagement'  },
+            ].map(({ icon, color, label, desc }) => (
+              <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: `${color}12`, border: `0.5px solid ${color}30`, borderRadius: '9px', fontSize: '12px' }}>
+                <span style={{ color }}>{icon}</span>
+                <strong style={{ color, minWidth: '42px', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</strong>
+                <span style={{ color: 'rgba(255,255,255,0.6)' }}>{desc}</span>
+              </div>
+            ))}
+          </div>
+        </>
       )
-    }
+    },
+    {
+      icon: <MessageCircle size={16} />, iconColor: '#7DD3FC',
+      title: 'Speaking Participation',
+      subtitle: 'Building Comfort',
+      body: (
+        <>
+          <Callout type="info">After Session 1: Students start speaking more, reduce hesitation, increase comfort.</Callout>
+          <div style={{ display: 'flex', flexColumn: 'column', gap: '6px' }}>
+            <Bullet>Build micro speaking moments in every session.</Bullet>
+            <Bullet>Use small prompts and quick sharing rounds.</Bullet>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+            {['Micro speaking', 'Small prompts', 'Quick sharing', 'Name sharing', 'Group chats'].map(t => <Tag key={t} type="blue">{t}</Tag>)}
+          </div>
+        </>
+      )
+    },
+    {
+      icon: <Layers size={16} />, iconColor: '#4ade80',
+      title: 'Standard Session Structure',
+      subtitle: 'Every Session Must Have',
+      body: (
+        <>
+          <Flow steps={['Quick Open', 'Core Activity', 'Debrief', 'Word Cloud', 'Session Ratings']} />
+          <Divider />
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+            {['Word cloud activity', 'Session ratings', 'Interactive participation', 'Speaking opportunities'].map(t => (
+              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>
+                <CheckCircle2 size={11} color="#4ade80" />{t}
+              </div>
+            ))}
+          </div>
+        </>
+      )
+    },
+    {
+      icon: <CalendarCheck size={16} />, iconColor: '#EAB308',
+      title: 'Preparation Requirement',
+      subtitle: 'Before Every Session',
+      body: (
+        <>
+          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+            <Tag type="green">Prepared Anchor = Better Delivery</Tag>
+            <Tag type="red">No Improvisation</Tag>
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <Bullet>Prepare and finalize activities before the session starts.</Bullet>
+            <Bullet>Do <strong style={{ color: '#f87171' }}>NOT</strong> improvise everything live on the spot.</Bullet>
+          </div>
+          <Callout type="success">Prepared anchors consistently out-deliver spontaneous ones.</Callout>
+        </>
+      )
+    },
+    {
+      icon: <Monitor size={16} />, iconColor: '#7DD3FC',
+      title: 'Experience Enhancement',
+      subtitle: 'Screen & Setup Tips',
+      body: (
+        <>
+          <Bullet>Encourage students to cast session to TV or join from a bigger screen.</Bullet>
+          <Callout type="info"><strong style={{ color: '#7DD3FC' }}>Reason:</strong> A larger screen improves experience, engagement, and seriousness toward the session.</Callout>
+        </>
+      )
+    },
+    {
+      icon: <Heart size={16} />, iconColor: '#f472b6',
+      title: 'Engagement Philosophy',
+      subtitle: 'We are Unconventional',
+      body: (
+        <>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: '#FFFFFF', padding: '8px 12px', background: 'rgba(244,114,182,0.06)', border: '0.5px solid rgba(244,114,182,0.15)', borderRadius: '10px' }}>
+            Address awkwardness through activity, not by talking about it.
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            <Bullet>Address awkwardness naturally through interaction.</Bullet>
+            <Bullet>Normalise participation — don't lecture about it.</Bullet>
+            <Bullet>Make interaction feel natural, not forced.</Bullet>
+          </div>
+        </>
+      )
+    },
+    {
+      icon: <UserCheck size={16} />, iconColor: '#4ade80',
+      title: 'Physical Involvement',
+      subtitle: 'Presence = Engagement',
+      body: (
+        <>
+          <div style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.07)', border: '0.5px solid rgba(34,197,94,0.2)', borderRadius: '10px', fontSize: '12px', fontWeight: '700', color: '#4ade80', textAlign: 'center' }}>
+            Physical involvement = Higher engagement
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+            {['Gesture games', 'Touch activities', 'Show objects', 'Movement prompts'].map(t => <Tag key={t} type="green">{t}</Tag>)}
+          </div>
+        </>
+      )
+    },
+    {
+      icon: <Timer size={16} />, iconColor: '#f87171',
+      title: 'Time Discipline',
+      subtitle: 'Start on Time. End on Time.',
+      body: (
+        <>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            <div style={{ flex: 1, textAlign: 'center', background: 'rgba(34,197,94,0.07)', border: '0.5px solid rgba(34,197,94,0.2)', borderRadius: '10px', padding: '12px 8px' }}>
+              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Target</div>
+              <div style={{ fontSize: '28px', fontWeight: '800', color: '#4ade80', fontFamily: 'var(--font-serif)', lineHeight: 1.1 }}>45m</div>
+            </div>
+            <ArrowRight size={14} color="rgba(255,255,255,0.2)" />
+            <div style={{ flex: 1, textAlign: 'center', background: 'rgba(239,68,68,0.07)', border: '0.5px solid rgba(239,68,68,0.2)', borderRadius: '10px', padding: '12px 8px' }}>
+              <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Max Limit</div>
+              <div style={{ fontSize: '28px', fontWeight: '800', color: '#f87171', fontFamily: 'var(--font-serif)', lineHeight: 1.1 }}>50m</div>
+            </div>
+          </div>
+          <Bullet>No overextension — professional delivery matters.</Bullet>
+        </>
+      )
+    },
+    {
+      icon: <Globe size={16} />, iconColor: '#a78bfa',
+      title: 'Culture Communication',
+      subtitle: 'Show, Don\'t Tell',
+      body: (
+        <>
+          <Tag type="red">Don't lecture about Respect, Equality, No Judgment</Tag>
+          <div style={{ padding: '8px 12px', background: 'rgba(167,139,250,0.07)', border: '0.5px solid rgba(167,139,250,0.2)', borderRadius: '10px', fontSize: '12px', fontWeight: '600', color: '#a78bfa' }}>
+            Show culture through design, not speeches.
+          </div>
+          <Bullet>Values should reflect naturally through how you facilitate.</Bullet>
+          <Bullet>Behavior demonstrates culture more than words ever will.</Bullet>
+        </>
+      )
+    },
+    {
+      icon: <Star size={16} />, iconColor: '#EAB308',
+      title: 'Core Execution Philosophy',
+      subtitle: 'The 6 Pillars',
+      body: (
+        <>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+            {['Fast', 'Interactive', 'Physical', 'Engaging', 'Structured', 'Prepared'].map(t => <Tag key={t} type="gold">{t}</Tag>)}
+          </div>
+          <Divider />
+          <div style={{ fontSize: '9px', fontWeight: '800', color: 'rgba(255,255,255,0.25)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Avoid</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
+            {['Long explanations', 'Slow activities', 'Passive listening', 'Over-explaining'].map(t => <Tag key={t} type="red">✕ {t}</Tag>)}
+          </div>
+        </>
+      )
+    },
+    {
+      icon: <Smartphone size={16} />, iconColor: '#7DD3FC',
+      title: 'Participation Prediction',
+      subtitle: 'Know Before You Go',
+      body: (
+        <>
+          <Bullet>Check attendance personally via WhatsApp before every session.</Bullet>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+            {['Estimate participation count', 'Improve preparation accuracy', 'Reduce last-minute uncertainty'].map(t => (
+              <div key={t} style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'rgba(255,255,255,0.55)' }}>
+                <CheckCircle2 size={11} color="#4ade80" />{t}
+              </div>
+            ))}
+          </div>
+        </>
+      )
+    },
   ];
 
   return (
-    <main className="container-max v8-theme" style={{ padding: '60px 0', minHeight: '100vh' }}>
-      <style>{`
-        .guidelines-grid-v9 {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 32px;
-        }
- 
-        .guideline-card-v9 {
-          background: var(--card-grad);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 0.5px solid var(--border-main);
-          border-radius: 24px;
-          padding: 32px;
-          transition: all 0.4s var(--smooth);
-          position: relative;
-          overflow: hidden;
-        }
- 
-        .guideline-card-v9:hover {
-          background: linear-gradient(145deg, #11161C, #0C1015);
-          border-color: var(--border-accent);
-          transform: translateY(-4px);
-          box-shadow: 0 30px 60px rgba(0,0,0,0.5);
-        }
- 
-        .v9-guideline-header {
-          font-family: var(--font-serif);
-          font-size: 20px;
-          font-weight: 700;
-          color: var(--text-primary);
-          margin-bottom: 20px;
-        }
- 
-        .v9-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 12px;
-        }
- 
-        .v9-list li {
-          font-size: 14px;
-          color: var(--text-secondary);
-          padding-left: 24px;
-          position: relative;
-          line-height: 1.6;
-        }
- 
-        .v9-list li::before {
-          content: '';
-          position: absolute;
-          left: 0;
-          top: 10px;
-          width: 6px;
-          height: 1px;
-          background: var(--text-primary);
-          opacity: 0.4;
-        }
- 
-        .v9-quote {
-          background: rgba(255, 255, 255, 0.03);
-          border-left: 2px solid var(--accent-silver);
-          padding: 16px 20px;
-          font-style: italic;
-          font-size: 13px;
-          color: var(--text-muted);
-          margin-top: 16px;
-          border-radius: 0 12px 12px 0;
-        }
+    <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '48px 32px 80px' }}>
 
-        .v7-subcard {
-          padding: 16px;
-          background: rgba(255, 255, 255, 0.02);
-          border: 0.5px solid rgba(255, 255, 255, 0.08);
-          border-radius: 16px;
-        }
-
-        .v7-highlight {
-          padding: 12px 16px;
-          background: rgba(255, 255, 255, 0.05);
-          border-left: 3px solid #FFFFFF;
-          font-size: 14px;
-          font-weight: 700;
-          color: #FFFFFF;
-        }
-      `}</style>
-
-      {/* Header */}
-      <header style={{ marginBottom: '60px', textAlign: 'center' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '12px' }}>
-          <Zap color="var(--accent-gold)" fill="var(--accent-gold)" size={28} />
-          <h1 style={{ fontSize: '42px', fontWeight: '800', fontFamily: 'var(--font-serif)', background: 'linear-gradient(to right, #FFF, var(--accent-gold))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: 0 }}>
-            Anchor <span style={{ fontStyle: 'italic', opacity: 0.7 }}>Guideline</span>
+      {/* ── Header ── */}
+      <header style={{ marginBottom: '52px', textAlign: 'center' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+          <Zap color="#EAB308" fill="#EAB308" size={26} />
+          <h1 style={{ margin: 0, fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-serif)', color: '#FFFFFF', letterSpacing: '-0.02em' }}>
+            Anchor{' '}
+            <span style={{ color: '#EAB308', fontStyle: 'italic' }}>Guideline</span>
           </h1>
         </div>
-        <p style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.4em', fontWeight: '700' }}>
+        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.35em', fontWeight: '700', margin: 0 }}>
           Operational Excellence Protocols
         </p>
       </header>
- 
-      <div className="guidelines-grid-v9">
-        {sections.map(section => (
-          <section key={section.id} className="guideline-card-v9" style={{ boxShadow: section.accent ? `0 0 40px ${section.accent}` : 'none' }}>
-            <div style={{ 
-              width: '48px', height: '48px', borderRadius: '14px', background: 'rgba(255,255,255,0.03)', 
-              color: 'var(--text-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', 
-              marginBottom: '20px', border: '0.5px solid var(--border-soft)'
-            }}>
-              {section.icon}
+
+      {/* ── 2-Column Grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+        {sections.map((s, i) => (
+          <section key={i} style={card}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'; e.currentTarget.style.boxShadow = '0 16px 40px rgba(0,0,0,0.4)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none'; }}>
+
+            {/* Card header row */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <CardIcon icon={s.icon} color={s.iconColor} />
+              <div>
+                <div style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', fontFamily: 'var(--font-serif)', lineHeight: 1.2 }}>{s.title}</div>
+                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{s.subtitle}</div>
+              </div>
+              <div style={{ marginLeft: 'auto', width: '22px', height: '22px', borderRadius: '7px', background: `${s.iconColor}14`, border: `0.5px solid ${s.iconColor}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '800', color: s.iconColor, flexShrink: 0 }}>
+                {i + 1}
+              </div>
             </div>
-            <h2 className="v9-guideline-header">{section.title}</h2>
-            <div className="guideline-content" style={{ position: 'relative', zIndex: 2 }}>
-              {section.content}
+
+            <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {s.body}
             </div>
           </section>
         ))}
       </div>
- 
-      <div style={{ marginTop: '60px', padding: '60px 40px', background: 'var(--bg-panel)', border: '0.5px solid var(--border-main)', borderRadius: '32px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', background: 'radial-gradient(circle at center, var(--glow-gold), transparent)', opacity: 0.1 }}></div>
-        <h3 style={{ fontSize: '11px', fontWeight: '800', color: 'var(--text-muted)', textTransform: 'uppercase', marginBottom: '24px', letterSpacing: '0.3em' }}>System Core Philosophy</h3>
-        <p style={{ fontSize: '26px', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)', letterSpacing: '0.05em' }}>
-          FAST • <span style={{ color: 'var(--accent-gold)' }}>INTERACTIVE</span> • PHYSICAL • ENGAGING • STRUCTURED • PREPARED
+
+      {/* ── Footer Banner ── */}
+      <div style={{ marginTop: '48px', padding: '28px 40px', background: 'rgba(234,179,8,0.04)', border: '0.5px solid rgba(234,179,8,0.15)', borderRadius: '18px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '400px', height: '100%', background: 'radial-gradient(ellipse at center, rgba(234,179,8,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
+        <p style={{ fontSize: '20px', fontWeight: '700', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-serif)', letterSpacing: '0.04em', margin: 0 }}>
+          FAST &bull; <span style={{ color: '#EAB308' }}>INTERACTIVE</span> &bull; PHYSICAL &bull; ENGAGING &bull; STRUCTURED &bull; PREPARED
         </p>
       </div>
 
