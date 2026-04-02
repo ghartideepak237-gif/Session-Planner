@@ -3,8 +3,9 @@ import { Search, Shuffle, Star, Clock, Plus, ArrowRight, Zap, Users, Pencil, Tra
 import { useStore } from '../store';
 import AddGameModal from './AddGameModal';
 import ManageFoldersModal from './ManageFoldersModal';
+import EditActivityModal from './EditActivityModal';
 
-const GameCard = ({ game, onAdd }) => {
+const GameCard = ({ game, onAdd, onEdit }) => {
   const { toggleFavorite, updateGame, categories, folders, toggleActivityInFolder, deleteActivity, activeTab } = useStore();
   const [isEditingCategory, setIsEditingCategory] = useState(false);
   const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);

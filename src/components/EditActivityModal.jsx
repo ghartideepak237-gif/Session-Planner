@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { X, Save, Share2, PlusCircle } from 'lucide-react';
 import { useStore } from '../store';
 
-export default function EditActivityModal({ isOpen, onClose, activity }) {
-  const { updateActivityInSession, updateGame, addGame, energyTypes, flowPositions, categories } = useStore();
+export default function EditActivityModal({ isOpen, onClose, activity, mode = 'session' }) {
+  const { updateActivityInSession, updateGame, addGame, energyTypes, flowPositions, categories, interactionTypes } = useStore();
   const [formData, setFormData] = useState(null);
-  const [saveMode, setSaveMode] = useState('session'); // 'session', 'repository', 'new'
+  const [saveMode, setSaveMode] = useState(mode); // 'session', 'repository', 'new'
 
   useEffect(() => {
     if (activity) {
@@ -23,7 +23,12 @@ export default function EditActivityModal({ isOpen, onClose, activity }) {
         difficulty: activity.difficulty || 'Medium',
         interaction_types: activity.interaction_types || []
       });
-      setSaveMode('session');
+      // Set default save mode based on prop or presence of instanceId
+      if (mode === 'repository' || !activity.instanceId) {
+        setSaveMode('repository');
+      } else {
+        setSaveMode('session');
+      }
     }
   }, [activity]);
 
@@ -114,7 +119,7 @@ export default function EditActivityModal({ isOpen, onClose, activity }) {
           <div>
             <label className="form-label">Interaction Types (Multi-select)</label>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
-              {useStore.getState().interactionTypes.map(type => {
+              {interactionTypes.map(type => {
                 const isSelected = formData.interaction_types?.includes(type);
                 return (
                   <button
