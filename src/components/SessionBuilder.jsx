@@ -397,10 +397,10 @@ export default function SessionBuilder() {
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, overflow: 'hidden' }}>
             <div style={{ position: 'relative' }}>
-              <Search size={14} style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4, pointerEvents: 'none' }} />
+              <Search size={14} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', opacity: 0.4, pointerEvents: 'none', zIndex: 1 }} />
               <input 
                 placeholder="Search repository..." 
-                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)', color: '#FFFFFF', borderRadius: '99px', padding: '10px 16px 10px 38px', fontSize: '13px', boxSizing: 'border-box', outline: 'none' }}
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)', color: '#FFFFFF', borderRadius: '99px', padding: '10px 16px 10px 44px', fontSize: '13px', boxSizing: 'border-box', outline: 'none' }}
                 value={search} onChange={(e) => setSearch(e.target.value)}
               />
             </div>
