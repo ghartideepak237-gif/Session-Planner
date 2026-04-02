@@ -1,17 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Search, Save, FileDown, Plus, GripVertical, Trash2, FolderOpen, Copy, Activity, PenTool, Pencil, CheckCircle2, RotateCcw } from 'lucide-react';
+import { Search, Save, FileDown, Plus, GripVertical, Trash2, Copy, Pencil, CheckCircle2, RotateCcw, ChevronUp, ChevronDown, Folder } from 'lucide-react';
 import { useStore, computeSessionEnergy } from '../store';
 import { generateSessionPDF } from '../utils/pdfGenerator';
-import ReflectionModal from './ReflectionModal';
 import EditActivityModal from './EditActivityModal';
 import EditSessionModal from './EditSessionModal';
 
 export default function SessionBuilder() {
-  const { builder, setBuilderField, removeGameFromSession, reorderSessionGames, saveSession, games, addGameToSession, sessions, duplicateSession, loadSessionToBuilder, adjustGameDuration, setGameFlowPosition, flowPositions, categories, energyTypes, addGame, engagementTypes, setActiveTab, duplicateActivityInSession, autosaveStatus } = useStore();
+  const { builder, setBuilderField, removeGameFromSession, reorderSessionGames, saveSession, games, folders, addGameToSession, sessions, adjustGameDuration, categories, energyTypes, addGame, engagementTypes, duplicateActivityInSession, autosaveStatus, moveSessionGameUp, moveSessionGameDown } = useStore();
+  
   const [search, setSearch] = useState('');
+  const [selectedFolderId, setSelectedFolderId] = useState(null);
   const [isQuickAddingCustom, setIsQuickAddingCustom] = useState(false);
-  const [reflectionSessionId, setReflectionSessionId] = useState(null);
   const [editingActivity, setEditingActivity] = useState(null);
   const [isEditingSession, setIsEditingSession] = useState(false);
   const [customForm, setCustomForm] = useState({
@@ -23,10 +23,17 @@ export default function SessionBuilder() {
     reorderSessionGames(result.source.index, result.destination.index);
   };
 
-  const availableGames = games.filter(g => 
-    !search || g.title.toLowerCase().includes(search.toLowerCase())
-  );
-  
+  const availableGames = useMemo(() => {
+    let list = games;
+    if (selectedFolderId) {
+      list = list.filter(g => g.folder_id === selectedFolderId);
+    }
+    if (search) {
+      list = list.filter(g => g.title.toLowerCase().includes(search.toLowerCase()));
+    }
+    return list;
+  }, [games, selectedFolderId, search]);
+
   const favoriteGames = availableGames.filter(g => g.favorite);
   const remainingGames = availableGames.filter(g => !g.favorite);
 
@@ -43,7 +50,8 @@ export default function SessionBuilder() {
       id: crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(),
       cat_clean: 'Activity',
       engagementType: engagementTypes[0],
-      baseDurationNum: durationNum
+      baseDurationNum: durationNum,
+      folder_id: selectedFolderId || null
     };
 
     if (saveToRepo) addGame(newGame);
@@ -56,12 +64,11 @@ export default function SessionBuilder() {
   // Predictive timing
   const totalPlanned = builder.selectedGames.reduce((acc, g) => acc + g.actualDuration, 0);
   const remainingTime = builder.baseDuration - totalPlanned;
-  const sessionEnergy = computeSessionEnergy(builder.selectedGames);
-
-  let remainingColor = '#ef4444'; // Over time Red
-  if (remainingTime >= 10) remainingColor = '#22c55e'; // Green
-  else if (remainingTime >= 5) remainingColor = '#eab308'; // Yellow
-  else if (remainingTime >= 0) remainingColor = '#f97316'; // Orange
+  
+  let remainingColor = '#ef4444'; 
+  if (remainingTime >= 10) remainingColor = '#22c55e'; 
+  else if (remainingTime >= 5) remainingColor = '#eab308'; 
+  else if (remainingTime >= 0) remainingColor = '#f97316'; 
 
   // Compute Session Status
   const isSavedInStore = sessions.some(s => s.id === builder.id);
@@ -75,183 +82,77 @@ export default function SessionBuilder() {
 
   return (
     <>
-    <ReflectionModal sessionId={reflectionSessionId} onClose={() => setReflectionSessionId(null)} />
     <EditActivityModal isOpen={!!editingActivity} onClose={() => setEditingActivity(null)} activity={editingActivity} />
     <EditSessionModal isOpen={isEditingSession} onClose={() => setIsEditingSession(false)} session={builder} />
     
-    <main className="container-max" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) 300px', gap: 'var(--spacing-4)' }}>
+    <main className="container-max" style={{ display: 'grid', gridTemplateColumns: '250px minmax(0, 1fr) 320px', minHeight: 'calc(100vh - 80px)' }}>
       
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+      {/* COLUMN 1: Session Flow details & Summary */}
+      <aside style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)', paddingRight: '16px' }}>
         
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-2)' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-              <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-main)' }}>
-                {builder.sessionNumber || 'Untitled Workspace'}
-              </h2>
-              <button 
-                title="Edit Session Details"
-                onClick={() => setIsEditingSession(true)}
-                style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px', hover: { color: 'var(--text-main)' } }}
-              >
-                <Pencil size={14} />
-              </button>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '12px', fontWeight: '600', padding: '2px 8px', borderRadius: '12px', border: `1px solid ${statusColor}`, color: statusColor, background: 'var(--bg-transparent)' }}>
-                {sessionStatus}
-              </span>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-dim)', fontSize: '11px' }}>
-                {autosaveStatus === 'saving' ? (
-                  <>
-                    <RotateCcw size={10} className="spin" />
-                    <span>Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 size={10} color="#22c55e" />
-                    <span>Saved</span>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="builder-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-2)' }}>
-            <div>
-              <label className="form-label">College / Group</label>
-              <input 
-                value={builder.college} 
-                onChange={e => setBuilderField('college', e.target.value)}
-                className="search-input" placeholder="e.g. MIT Batch" 
-              />
-            </div>
-            <div>
-              <label className="form-label">Session Target Time (min)</label>
-              <input 
-                type="number"
-                value={builder.baseDuration} 
-                onChange={e => setBuilderField('baseDuration', parseInt(e.target.value) || 45)}
-                className="search-input" 
-              />
-            </div>
-          </div>
-        </div>
-
         <div>
-          <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', marginBottom: 'var(--spacing-2)' }}>Session Timeline</h3>
-          
-          {builder.selectedGames.length === 0 ? (
-            <div style={{ padding: 'var(--spacing-6) var(--spacing-3)', textAlign: 'center', border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)' }}>
-              <p style={{ fontSize: '14px', fontWeight: '500', marginBottom: 'var(--spacing-1)' }}>Start building your flow</p>
-              <p style={{ fontSize: '13px', color: 'var(--text-dim)' }}>Select activities from the repository to create your timeline.</p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold', color: 'var(--text-main)', lineHeight: '1.2' }}>
+              {builder.sessionNumber || 'Untitled Workspace'}
+            </h2>
+            <button 
+              title="Edit Session Details"
+              onClick={() => setIsEditingSession(true)}
+              style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: '4px' }}
+            >
+              <Pencil size={14} />
+            </button>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '8px' }}>
+            <span style={{ fontSize: '12px', fontWeight: '600', padding: '2px 8px', borderRadius: '12px', border: `1px solid ${statusColor}`, color: statusColor, background: 'var(--bg-transparent)' }}>
+              {sessionStatus}
+            </span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-dim)', fontSize: '11px' }}>
+              {autosaveStatus === 'saving' ? (
+                <><RotateCcw size={10} className="spin" /><span>Saving...</span></>
+              ) : (
+                <><CheckCircle2 size={10} color="#22c55e" /><span>Saved</span></>
+              )}
             </div>
-          ) : (
-            <div style={{ position: 'relative', paddingLeft: 'var(--spacing-4)' }}>
-              {/* Timeline connecting line */}
-              <div style={{ position: 'absolute', left: '26px', top: '24px', bottom: '24px', width: '2px', background: 'var(--border)' }}></div>
+          </div>
+        </div>
 
-              <DragDropContext onDragEnd={handleDragEnd}>
-                <Droppable droppableId="builder-list">
-                  {(provided) => (
-                    <div {...provided.droppableProps} ref={provided.innerRef} style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
-                      {builder.selectedGames.map((game, index) => (
-                        <Draggable key={game.instanceId} draggableId={game.instanceId} index={index}>
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              style={{ 
-                                ...provided.draggableProps.style,
-                                display: 'flex',
-                                alignItems: 'flex-start',
-                                gap: 'var(--spacing-2)',
-                                position: 'relative'
-                              }}
-                            >
-                              {/* Timeline Node dot */}
-                              <div style={{ position: 'absolute', left: '-27px', top: '16px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--bg-dark)', border: '2px solid var(--accent)', zIndex: 2 }}></div>
+        <div className="builder-card" style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)' }}>
+          <div>
+            <label className="form-label">College / Group</label>
+            <input 
+              value={builder.college} 
+              onChange={e => setBuilderField('college', e.target.value)}
+              className="search-input" placeholder="e.g. MIT Batch" 
+            />
+          </div>
+          <div>
+            <label className="form-label">Session Target Time (min)</label>
+            <input 
+              type="number"
+              value={builder.baseDuration} 
+              onChange={e => setBuilderField('baseDuration', parseInt(e.target.value) || 45)}
+              className="search-input" 
+            />
+          </div>
+        </div>
 
-                              <div className="builder-card" style={{ flex: 1, padding: 'var(--spacing-2)', borderColor: snapshot.isDragging ? 'var(--text-secondary)' : 'var(--border)' }}>
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 'var(--spacing-2)' }}>
-                                  
-                                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 'var(--spacing-2)' }}>
-                                    <GripVertical size={16} color="var(--text-dim)" {...provided.dragHandleProps} />
-                                    <div style={{ flex: 1 }}>
-                                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                        <h3 
-                                          title="Click to edit activity"
-                                          onClick={() => setEditingActivity(game)}
-                                          style={{ fontSize: '14px', fontWeight: '600', color: 'var(--text-main)', cursor: 'pointer' }}
-                                        >
-                                          {game.title}
-                                        </h3>
-                                        <div style={{ display: 'flex', gap: '4px' }}>
-                                          <button 
-                                            title="Edit Activity"
-                                            onClick={() => setEditingActivity(game)}
-                                            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '2px' }}
-                                          >
-                                            <Pencil size={12} />
-                                          </button>
-                                          <button 
-                                            title="Duplicate inside session"
-                                            onClick={() => duplicateActivityInSession(game.instanceId)}
-                                            style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '2px' }}
-                                          >
-                                            <Copy size={12} />
-                                          </button>
-                                        </div>
-                                      </div>
-                                      <div style={{ display: 'flex', gap: 'var(--spacing-2)', fontSize: '11px', color: 'var(--text-dim)', marginTop: '2px' }}>
-                                        <span>Org: {game.baseDurationNum}m</span>
-                                        <span>Plan: {game.actualDuration}m</span>
-                                        <span style={{ color: 'var(--accent)' }}>{game.flowPosition}</span>
-                                      </div>
-                                    </div>
-                                  </div>
-
-                                  <button onClick={() => removeGameFromSession(game.instanceId)} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '4px' }}>
-                                    <Trash2 size={14} />
-                                  </button>
-                                </div>
-
-                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-dark)', padding: 'var(--spacing-1) var(--spacing-2)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--border)' }}>
-                                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                                    <span style={{ fontSize: '10px', color: 'var(--text-dim)', fontWeight: '600', textTransform: 'uppercase' }}>Timing:</span>
-                                    <div style={{ display: 'flex', gap: '2px' }}>
-                                      {[-5, -1, 1, 5].map(delta => (
-                                        <button 
-                                          key={delta}
-                                          onClick={() => adjustGameDuration(game.instanceId, delta)}
-                                          className="btn-secondary" 
-                                          style={{ padding: '2px 4px', fontSize: '9px', minWidth: '24px' }}
-                                        >
-                                          {delta > 0 ? `+${delta}` : delta}
-                                        </button>
-                                      ))}
-                                    </div>
-                                  </div>
-
-                                  <div style={{ fontSize: '11px', fontWeight: 'bold', color: 'var(--text-main)' }}>
-                                    {game.actualDuration} min
-                                  </div>
-                                </div>
-                              </div>
-
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
-            </div>
-          )}
+        <div className="builder-card">
+          <h3 style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--text-dim)', marginBottom: '12px' }}>TIMING SUMMARY</h3>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Target Time:</span>
+            <span style={{ fontSize: '13px', fontWeight: '600' }}>{builder.baseDuration} min</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+            <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Planned:</span>
+            <span style={{ fontSize: '13px', fontWeight: '600', color: remainingTime < 0 ? '#ef4444' : 'var(--text-main)' }}>{totalPlanned} min</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
+            <span style={{ fontSize: '14px', fontWeight: '600' }}>Remaining:</span>
+            <span style={{ fontSize: '14px', fontWeight: 'bold', color: remainingColor }}>
+              {Math.abs(remainingTime)} min {remainingTime < 0 ? 'Over' : ''}
+            </span>
+          </div>
         </div>
 
         <div>
@@ -265,147 +166,235 @@ export default function SessionBuilder() {
           />
         </div>
 
-        <div style={{ display: 'flex', gap: 'var(--spacing-2)' }}>
-          <button className="btn-secondary" onClick={() => { saveSession(); }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)', marginTop: 'auto' }}>
+          <button className="btn-secondary" onClick={() => saveSession()} style={{ justifyContent: 'center' }}>
             <Save size={14} /> {autosaveStatus === 'saving' ? 'Saving...' : 'Save Plan'}
           </button>
-          <button className="btn-primary" onClick={() => generateSessionPDF(builder)}>
+          <button className="btn-primary" onClick={() => generateSessionPDF(builder)} style={{ justifyContent: 'center' }}>
             <FileDown size={14} /> Export PDF
           </button>
         </div>
+      </aside>
+
+      {/* COLUMN 2: Timeline Builder */}
+      <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '1px solid var(--border)', borderRight: '1px solid var(--border)', padding: '0 24px' }}>
+        <h3 style={{ fontSize: '16px', fontWeight: '600', color: 'var(--text-main)', marginBottom: 'var(--spacing-3)' }}>Session Timeline</h3>
+        
+        {builder.selectedGames.length === 0 ? (
+          <div style={{ padding: '48px 24px', textAlign: 'center', border: '1px dashed var(--border)', borderRadius: 'var(--radius-md)', background: 'var(--bg-surface)' }}>
+             <p style={{ fontSize: '15px', fontWeight: '500', marginBottom: '8px' }}>Timeline is empty</p>
+             <p style={{ fontSize: '13px', color: 'var(--text-dim)' }}>Select activities from the right panel to build your flow.</p>
+          </div>
+        ) : (
+          <div style={{ position: 'relative', paddingLeft: '24px' }}>
+            <div style={{ position: 'absolute', left: '6px', top: '24px', bottom: '24px', width: '2px', background: 'var(--border)' }}></div>
+
+            <DragDropContext onDragEnd={handleDragEnd}>
+              <Droppable droppableId="builder-list">
+                {(provided) => (
+                  <div {...provided.droppableProps} ref={provided.innerRef} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {builder.selectedGames.map((game, index) => (
+                      <Draggable key={game.instanceId} draggableId={game.instanceId} index={index}>
+                        {(provided, snapshot) => (
+                          <div
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            style={{ 
+                              ...provided.draggableProps.style,
+                              position: 'relative'
+                            }}
+                          >
+                            <div style={{ position: 'absolute', left: '-23px', top: '20px', width: '10px', height: '10px', borderRadius: '50%', background: 'var(--bg-main)', border: '2px solid var(--accent)', zIndex: 2 }}></div>
+
+                            <div 
+                              className="builder-card" 
+                              style={{ 
+                                padding: '12px', 
+                                background: 'var(--bg-card)', 
+                                border: '1px solid var(--border)', 
+                                borderRadius: '8px',
+                                boxShadow: '0 4px 12px rgba(0,0,0,0.25)',
+                                borderColor: snapshot.isDragging ? 'var(--text-secondary)' : 'var(--border)' 
+                              }}
+                            >
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '8px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <div {...provided.dragHandleProps} style={{ cursor: 'grab', padding: '4px', margin: '-4px' }}>
+                                    <GripVertical size={16} color="var(--text-dim)" />
+                                  </div>
+                                  <div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                      <h3 
+                                        onClick={() => setEditingActivity(game)}
+                                        style={{ fontSize: '15px', fontWeight: '600', color: 'var(--text-main)', cursor: 'pointer', margin: 0 }}
+                                      >
+                                        {game.title}
+                                      </h3>
+                                      <div style={{ display: 'flex', gap: '2px' }}>
+                                        <button onClick={() => setEditingActivity(game)} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}><Pencil size={12} /></button>
+                                        <button onClick={() => duplicateActivityInSession(game.instanceId)} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}><Copy size={12} /></button>
+                                      </div>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '8px', fontSize: '11px', color: 'var(--text-dim)', marginTop: '4px' }}>
+                                      <span style={{ color: 'var(--accent)' }}>{game.flowPosition}</span>
+                                      <span>• Org: {game.baseDurationNum}m</span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
+                                  <div style={{ display: 'flex', gap: '2px' }}>
+                                    <button onClick={() => moveSessionGameUp(game.instanceId)} disabled={index === 0} style={{ background: 'none', border: 'none', color: index === 0 ? 'transparent' : 'var(--text-dim)', cursor: 'pointer', padding: '2px' }} title="Move Up"><ChevronUp size={14} /></button>
+                                    <button onClick={() => moveSessionGameDown(game.instanceId)} disabled={index === builder.selectedGames.length - 1} style={{ background: 'none', border: 'none', color: index === builder.selectedGames.length - 1 ? 'transparent' : 'var(--text-dim)', cursor: 'pointer', padding: '2px' }} title="Move Down"><ChevronDown size={14} /></button>
+                                  </div>
+                                  <button onClick={() => removeGameFromSession(game.instanceId)} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '4px', hover: { color: '#ef4444' } }}>
+                                    <Trash2 size={14} />
+                                  </button>
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'var(--bg-panel)', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--border)', marginTop: '12px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                  <span style={{ fontSize: '11px', color: 'var(--text-dim)', fontWeight: '600' }}>ADJUST TIME:</span>
+                                  <div style={{ display: 'flex', gap: '4px' }}>
+                                    {[-5, -1, 1, 5].map(delta => (
+                                      <button 
+                                        key={delta}
+                                        onClick={() => adjustGameDuration(game.instanceId, delta)}
+                                        className="btn-secondary" 
+                                        style={{ padding: '2px 6px', fontSize: '10px' }}
+                                      >
+                                        {delta > 0 ? `+${delta}` : delta}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+
+                                <div style={{ fontSize: '13px', fontWeight: 'bold', color: 'var(--text-main)' }}>
+                                  {game.actualDuration} min
+                                </div>
+                              </div>
+                            </div>
+
+                          </div>
+                        )}
+                      </Draggable>
+                    ))}
+                    {provided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
+          </div>
+        )}
       </div>
 
-
-      <aside style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+      {/* COLUMN 3: Repository Quick Pick */}
+      <aside style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)', background: 'var(--bg-panel)', padding: '16px', marginLeft: '16px', borderRadius: '12px', border: '1px solid var(--border)', maxHeight: 'calc(100vh - 100px)' }}>
         
-        <div className="builder-card" style={{ position: 'sticky', top: 'var(--spacing-4)' }}>
-          <h3 style={{ fontSize: '12px', fontWeight: 'bold', letterSpacing: '0.05em', color: 'var(--text-dim)', marginBottom: 'var(--spacing-3)' }}>SESSION SUMMARY</h3>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Total games:</span>
-            <span style={{ fontSize: '14px', fontWeight: '600' }}>{builder.selectedGames.length}</span>
-          </div>
-          
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Session Time:</span>
-            <span style={{ fontSize: '14px', fontWeight: '600' }}>{builder.baseDuration} min</span>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-            <span style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>Planned:</span>
-            <span style={{ fontSize: '14px', fontWeight: '600', color: remainingTime < 0 ? '#ef4444' : 'var(--text-main)' }}>{totalPlanned} min</span>
-          </div>
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--border)' }}>
-            <span style={{ fontSize: '16px', fontWeight: '600' }}>Remaining:</span>
-            <span style={{ fontSize: '16px', fontWeight: 'bold', color: remainingColor }}>
-              {Math.abs(remainingTime)} min {remainingTime < 0 ? 'Over' : ''}
-            </span>
-          </div>
-
-          {remainingTime < 0 && (
-            <div style={{ marginTop: 'var(--spacing-3)', padding: 'var(--spacing-2)', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: 'var(--radius-sm)' }}>
-              <p style={{ fontSize: '12px', color: '#ef4444', fontWeight: '600', textAlign: 'center' }}>
-                Session exceeds time by {Math.abs(remainingTime)} min
-              </p>
-            </div>
-          )}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
+          <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>
+            {isQuickAddingCustom ? 'Custom Activity' : 'Repository'}
+          </h3>
+          <button 
+            onClick={() => setIsQuickAddingCustom(!isQuickAddingCustom)}
+            className="btn-secondary" style={{ padding: '2px 8px', fontSize: '11px' }}
+          >
+            {isQuickAddingCustom ? 'Back to Library' : '+ Custom'}
+          </button>
         </div>
 
-        <div className="builder-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', maxHeight: 'calc(100vh - 350px)' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-2)' }}>
-            <h3 style={{ fontSize: '13px', fontWeight: '500', color: 'var(--text-secondary)' }}>
-              {isQuickAddingCustom ? 'New Custom Activity' : 'Quick Add Repository'}
-            </h3>
-            <button 
-              onClick={() => setIsQuickAddingCustom(!isQuickAddingCustom)}
-              className="btn-secondary" style={{ padding: '2px 8px', fontSize: '11px' }}
-            >
-              {isQuickAddingCustom ? 'Cancel' : '+ Custom Game'}
-            </button>
-          </div>
-
-          {isQuickAddingCustom ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)', flex: 1, overflowY: 'auto' }}>
-              <input placeholder="Game Name *" className="search-input" value={customForm.title} onChange={e => setCustomForm({...customForm, title: e.target.value})} autoFocus />
-              <div style={{ display: 'flex', gap: 'var(--spacing-1)' }}>
-                <input placeholder="Duration (min) *" className="search-input" style={{ width: '50%' }} value={customForm.duration} onChange={e => setCustomForm({...customForm, duration: e.target.value})} />
-                <select className="search-input" style={{ width: '50%' }} value={customForm.energyType} onChange={e => setCustomForm({...customForm, energyType: e.target.value})}>
-                  {energyTypes.map(t => <option key={t} value={t}>{t}</option>)}
-                </select>
-              </div>
-              <select className="search-input" value={customForm.theme_clean} onChange={e => setCustomForm({...customForm, theme_clean: e.target.value})}>
-                {categories.map(c => <option key={c} value={c}>{c}</option>)}
+        {isQuickAddingCustom ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)', flex: 1, overflowY: 'auto' }}>
+            <input placeholder="Game Name *" className="search-input" value={customForm.title} onChange={e => setCustomForm({...customForm, title: e.target.value})} autoFocus />
+            <div style={{ display: 'flex', gap: 'var(--spacing-1)' }}>
+              <input placeholder="Duration (min) *" className="search-input" style={{ width: '50%' }} value={customForm.duration} onChange={e => setCustomForm({...customForm, duration: e.target.value})} />
+              <select className="search-input" style={{ width: '50%' }} value={customForm.energyType} onChange={e => setCustomForm({...customForm, energyType: e.target.value})}>
+                {energyTypes.map(t => <option key={t} value={t}>{t}</option>)}
               </select>
-              <textarea placeholder="Description (optional)" className="search-input" rows="2" style={{ resize: 'vertical' }} value={customForm.rules} onChange={e => setCustomForm({...customForm, rules: e.target.value})} />
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-1)', marginTop: 'var(--spacing-2)' }}>
-                <button className="btn-primary" style={{ justifyContent: 'center' }} onClick={() => handleCustomGameSave(true)}>Save to Session + Repository</button>
-              </div>
             </div>
-          ) : (
-            <>
-              <div className="search-container" style={{ marginBottom: 'var(--spacing-2)' }}>
-                <Search className="search-icon" size={12} />
-                <input 
-                  type="text" placeholder="Search..." className="search-input"
-                  value={search} onChange={(e) => setSearch(e.target.value)}
-                />
+            <select className="search-input" value={customForm.theme_clean} onChange={e => setCustomForm({...customForm, theme_clean: e.target.value})}>
+              {categories.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <textarea placeholder="Description (optional)" className="search-input" rows="2" style={{ resize: 'vertical' }} value={customForm.rules} onChange={e => setCustomForm({...customForm, rules: e.target.value})} />
+            <button className="btn-primary" style={{ justifyContent: 'center', marginTop: '4px' }} onClick={() => handleCustomGameSave(true)}>Add to Session</button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1, overflowY: 'hidden' }}>
+            <div className="search-container">
+              <Search className="search-icon" size={14} />
+              <input 
+                type="text" placeholder="Search activities..." className="search-input"
+                style={{ background: 'var(--bg-main)', border: '1px solid var(--border)' }}
+                value={search} onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+
+            {/* Folders List */}
+            {folders && folders.length > 0 && (
+              <div style={{ display: 'flex', gap: '8px', overflowX: 'auto', paddingBottom: '4px' }} className="hide-scrollbar">
+                <button 
+                  onClick={() => setSelectedFolderId(null)}
+                  className={`pill ${selectedFolderId === null ? 'active' : ''}`}
+                  style={{ whiteSpace: 'nowrap', fontSize: '11px', padding: '4px 10px' }}
+                >
+                  All
+                </button>
+                {folders.map(f => (
+                  <button 
+                    key={f.id}
+                    onClick={() => setSelectedFolderId(f.id)}
+                    className={`pill ${selectedFolderId === f.id ? 'active' : ''}`}
+                    style={{ whiteSpace: 'nowrap', fontSize: '11px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    <Folder size={10} /> {f.name}
+                  </button>
+                ))}
               </div>
+            )}
 
-              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', paddingRight: '4px' }}>
-                
-                {favoriteGames.length > 0 && (
-                  <div style={{ marginBottom: 'var(--spacing-3)' }}>
-                    <h4 style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)', margin: 'var(--spacing-1) 0 var(--spacing-2) 0', paddingLeft: '4px' }}>
-                      Favorite Activities
-                    </h4>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-1)' }}>
-                      {favoriteGames.map(game => (
-                        <div key={game.title} className="builder-row" style={{ padding: '8px', background: 'transparent' }}>
-                          <div style={{ flex: 1 }}>
-                            <h5 style={{ fontSize: '12px', fontWeight: '600' }}>{game.title}</h5>
-                            <div style={{ fontSize: '10px', color: 'var(--text-dim)' }}>{game.baseDurationNum}m • {game.energyType}</div>
-                          </div>
-                          <button 
-                            onClick={() => addGameToSession(game)}
-                            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '4px', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-main)' }}
-                          ><Plus size={12} /></button>
+            {/* Activities List */}
+            <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', paddingRight: '4px' }}>
+              {favoriteGames.length > 0 && !search && !selectedFolderId && (
+                <div style={{ marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)', margin: '0 0 8px 4px' }}>Favorites</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {favoriteGames.map(game => (
+                      <div key={game.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.25)' }}>
+                        <div style={{ flex: 1 }}>
+                          <h5 style={{ fontSize: '13px', fontWeight: '600', margin: '0 0 2px 0' }}>{game.title}</h5>
+                          <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>{game.baseDurationNum}m • {game.energyType}</div>
                         </div>
-                      ))}
-                    </div>
+                        <button onClick={() => addGameToSession(game)} style={{ background: 'var(--bg-hover)', border: '1px solid var(--border)', borderRadius: '6px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-main)', transition: 'background 0.2s' }}><Plus size={14} /></button>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
 
-                {remainingGames.length > 0 && (
-                  <div>
-                    {favoriteGames.length > 0 && (
-                      <h4 style={{ fontSize: '11px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--text-dim)', margin: '0 0 var(--spacing-2) 0', paddingLeft: '4px' }}>
-                        Remaining Activities
-                      </h4>
-                    )}
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-1)' }}>
-                      {remainingGames.map(game => (
-                        <div key={game.title} className="builder-row" style={{ padding: '8px', background: 'transparent' }}>
-                          <div style={{ flex: 1 }}>
-                            <h5 style={{ fontSize: '12px', fontWeight: '500' }}>{game.title}</h5>
-                            <div style={{ fontSize: '10px', color: 'var(--text-dim)' }}>{game.baseDurationNum}m • {game.energyType}</div>
-                          </div>
-                          <button 
-                            onClick={() => addGameToSession(game)}
-                            style={{ background: 'var(--bg-surface)', border: '1px solid var(--border)', borderRadius: '4px', width: '20px', height: '20px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-main)' }}
-                          ><Plus size={12} /></button>
+              {remainingGames.length > 0 && (
+                <div>
+                  <h4 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--text-dim)', margin: '0 0 8px 4px' }}>Games</h4>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {remainingGames.map(game => (
+                      <div key={game.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.25)' }}>
+                        <div style={{ flex: 1 }}>
+                          <h5 style={{ fontSize: '13px', fontWeight: '600', margin: '0 0 2px 0' }}>{game.title}</h5>
+                          <div style={{ fontSize: '11px', color: 'var(--text-dim)' }}>{game.baseDurationNum}m • {game.energyType}</div>
                         </div>
-                      ))}
-                    </div>
+                        <button onClick={() => addGameToSession(game)} style={{ background: 'var(--bg-hover)', border: '1px solid var(--border)', borderRadius: '6px', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-main)', transition: 'background 0.2s' }}><Plus size={14} /></button>
+                      </div>
+                    ))}
                   </div>
-                )}
+                </div>
+              )}
+            </div>
 
-              </div>
-            </>
-          )}
-        </div>
+          </div>
+        )}
 
       </aside>
+
     </main>
     </>
   );

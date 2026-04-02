@@ -1,15 +1,18 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 :root {
-  --bg-dark: #0B0B0D;
-  --bg-surface: #111113;
-  --border: #232326;
+  --bg-main: #0B0F14;
+  --bg-panel: #11161D;
+  --bg-card: #151B23;
+  --bg-hover: #1B2430;
+  --border: #2A3441;
   --border-strong: #333336;
-  --accent: #ff6b35;
-  --accent-glow: rgba(255, 107, 53, 0.15);
+  --accent: #FF7A2F;
+  --accent-glow: rgba(255, 122, 47, 0.15);
   
-  --text-main: #EAEAEA;
-  --text-secondary: #9A9AA0;
+  --text-primary: #E6EDF3;
+  --text-main: #E6EDF3; /* Fallback for legacy text-main */
+  --text-secondary: #9DA7B3;
   --text-dim: #6B6B70;
   
   --radius-sm: 8px;
@@ -34,8 +37,8 @@
 }
 
 body {
-  background-color: var(--bg-dark);
-  color: var(--text-main);
+  background-color: var(--bg-main);
+  color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
 }

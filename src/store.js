@@ -42,6 +42,7 @@ export const useStore = create((set, get) => ({
   dbStatus: 'loading', // 'connected' | 'disconnected' | 'loading'
   activeTab: 'repository',
   games: [],
+  folders: [],
   categories: [],
   sessions: [],
   programs: [],
@@ -82,6 +83,7 @@ export const useStore = create((set, get) => ({
       const { data: dbGames, error: gErr } = await supabase.from('activities').select('*').is('deleted_at', null);
       const { data: dbPrograms, error: pErr } = await supabase.from('programs').select('*').is('deleted_at', null);
       const { data: dbSessions, error: sErr } = await supabase.from('sessions').select('*').is('deleted_at', null);
+      const { data: dbFolders, error: fErr } = await supabase.from('folders').select('*').is('deleted_at', null);
 
       if (gErr || pErr || sErr) {
         console.error('[Supabase] Fetch error:', gErr || pErr || sErr);
@@ -111,6 +113,7 @@ export const useStore = create((set, get) => ({
         games,
         programs: dbPrograms || [], 
         sessions: dbSessions || [],
+        folders: dbFolders || [],
         categories: [...new Set(games.map(g => g.theme_clean))],
         dbStatus: 'connected',
         isLoading: false 
@@ -124,6 +127,7 @@ export const useStore = create((set, get) => ({
         games: initializedGames,
         programs: localPrograms,
         sessions: localSessions,
+        folders: [],
         categories: [...new Set(initializedGames.map(g => g.theme_clean))],
         dbStatus: 'disconnected',
         isLoading: false 
@@ -164,6 +168,54 @@ export const useStore = create((set, get) => ({
     } catch (error) {
       console.error('[Supabase] Migration failed:', error);
       set({ isMigrating: false, isLoading: false });
+    }
+  },
+
+  // Actions - Folders
+  addFolder: async (name) => {
+    console.log('[Supabase] Saving new folder...');
+    const newFolder = { id: uuidv4(), name, created_at: new Date().toISOString() };
+    const { error } = await supabase.from('folders').insert([newFolder]);
+    if (!error) {
+      set((state) => ({ folders: [...state.folders, newFolder] }));
+    } else {
+      console.error('[Supabase] Error saving folder:', error.message);
+    }
+  },
+  renameFolder: async (folderId, newName) => {
+    console.log('[Supabase] Renaming folder...');
+    const { error } = await supabase.from('folders').update({ name: newName }).eq('id', folderId);
+    if (!error) {
+      set((state) => ({
+        folders: state.folders.map(f => f.id === folderId ? { ...f, name: newName } : f)
+      }));
+    } else {
+      console.error('[Supabase] Error renaming folder:', error.message);
+    }
+  },
+  deleteFolder: async (folderId) => {
+    console.log('[Supabase] Soft deleting folder...');
+    const now = new Date().toISOString();
+    const { error } = await supabase.from('folders').update({ deleted_at: now }).eq('id', folderId);
+    if (!error) {
+      await supabase.from('activities').update({ folder_id: null }).eq('folder_id', folderId);
+      set((state) => ({
+        folders: state.folders.filter(f => f.id !== folderId),
+        games: state.games.map(g => g.folder_id === folderId ? { ...g, folder_id: null } : g)
+      }));
+    } else {
+      console.error('[Supabase] Error deleting folder:', error.message);
+    }
+  },
+  moveActivityToFolder: async (activityId, folderId) => {
+    console.log(`[Supabase] Moving activity to folder ${folderId}...`);
+    const { error } = await supabase.from('activities').update({ folder_id: folderId }).eq('id', activityId);
+    if (!error) {
+      set((state) => ({
+        games: state.games.map(g => g.id === activityId ? { ...g, folder_id: folderId } : g)
+      }));
+    } else {
+      console.error('[Supabase] Error moving activity:', error.message);
     }
   },
 
@@ -267,6 +319,24 @@ export const useStore = create((set, get) => ({
     const result = Array.from(state.builder.selectedGames);
     const [removed] = result.splice(startIndex, 1);
     result.splice(endIndex, 0, removed);
+    return { builder: { ...state.builder, selectedGames: result } };
+  }),
+  
+  moveSessionGameUp: (instanceId) => set((state) => {
+    const idx = state.builder.selectedGames.findIndex(g => g.instanceId === instanceId);
+    if (idx <= 0) return state;
+    const result = Array.from(state.builder.selectedGames);
+    const [removed] = result.splice(idx, 1);
+    result.splice(idx - 1, 0, removed);
+    return { builder: { ...state.builder, selectedGames: result } };
+  }),
+
+  moveSessionGameDown: (instanceId) => set((state) => {
+    const idx = state.builder.selectedGames.findIndex(g => g.instanceId === instanceId);
+    if (idx === -1 || idx === state.builder.selectedGames.length - 1) return state;
+    const result = Array.from(state.builder.selectedGames);
+    const [removed] = result.splice(idx, 1);
+    result.splice(idx + 1, 0, removed);
     return { builder: { ...state.builder, selectedGames: result } };
   }),
   
