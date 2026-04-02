@@ -20,7 +20,8 @@ export default function EditActivityModal({ isOpen, onClose, activity }) {
         description: activity.description || activity.rules || '',
         notes: activity.notes || '',
         facilitatorNotes: activity.facilitatorNotes || '',
-        difficulty: activity.difficulty || 'Medium'
+        difficulty: activity.difficulty || 'Medium',
+        interaction_types: activity.interaction_types || []
       });
       setSaveMode('session');
     }
@@ -96,14 +97,51 @@ export default function EditActivityModal({ isOpen, onClose, activity }) {
               />
             </div>
             <div>
-              <label className="form-label">Flow Position</label>
+              <label className="form-label">Energy Stage (PEL Flow)</label>
               <select 
                 className="search-input" 
                 value={formData.flowPosition} 
-                onChange={e => setFormData({...formData, flowPosition: e.target.value})}
+                onChange={e => {
+                   const val = e.target.value;
+                   setFormData({...formData, flowPosition: val, energyType: val.replace(/\s\S+$/, '')});
+                }}
               >
                 {flowPositions.map(fp => <option key={fp} value={fp}>{fp}</option>)}
               </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="form-label">Interaction Types (Multi-select)</label>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '4px' }}>
+              {useStore.getState().interactionTypes.map(type => {
+                const isSelected = formData.interaction_types?.includes(type);
+                return (
+                  <button
+                    key={type}
+                    onClick={() => {
+                      const current = formData.interaction_types || [];
+                      const next = current.includes(type)
+                        ? current.filter(t => t !== type)
+                        : [...current, type];
+                      setFormData({...formData, interaction_types: next});
+                    }}
+                    style={{
+                      padding: '4px 10px',
+                      borderRadius: '16px',
+                      fontSize: '11px',
+                      cursor: 'pointer',
+                      border: '1px solid',
+                      transition: 'all 0.2s',
+                      background: isSelected ? 'rgba(255, 122, 47, 0.15)' : 'var(--bg-surface)',
+                      borderColor: isSelected ? 'var(--accent)' : 'var(--border)',
+                      color: isSelected ? 'var(--accent)' : 'var(--text-dim)'
+                    }}
+                  >
+                    {type}
+                  </button>
+                );
+              })}
             </div>
           </div>
 

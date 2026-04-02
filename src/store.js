@@ -6,6 +6,7 @@ import { supabase } from './supabaseClient';
 const ENERGY_TYPES = ['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing'];
 const ENGAGEMENT_TYPES = ['Talking', 'Movement', 'Thinking', 'Laughing', 'Storytelling', 'Team interaction'];
 const FLOW_POSITIONS = ['Quick Engage ⚡', 'Build Energy 🎯', 'Core Interaction 🧠', 'Tadka 🔥'];
+const INTERACTION_TYPES = ['Talking', 'Laughing', 'Physical', 'Thinking', 'Team interaction', 'Deep connect'];
 
 // Helper to sanitize base game data on load
 const parseDuration = (dStr) => {
@@ -30,6 +31,8 @@ const mapLegacyToNewFields = (game) => {
     baseDurationNum: parseDuration(game.duration),
     energyType: game.energyType || energyType,
     engagementType: game.engagementType || engagementType,
+    folder_ids: game.folder_ids || (game.folder_id ? [game.folder_id] : []),
+    interaction_types: game.interaction_types || [engagementType],
     description: game.description || game.rules || game.comments || '',
     objective: game.objective || '',
     context: game.context || '',
@@ -56,6 +59,7 @@ export const useStore = create((set, get) => ({
   // V3 Options
   energyTypes: ENERGY_TYPES,
   engagementTypes: ENGAGEMENT_TYPES,
+  interactionTypes: INTERACTION_TYPES,
   flowPositions: FLOW_POSITIONS,
   
   // Active Builder State
@@ -105,12 +109,20 @@ export const useStore = create((set, get) => ({
       }
 
       // 3. Fallback to initial games ONLY if DB is totally empty
-      let games = dbGames || [];
+      let games = (dbGames || []).map(g => ({
+        ...g,
+        folder_ids: g.folder_ids || [],
+        interaction_types: g.interaction_types || []
+      }));
       if (games.length === 0) {
         console.log('[Supabase] Repository empty. Seeding initial activities...');
         await supabase.from('activities').insert(initializedGames);
         const { data: reloadedGames } = await supabase.from('activities').select('*').is('deleted_at', null);
-        games = reloadedGames || initializedGames;
+        games = (reloadedGames || initializedGames).map(g => ({
+          ...g,
+          folder_ids: g.folder_ids || [],
+          interaction_types: g.interaction_types || []
+        }));
       }
 
       set({ 
@@ -211,16 +223,37 @@ export const useStore = create((set, get) => ({
       console.error('[Supabase] Error deleting folder:', error.message);
     }
   },
-  moveActivityToFolder: async (activityId, folderId) => {
-    console.log(`[Supabase] Moving activity to folder ${folderId}...`);
-    const { error } = await supabase.from('activities').update({ folder_id: folderId }).eq('id', activityId);
+  toggleActivityInFolder: async (activityId, folderId) => {
+    const activity = get().games.find(g => g.id === activityId);
+    if (!activity) return;
+
+    let newFolderIds = Array.isArray(activity.folder_ids) ? [...activity.folder_ids] : [];
+    const isAlreadyIn = newFolderIds.includes(folderId);
+
+    if (isAlreadyIn) {
+      newFolderIds = newFolderIds.filter(id => id !== folderId);
+      console.log(`[Supabase] Removing activity from folder ${folderId}...`);
+    } else {
+      newFolderIds.push(folderId);
+      console.log(`[Supabase] Adding activity to folder ${folderId}...`);
+    }
+
+    const { error } = await supabase.from('activities').update({ 
+      folder_ids: newFolderIds,
+      folder_id: newFolderIds[0] || null // Keep legacy for safety
+    }).eq('id', activityId);
+
     if (!error) {
       set((state) => ({
-        games: state.games.map(g => g.id === activityId ? { ...g, folder_id: folderId } : g)
+        games: state.games.map(g => g.id === activityId ? { ...g, folder_ids: newFolderIds, folder_id: newFolderIds[0] || null } : g)
       }));
     } else {
-      console.error('[Supabase] Error moving activity:', error.message);
+      console.error('[Supabase] Error toggling folder:', error.message);
     }
+  },
+  moveActivityToFolder: async (activityId, folderId) => {
+    // Legacy support, maps to toggle (add)
+    await get().toggleActivityInFolder(activityId, folderId);
   },
 
   // Actions - Games

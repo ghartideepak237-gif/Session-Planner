@@ -2,15 +2,19 @@ import React, { useState, useMemo } from 'react';
 import { Search, Shuffle, Star, Clock, Plus, ArrowRight, Zap, Users, Pencil, Trash2, Folder, FolderPlus, Edit2, ListFilter } from 'lucide-react';
 import { useStore } from '../store';
 import AddGameModal from './AddGameModal';
+import ManageFoldersModal from './ManageFoldersModal';
 
 const GameCard = ({ game, onAdd }) => {
-  const { toggleFavorite, updateGame, categories, folders, moveActivityToFolder, deleteActivity } = useStore();
+  const { toggleFavorite, updateGame, categories, folders, toggleActivityInFolder, deleteActivity, activeTab } = useStore();
   const [isEditingCategory, setIsEditingCategory] = useState(false);
+  const [isFolderModalOpen, setIsFolderModalOpen] = useState(false);
 
   const handleCategoryChange = (newCategory) => {
     updateGame(game.id || game.title, { theme_clean: newCategory });
     setIsEditingCategory(false);
   };
+
+  const isInFolder = Array.isArray(game.folder_ids) && game.folder_ids.length > 0;
 
   return (
     <div className="game-card">
@@ -19,6 +23,13 @@ const GameCard = ({ game, onAdd }) => {
         <div style={{ display: 'flex', gap: '8px' }}>
           <button onClick={() => toggleFavorite(game.id || game.title)} title="Mark as go-to activity" style={{ background: 'none', border: 'none', cursor: 'pointer', color: game.favorite ? 'var(--accent)' : 'var(--text-dim)' }}>
             <Star size={16} fill={game.favorite ? 'var(--accent)' : 'none'} />
+          </button>
+          <button 
+            onClick={() => onEdit(game)}
+            title="Edit master activity" 
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-dim)' }}
+          >
+            <Pencil size={15} />
           </button>
           <button 
             onClick={() => {
@@ -43,12 +54,17 @@ const GameCard = ({ game, onAdd }) => {
         <span className="game-meta-item" style={{ color: 'var(--accent)' }}>
           <Zap size={12} /> {game.energyType}
         </span>
-        <span className="game-meta-item">
-          <Users size={12} /> {game.engagementType}
-        </span>
       </div>
 
-      <p className="game-desc">{game.rules}</p>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '8px' }}>
+        {(game.interaction_types || []).map(tag => (
+          <span key={tag} style={{ fontSize: '10px', background: 'var(--bg-main)', color: 'var(--text-secondary)', padding: '2px 8px', borderRadius: '10px', border: '1px solid var(--border)' }}>
+            {tag}
+          </span>
+        ))}
+      </div>
+
+      <p className="game-desc" style={{ marginTop: '12px' }}>{game.rules || game.description}</p>
 
       {game.context && (
         <div className="game-context">
@@ -56,47 +72,48 @@ const GameCard = ({ game, onAdd }) => {
         </div>
       )}
 
-      {/* Row for Folder assignment */}
-      <div style={{ marginTop: '12px', paddingBottom: '12px', borderBottom: '1px solid var(--border)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Folder size={12} color="var(--text-dim)" />
-          <select 
-            value={game.folder_id || ''}
-            onChange={(e) => moveActivityToFolder(game.id, e.target.value)}
-            className="search-input"
-            style={{ fontSize: '11px', padding: '2px 4px', height: 'auto', background: 'var(--bg-surface)' }}
-          >
-            <option value="">No Folder</option>
-            {folders.map(f => (
-              <option key={f.id} value={f.id}>{f.name}</option>
-            ))}
-          </select>
-        </div>
+      <div className="game-card-folders" style={{ marginTop: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button 
+          onClick={() => setIsFolderModalOpen(true)}
+          style={{ 
+            background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px',
+            color: isInFolder ? 'var(--accent)' : 'var(--text-dim)', fontSize: '11px', fontWeight: '500'
+          }}
+          title="Manage folders"
+        >
+          <Folder size={14} fill={isInFolder ? 'var(--accent)' : 'none'} />
+          {isInFolder ? 'Organized' : 'Add to folder'}
+        </button>
+
+        {game.activeFolderContext && (
+           <button 
+             onClick={() => {
+               if (window.confirm("Remove from this folder?")) {
+                 toggleActivityInFolder(game.id, game.activeFolderContext);
+               }
+             }}
+             style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444', fontSize: '11px', marginLeft: 'auto' }}
+           >
+             Remove from folder
+           </button>
+        )}
       </div>
 
-      <div className="game-footer" style={{ borderTop: 'none', paddingTop: '12px' }}>
-        {isEditingCategory ? (
-          <select 
-            autoFocus
-            className="search-input"
-            style={{ fontSize: '11px', padding: '2px 4px', height: 'auto', width: 'auto' }}
-            value={game.theme_clean}
-            onChange={(e) => handleCategoryChange(e.target.value)}
-            onBlur={() => setIsEditingCategory(false)}
-          >
-            {categories.map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        ) : (
-          <div 
-            className="category-label" 
-            onClick={() => setIsEditingCategory(true)}
-            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-            title="Click to edit category"
-          >
-            {game.theme_clean}
-            <Pencil size={10} color="var(--text-dim)" />
-          </div>
-        )}
+      <ManageFoldersModal 
+        isOpen={isFolderModalOpen} 
+        onClose={() => setIsFolderModalOpen(false)} 
+        activity={game} 
+      />
+
+      <div className="game-footer" style={{ borderTop: 'none', paddingTop: '12px', marginTop: 'auto' }}>
+        <div 
+          className="category-label" 
+          onClick={() => setIsEditingCategory(true)}
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-dim)' }}
+        >
+          {game.theme_clean}
+          <Pencil size={10} />
+        </div>
         <button 
           onClick={() => onAdd(game)}
           style={{ background: 'none', border: 'none', color: 'var(--text-main)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', fontSize: '13px', fontWeight: '500' }}
@@ -116,6 +133,7 @@ export default function Repository() {
   const [themeF, setThemeF] = useState('all');
   const [search, setSearch] = useState('');
   const [gameToRoute, setGameToRoute] = useState(null);
+  const [editingRepoGame, setEditingRepoGame] = useState(null);
   
   const [primaryFilter, setPrimaryFilter] = useState('All'); // All, Favorites, Recently Added
   const [sortBy, setSortBy] = useState('Favorites first'); // Newest first, Oldest first, Alphabetical, Favorites first
@@ -127,7 +145,7 @@ export default function Repository() {
       const matchesTheme = themeF === 'all' || g.theme_clean === themeF;
       const matchesSearch = g.title.toLowerCase().includes(search.toLowerCase()) || 
                            (g.rules && g.rules.toLowerCase().includes(search.toLowerCase()));
-      const matchesFolder = activeFolderId === 'all' || g.folder_id === activeFolderId;
+      const matchesFolder = activeFolderId === 'all' || (Array.isArray(g.folder_ids) && g.folder_ids.includes(activeFolderId));
       
       let matchesPrimary = true;
       if (primaryFilter === 'Favorites') matchesPrimary = g.favorite;
@@ -177,9 +195,39 @@ export default function Repository() {
     }
   };
 
+  const [showScrollTop, setShowScrollTop] = useState(false);
+
+  React.useEffect(() => {
+    const handleScroll = () => setShowScrollTop(window.scrollY > 300);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <>
     <AddGameModal game={gameToRoute} onClose={() => setGameToRoute(null)} />
+    <EditActivityModal 
+      isOpen={!!editingRepoGame} 
+      onClose={() => setEditingRepoGame(null)} 
+      activity={editingRepoGame} 
+      mode="repository"
+    />
+    
+    {/* Scroll to Top */}
+    {showScrollTop && (
+      <button 
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        style={{
+          position: 'fixed', bottom: '24px', right: '24px', zIndex: 100,
+          width: '40px', height: '40px', borderRadius: '50%', background: 'var(--accent)', color: 'white',
+          border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)'
+        }}
+      >
+        <Plus size={20} style={{ transform: 'rotate(45deg)' }} /> 
+      </button>
+    )}
+
     <main className="container-max" style={{ display: 'grid', gridTemplateColumns: '250px 1fr', gap: 'var(--spacing-6)' }}>
       
       {/* Left Sidebar for Folders & Filters */}
@@ -238,25 +286,34 @@ export default function Repository() {
               >
                 All Activities
             </button>
-            {folders.map(folder => (
-              <div key={folder.id} style={{ display: 'flex', alignItems: 'center', background: activeFolderId === folder.id ? 'var(--bg-surface)' : 'transparent', borderRadius: '6px' }}>
-                <button 
-                  onClick={() => setActiveFolderId(folder.id)}
-                  style={{ 
-                    flex: 1, textAlign: 'left', padding: '6px 4px 6px 10px', fontSize: '13px', cursor: 'pointer', border: 'none', background: 'none',
-                    color: activeFolderId === folder.id ? 'var(--text-main)' : 'var(--text-secondary)',
-                    fontWeight: activeFolderId === folder.id ? '600' : '500', display: 'flex', alignItems: 'center', gap: '6px'
-                  }}
-                >
-                  <Folder size={12} color={activeFolderId === folder.id ? 'var(--accent)' : 'var(--text-dim)'} />
-                  {folder.name}
-                </button>
-                <div style={{ display: 'flex', gap: '2px', paddingRight: '8px' }}>
-                  <button onClick={() => handleRenameFolder(folder.id, folder.name)} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '2px' }}><Edit2 size={12} /></button>
-                  <button onClick={() => handleDeleteFolder(folder.id, folder.name)} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '2px' }}><Trash2 size={12} /></button>
+            {folders.map(folder => {
+              const gameCount = games.filter(g => Array.isArray(g.folder_ids) && g.folder_ids.includes(folder.id)).length;
+              return (
+                <div key={folder.id} style={{ display: 'flex', alignItems: 'center', background: activeFolderId === folder.id ? 'var(--bg-surface)' : 'transparent', borderRadius: '6px' }}>
+                  <button 
+                    onClick={() => setActiveFolderId(folder.id)}
+                    style={{ 
+                      flex: 1, textAlign: 'left', padding: '6px 4px 6px 10px', fontSize: '13px', cursor: 'pointer', border: 'none', background: 'none',
+                      color: activeFolderId === folder.id ? 'var(--text-main)' : 'var(--text-secondary)',
+                      fontWeight: activeFolderId === folder.id ? '600' : '500', display: 'flex', alignItems: 'center', gap: '6px',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <Folder size={12} color={activeFolderId === folder.id ? 'var(--accent)' : 'var(--text-dim)'} />
+                      {folder.name}
+                    </div>
+                    <span style={{ fontSize: '10px', color: 'var(--text-dim)', background: 'var(--bg-main)', padding: '2px 6px', borderRadius: '10px' }}>
+                      {gameCount}
+                    </span>
+                  </button>
+                  <div style={{ display: 'flex', gap: '2px', paddingRight: '8px' }}>
+                    <button onClick={() => handleRenameFolder(folder.id, folder.name)} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '2px' }}><Edit2 size={12} /></button>
+                    <button onClick={() => handleDeleteFolder(folder.id, folder.name)} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', padding: '2px' }}><Trash2 size={12} /></button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
             {folders.length === 0 && <p style={{ fontSize: '12px', color: 'var(--text-dim)', paddingLeft: '8px' }}>No folders yet.</p>}
           </div>
         </div>
@@ -265,11 +322,20 @@ export default function Repository() {
 
       {/* Right Content Area */}
       <section>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-4)' }}>
-          <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>
-            {activeFolderId !== 'all' ? folders.find(f => f.id === activeFolderId)?.name || 'Folder' : primaryFilter !== 'All' ? primaryFilter : 'Games Library'} 
-            <span style={{ color: 'var(--text-dim)', fontWeight: '500', fontSize: '14px', marginLeft: '8px' }}>{filteredGames.length}</span>
-          </h2>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {activeFolderId !== 'all' && (
+              <button 
+                onClick={() => setActiveFolderId('all')}
+                style={{ background: 'none', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--text-dim)', padding: '4px 8px', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+              >
+                ← Back
+              </button>
+            )}
+            <h2 style={{ fontSize: '20px', fontWeight: 'bold' }}>
+              {activeFolderId !== 'all' ? folders.find(f => f.id === activeFolderId)?.name || 'Folder' : primaryFilter !== 'All' ? primaryFilter : 'Games Library'} 
+              <span style={{ color: 'var(--text-dim)', fontWeight: '500', fontSize: '14px', marginLeft: '8px' }}>{filteredGames.length}</span>
+            </h2>
+          </div>
 
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -287,7 +353,6 @@ export default function Repository() {
               </select>
             </div>
           </div>
-        </div>
 
         {/* Existing Filters row */}
         <div className="filters-section" style={{ marginBottom: 'var(--spacing-4)', background: 'var(--bg-panel)', padding: '16px', borderRadius: '12px', border: '1px solid var(--border)' }}>
@@ -323,7 +388,15 @@ export default function Repository() {
         ) : (
           <div className="game-grid">
             {filteredGames.map((game, i) => (
-              <GameCard key={`${game.id || game.title}-${i}`} game={game} onAdd={setGameToRoute} />
+              <GameCard 
+                key={`${game.id || game.title}-${i}`} 
+                game={{
+                  ...game,
+                  activeFolderContext: activeFolderId !== 'all' ? activeFolderId : null
+                }} 
+                onAdd={setGameToRoute} 
+                onEdit={setEditingRepoGame}
+              />
             ))}
           </div>
         )}

@@ -26,7 +26,7 @@ export default function SessionBuilder() {
   const availableGames = useMemo(() => {
     let list = games;
     if (selectedFolderId) {
-      list = list.filter(g => g.folder_id === selectedFolderId);
+      list = list.filter(g => Array.isArray(g.folder_ids) && g.folder_ids.includes(selectedFolderId));
     }
     if (search) {
       list = list.filter(g => g.title.toLowerCase().includes(search.toLowerCase()));
@@ -51,7 +51,7 @@ export default function SessionBuilder() {
       cat_clean: 'Activity',
       engagementType: engagementTypes[0],
       baseDurationNum: durationNum,
-      folder_id: selectedFolderId || null
+      folder_ids: selectedFolderId ? [selectedFolderId] : []
     };
 
     if (saveToRepo) addGame(newGame);
@@ -362,8 +362,16 @@ export default function SessionBuilder() {
       <aside style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)', background: 'var(--bg-panel)', padding: '16px', marginLeft: '16px', borderRadius: '12px', border: '1px solid var(--border)', maxHeight: 'calc(100vh - 100px)' }}>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '4px' }}>
-          <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)' }}>
-            {isQuickAddingCustom ? 'Custom Activity' : 'Repository'}
+          <h3 style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            {selectedFolderId && !isQuickAddingCustom && (
+              <button 
+                onClick={() => setSelectedFolderId(null)}
+                style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 0 }}
+              >
+                ←
+              </button>
+            )}
+            {isQuickAddingCustom ? 'Custom Activity' : selectedFolderId ? folders.find(f => f.id === selectedFolderId)?.name : 'Repository'}
           </h3>
           <button 
             onClick={() => setIsQuickAddingCustom(!isQuickAddingCustom)}
