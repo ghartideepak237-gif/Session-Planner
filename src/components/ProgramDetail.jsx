@@ -74,8 +74,31 @@ export default function ProgramDetail() {
           </button>
         </div>
 
-        {/* Weekly Roadmap - reference layout: left label column + 2-col session grid */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        {/* Progress Indicator */}
+        {(() => {
+          const planned = programSessions.filter(s => s.selectedGames && s.selectedGames.length > 0).length;
+          const total = programSessions.length || 1;
+          const pct = Math.round((planned / total) * 100);
+          return (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px', background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '16px 20px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Planning Progress</span>
+                  <span style={{ fontSize: '10px', fontWeight: '700', color: pct === 100 ? '#22c55e' : 'var(--accent-silver)' }}>{planned}/{total} sessions planned</span>
+                </div>
+                <div style={{ height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? '#22c55e' : 'linear-gradient(to right, var(--accent-silver), var(--accent-gold))', borderRadius: '99px', transition: 'width 0.6s ease' }} />
+                </div>
+              </div>
+              <div style={{ textAlign: 'right', minWidth: '48px' }}>
+                <div style={{ fontSize: '22px', fontFamily: 'var(--font-serif)', fontWeight: '700', color: pct === 100 ? '#22c55e' : 'var(--accent-gold)', lineHeight: 1 }}>{pct}%</div>
+              </div>
+            </div>
+          );
+        })()}
+
+        {/* Weekly Roadmap */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
           {Object.entries(weeklyMap).map(([week, weekSessions]) => {
             const wData = program.weeks?.find(wi => wi.week === parseInt(week)) || { theme: 'General', focus: '' };
             const focusPoints = wData.focus ? wData.focus.split(/[•\n,]+/).map(f => f.trim()).filter(Boolean) : [];
@@ -108,12 +131,12 @@ export default function ProgramDetail() {
                     return (
                       <div key={session.id} style={{
                         background: 'rgba(12,16,20,0.9)',
-                        border: '0.5px solid rgba(255,255,255,0.1)',
-                        borderRadius: '16px',
-                        padding: '18px 18px 14px',
+                        border: `0.5px solid ${isPlanned ? 'rgba(125,211,252,0.2)' : 'rgba(255,255,255,0.07)'}`,
+                        borderRadius: '14px',
+                        padding: '14px',
                         display: 'flex',
                         flexDirection: 'column',
-                        gap: '10px'
+                        gap: '8px'
                       }}>
                         {/* Card top: session number + status */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -157,13 +180,13 @@ export default function ProgramDetail() {
                             <>
                               <button 
                                 onClick={() => setSessionOverview(session)}
-                                style={{ width: '100%', padding: '10px', background: 'var(--accent-gold)', border: 'none', borderRadius: '8px', color: '#000000', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                                style={{ width: '100%', padding: '8px', background: 'var(--accent-gold)', border: 'none', borderRadius: '7px', color: '#000000', fontSize: '11px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
                               >
-                                View Flow <Play size={11} fill="#000" />
+                                View Flow <Play size={10} fill="#000" />
                               </button>
                               <button 
                                 onClick={() => handlePlanSession(session.id)}
-                                style={{ width: '100%', padding: '10px', background: 'transparent', border: '0.5px solid rgba(255,255,255,0.15)', borderRadius: '8px', color: 'rgba(255,255,255,0.6)', fontSize: '12px', fontWeight: '600', cursor: 'pointer' }}
+                                style={{ width: '100%', padding: '7px', background: 'transparent', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '7px', color: 'rgba(255,255,255,0.5)', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}
                               >
                                 Edit Session Flow
                               </button>
@@ -171,9 +194,9 @@ export default function ProgramDetail() {
                           ) : (
                             <button 
                               onClick={() => handlePlanSession(session.id)}
-                              style={{ width: '100%', padding: '10px', background: 'var(--accent-gold)', border: 'none', borderRadius: '8px', color: '#000000', fontSize: '12px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                              style={{ width: '100%', padding: '8px', background: 'var(--accent-gold)', border: 'none', borderRadius: '7px', color: '#000000', fontSize: '11px', fontWeight: '700', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '5px' }}
                             >
-                              Plan Session Flow <ArrowRight size={12} />
+                              Plan Session Flow <ArrowRight size={11} />
                             </button>
                           )}
                         </div>
