@@ -18,6 +18,7 @@ export default function EditActivityModal({ isOpen, onClose, activity }) {
         context: activity.context || '',
         objective: activity.objective || '',
         notes: activity.notes || '',
+        facilitatorNotes: activity.facilitatorNotes || '',
         difficulty: activity.difficulty || 'Medium'
       });
       setSaveMode('session');
@@ -132,6 +133,17 @@ export default function EditActivityModal({ isOpen, onClose, activity }) {
               style={{ height: '80px' }}
               value={formData.notes} 
               onChange={e => setFormData({...formData, notes: e.target.value})} 
+            />
+          </div>
+
+          <div>
+            <label className="form-label">Facilitator Notes (Customized for this session)</label>
+            <textarea 
+              className="search-input" 
+              style={{ height: '60px' }}
+              placeholder="e.g., Use the red markers for team A..."
+              value={formData.facilitatorNotes} 
+              onChange={e => setFormData({...formData, facilitatorNotes: e.target.value})} 
             />
           </div>
 

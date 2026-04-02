@@ -5,7 +5,7 @@ import { supabase } from './supabaseClient';
 
 const ENERGY_TYPES = ['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing'];
 const ENGAGEMENT_TYPES = ['Talking', 'Movement', 'Thinking', 'Laughing', 'Storytelling', 'Team interaction'];
-const FLOW_POSITIONS = ['Opening', 'Warm up', 'Core', 'Energy Boost', 'Closing'];
+const FLOW_POSITIONS = ['Quick Engage ⚡', 'Build Energy 🎯', 'Core Interaction 🧠', 'Tadka 🔥'];
 
 // Helper to sanitize base game data on load
 const parseDuration = (dStr) => {

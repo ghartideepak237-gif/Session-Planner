@@ -80,6 +80,31 @@ export default function SessionBuilder() {
   if (sessionStatus === 'Saved') statusColor = 'var(--accent)';
   if (sessionStatus === 'Assigned to Program') statusColor = '#22c55e';
 
+  // Smart Validation Suggestions
+  const suggestions = [];
+  const selected = builder.selectedGames;
+  if (selected.length > 0) {
+    if (selected[0].flowPosition !== 'Quick Engage ⚡') {
+      suggestions.push("Consider starting with a Quick Engage activity.");
+    }
+    if (selected[0].actualDuration > 10) {
+      suggestions.push("Move quick activity first.");
+    }
+    const hasBuildEnergy = selected.some(g => g.flowPosition === 'Build Energy 🎯');
+    if (!hasBuildEnergy) {
+      suggestions.push("Consider adding a Build Energy activity.");
+    }
+    const hasTadka = selected.some(g => g.flowPosition === 'Tadka 🔥');
+    if (!hasTadka) {
+      suggestions.push("Add a Tadka activity to end session with energy.");
+    } else {
+      const lastActivity = selected[selected.length - 1];
+      if (lastActivity.flowPosition !== 'Tadka 🔥') {
+        suggestions.push("Consider moving Tadka towards the end to finish high.");
+      }
+    }
+  }
+
   return (
     <>
     <EditActivityModal isOpen={!!editingActivity} onClose={() => setEditingActivity(null)} activity={editingActivity} />
@@ -165,6 +190,44 @@ export default function SessionBuilder() {
             placeholder="Special instructions, materials needed..."
           />
         </div>
+
+        {/* GUIDANCE MODULES */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div className="builder-card" style={{ padding: '12px' }}>
+            <h3 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '8px' }}>PEL Session Flow</h3>
+            <p style={{ fontSize: '11px', color: 'var(--text-primary)', marginBottom: '4px', fontWeight: '500' }}>
+              Quick Engage → Build Energy → Core Interaction → Tadka
+            </p>
+            <ul style={{ fontSize: '11px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: 0 }}>
+              <li>Start fast.</li>
+              <li>Build interaction.</li>
+              <li>Go deeper.</li>
+              <li>End with energy.</li>
+            </ul>
+          </div>
+
+          <div className="builder-card" style={{ padding: '12px' }}>
+            <h3 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--text-secondary)', marginBottom: '8px' }}>Execution Principles</h3>
+            <ul style={{ fontSize: '11px', color: 'var(--text-secondary)', paddingLeft: '16px', margin: 0 }}>
+              <li>Keep transitions fast.</li>
+              <li>Avoid long pauses.</li>
+              <li>Maintain participation.</li>
+              <li>Move quickly between activities.</li>
+            </ul>
+            <div style={{ marginTop: '8px', padding: '4px', background: 'var(--bg-main)', borderRadius: '4px', fontSize: '10px', color: 'var(--text-dim)', textAlign: 'center' }}>
+              Ideal transition time &lt; 20 seconds.
+            </div>
+          </div>
+        </div>
+
+        {suggestions.length > 0 && (
+          <div style={{ padding: '12px', background: 'rgba(255, 122, 47, 0.05)', border: '1px solid rgba(255, 122, 47, 0.2)', borderRadius: 'var(--radius-sm)' }}>
+            <h3 style={{ fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: 'var(--accent)', marginBottom: '6px' }}>Smart Suggestions</h3>
+            <ul style={{ fontSize: '11px', color: 'var(--text-primary)', margin: 0, paddingLeft: '16px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              {suggestions.map((s, i) => <li key={i}>{s}</li>)}
+            </ul>
+          </div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)', marginTop: 'auto' }}>
           <button className="btn-secondary" onClick={() => saveSession()} style={{ justifyContent: 'center' }}>
