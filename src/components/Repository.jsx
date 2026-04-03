@@ -13,7 +13,7 @@ const GameCard = ({ game, onAdd, onEdit, index }) => {
   const staggerDelay = `${index * 0.04}s`;
 
   return (
-    <div 
+    <div
       className="game-card-v8"
       style={{
         animation: `fadeInUp 0.6s var(--spring-bounce) ${staggerDelay} forwards`,
@@ -30,8 +30,8 @@ const GameCard = ({ game, onAdd, onEdit, index }) => {
     >
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF', margin: 0, fontFamily: 'var(--font-serif)' }}>{game.title}</h3>
-        <button 
-          onClick={() => toggleFavorite(game.id || game.title)} 
+        <button
+          onClick={() => toggleFavorite(game.id || game.title)}
           style={{ background: 'none', border: 'none', color: game.favorite ? 'var(--accent-gold)' : 'rgba(255,255,255,0.2)', cursor: 'pointer' }}
         >
           <Star size={18} fill={game.favorite ? 'var(--accent-gold)' : 'none'} color={game.favorite ? 'var(--accent-gold)' : 'currentColor'} />
@@ -51,15 +51,15 @@ const GameCard = ({ game, onAdd, onEdit, index }) => {
       {/* Footer: Folder + Category + Add */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '16px', borderTop: '0.5px solid rgba(255,255,255,0.08)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-          
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: isInFolder ? 'var(--accent-silver)' : 'rgba(255,255,255,0.25)', fontSize: '11px', fontWeight: '700' }}>
             <Folder size={12} fill={isInFolder ? 'var(--accent-silver)' : 'none'} />
             <span>{isInFolder ? 'In Library' : 'Add to Folder'}</span>
           </div>
 
           <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {game.interaction_types?.[0] || game.theme_clean || 'GENERAL'} 
-            <button 
+            {game.interaction_types?.[0] || game.theme_clean || 'GENERAL'}
+            <button
               onClick={() => onEdit(game)}
               style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', padding: '2px' }}
             >
@@ -67,8 +67,8 @@ const GameCard = ({ game, onAdd, onEdit, index }) => {
             </button>
           </div>
         </div>
-        
-        <button 
+
+        <button
           onClick={() => onAdd(game)}
           style={{ background: 'none', border: 'none', color: '#FFFFFF', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
         >
@@ -81,7 +81,7 @@ const GameCard = ({ game, onAdd, onEdit, index }) => {
 
 export default function Repository() {
   const { games, energyTypes, folders, addFolder, renameFolder, deleteFolder } = useStore();
-  
+
   const [energyF, setEnergyF] = useState('all');
   const [categoryF, setCategoryF] = useState('All');
   const [search, setSearch] = useState('');
@@ -90,7 +90,7 @@ export default function Repository() {
   const [primaryFilter, setPrimaryFilter] = useState('All');
   const [sortBy, setSortBy] = useState('Favorites first');
   const [activeFolderId, setActiveFolderId] = useState('all');
-  const [showRocket] = useState(true);
+  const [showRocket, setShowRocket] = useState(true);
   const [isLaunching, setIsLaunching] = useState(false);
 
   useEffect(() => {
@@ -108,11 +108,11 @@ export default function Repository() {
   const filteredGames = useMemo(() => {
     let result = games.filter(g => {
       const matchesEnergy = energyF === 'all' || g.energyType === energyF;
-      const matchesSearch = g.title.toLowerCase().includes(search.toLowerCase()) || 
-                           (g.rules && g.rules.toLowerCase().includes(search.toLowerCase()));
+      const matchesSearch = g.title.toLowerCase().includes(search.toLowerCase()) ||
+        (g.rules && g.rules.toLowerCase().includes(search.toLowerCase()));
       const matchesFolder = activeFolderId === 'all' || (Array.isArray(g.folder_ids) && g.folder_ids.includes(activeFolderId));
       const matchesCategory = categoryF === 'All' || (Array.isArray(g.interaction_types) && g.interaction_types.includes(categoryF)) || (g.energyType === categoryF);
-      
+
       let matchesPrimary = true;
       if (primaryFilter === 'Favorites') matchesPrimary = g.favorite;
       return matchesEnergy && matchesSearch && matchesFolder && matchesPrimary && matchesCategory;
@@ -133,7 +133,7 @@ export default function Repository() {
     if (primaryFilter === 'Recently Added') {
       result.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     }
-    
+
     return result;
   }, [games, energyF, search, primaryFilter, sortBy, activeFolderId, categoryF]);
 
@@ -388,21 +388,21 @@ export default function Repository() {
       `}</style>
 
       <AddGameModal game={gameToRoute} onClose={() => setGameToRoute(null)} />
-      <EditActivityModal 
-        isOpen={!!editingRepoGame} 
-        onClose={() => setEditingRepoGame(null)} 
-        activity={editingRepoGame} 
+      <EditActivityModal
+        isOpen={!!editingRepoGame}
+        onClose={() => setEditingRepoGame(null)}
+        activity={editingRepoGame}
         mode="repository"
       />
-      
+
       <main className="container-max" style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '48px', padding: '60px 20px', position: 'relative', zIndex: 10 }}>
-        
+
         <aside style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
           <div className="search-container-v8">
             <Search className="search-icon-v8" size={16} />
-            <input 
-              type="text" 
-              placeholder="Search assets..." 
+            <input
+              type="text"
+              placeholder="Search assets..."
               className="v8-input-search"
               value={search || ''}
               onChange={(e) => setSearch(e.target.value)}
@@ -415,7 +415,7 @@ export default function Repository() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {['All', 'Favorites', 'Recently Added'].map(filter => (
-                <button 
+                <button
                   key={filter}
                   onClick={() => {
                     setPrimaryFilter(filter);
@@ -432,15 +432,15 @@ export default function Repository() {
           <div style={{ marginTop: '32px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
               <h4 style={{ fontSize: '10px', color: 'var(--text-inactive)', letterSpacing: '0.15em', fontWeight: '700', textTransform: 'uppercase', margin: 0 }}>CUSTOM FOLDERS</h4>
-              <button 
-                onClick={() => { const name = window.prompt('Folder Name?'); if(name) addFolder(name); }}
+              <button
+                onClick={() => { const name = window.prompt('Folder Name?'); if (name) addFolder(name); }}
                 style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', cursor: 'pointer' }}
               >
                 <FolderPlus size={14} />
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button 
+              <button
                 onClick={() => setActiveFolderId('all')}
                 className={`sidebar-link-v9 ${activeFolderId === 'all' && (primaryFilter !== 'Favorites' && primaryFilter !== 'Recently Added') ? 'active' : ''}`}
               >
@@ -449,7 +449,7 @@ export default function Repository() {
               {folders?.map(folder => {
                 const count = games.filter(g => Array.isArray(g.folder_ids) && g.folder_ids.includes(folder.id)).length;
                 return (
-                  <button 
+                  <button
                     key={folder.id}
                     onClick={() => {
                       setActiveFolderId(folder.id);
@@ -475,35 +475,35 @@ export default function Repository() {
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
               <h2 className="title-v8">Games Library</h2>
               <span style={{ fontSize: '18px', color: 'var(--text-muted)', fontWeight: '500' }}>{filteredGames.length}</span>
-              <button 
-                onClick={() => { if(confirm("Run bulk categorization? This will update interaction_types in Supabase for all games.")) runBulkCategoryUpdate(); }}
+              <button
+                onClick={() => { if (confirm("Run bulk categorization? This will update interaction_types in Supabase for all games.")) runBulkCategoryUpdate(); }}
                 style={{ opacity: 0.2, background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '10px', marginLeft: '20px' }}
               >
                 Sync Categories
               </button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-               <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                 <ListFilter size={14} style={{ position: 'absolute', left: '12px', color: 'var(--text-muted)' }} />
-                 <select 
-                   value={sortBy} 
-                   onChange={(e) => setSortBy(e.target.value)}
-                   className="force-sort-padding"
-                   style={{ 
-                     background: 'rgba(255,255,255,0.03)', 
-                     border: '0.5px solid var(--border-soft)', 
-                     borderRadius: '10px', 
-                     fontSize: '13px', 
-                     color: 'var(--text-primary)',
-                     cursor: 'pointer'
-                   }}
-                 >
-                   <option value="Favorites first">Favorites first</option>
-                   <option value="Newest first">Newest first</option>
-                   <option value="Oldest first">Oldest first</option>
-                   <option value="Alphabetical">Alphabetical</option>
-                 </select>
-               </div>
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <ListFilter size={14} style={{ position: 'absolute', left: '12px', color: 'var(--text-muted)' }} />
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  className="force-sort-padding"
+                  style={{
+                    background: 'rgba(255,255,255,0.03)',
+                    border: '0.5px solid var(--border-soft)',
+                    borderRadius: '10px',
+                    fontSize: '13px',
+                    color: 'var(--text-primary)',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <option value="Favorites first">Favorites first</option>
+                  <option value="Newest first">Newest first</option>
+                  <option value="Oldest first">Oldest first</option>
+                  <option value="Alphabetical">Alphabetical</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -520,15 +520,15 @@ export default function Repository() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--text-inactive)', width: '60px' }}>CATEGORY</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                <button 
+                <button
                   onClick={() => setCategoryF('All')}
                   className={`pill-v8 ${categoryF === 'All' ? 'active' : ''}`}
                 >
                   All
                 </button>
                 {['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing', 'Nostalgia', 'Youth & Positivity', 'General', 'Team Building', 'Icebreaker', 'Creativity', 'Trivia', 'Fun & Engagement', 'Mindfulness', 'Problem Solving', 'Communication'].map(cat => (
-                  <button 
-                    key={cat} 
+                  <button
+                    key={cat}
                     onClick={() => setCategoryF(cat)}
                     className={`pill-v8 ${categoryF === cat ? 'active' : ''}`}
                   >
@@ -541,14 +541,14 @@ export default function Repository() {
 
           <div className="repository-grid">
             {filteredGames.map((game, i) => (
-              <GameCard 
-                key={`${game.id || game.title}-${i}`} 
+              <GameCard
+                key={`${game.id || game.title}-${i}`}
                 index={i}
                 game={{
                   ...game,
                   activeFolderContext: activeFolderId !== 'all' ? activeFolderId : null
-                }} 
-                onAdd={setGameToRoute} 
+                }}
+                onAdd={setGameToRoute}
                 onEdit={setEditingRepoGame}
               />
             ))}

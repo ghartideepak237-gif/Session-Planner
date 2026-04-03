@@ -18,6 +18,17 @@ export default function App() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [scrolled, setScrolled] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    window.addEventListener('resize', handleResize);
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -95,7 +106,7 @@ export default function App() {
               <img src="/e-logo.png" alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
             </div>
           </div>
-          
+
           <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#FFFFFF', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Session Planner</h1>
           <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginBottom: '32px', fontWeight: '500' }}>Platform Maintenance v9.5</p>
 
@@ -142,17 +153,17 @@ export default function App() {
 
   return (
     <div className={`page-wrapper ${isMobile ? 'is-mobile' : ''}`}>
-      <nav className={`glass-header ${scrolled ? 'scrolled' : ''}`} style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
+      <nav className={`glass-header ${scrolled ? 'scrolled' : ''}`} style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         padding: isMobile ? '16px 20px' : '20px 48px',
         flexWrap: isMobile ? 'wrap' : 'nowrap',
         gap: isMobile ? '16px' : '0'
       }}>
         {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div 
+          <div
             onClick={() => setActiveTab('repository')}
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
           >
@@ -167,16 +178,16 @@ export default function App() {
         </div>
 
         <div className="nav-center" style={{ width: isMobile ? '100%' : 'auto', order: isMobile ? 3 : 2 }}>
-          <nav className="header-nav" style={{ 
-            display: 'flex', 
-            gap: isMobile ? '4px' : '8px', 
+          <nav className="header-nav" style={{
+            display: 'flex',
+            gap: isMobile ? '4px' : '8px',
             justifyContent: isMobile ? 'center' : 'flex-start',
             width: '100%'
           }}>
             {['repository', 'builder', 'programs', 'guidelines'].map(tab => (
-              <button 
+              <button
                 key={tab}
-                className={`nav-link ${activeTab === tab || (tab === 'builder' && activeTab === 'plan') || (tab === 'programs' && activeTab === 'roadmap') ? 'active' : ''}`} 
+                className={`nav-link ${activeTab === tab || (tab === 'builder' && activeTab === 'plan') || (tab === 'programs' && activeTab === 'roadmap') ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab)}
                 style={{
                   background: activeTab === tab ? 'rgba(255,255,255,0.08)' : 'none',
@@ -198,20 +209,20 @@ export default function App() {
 
         <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', order: isMobile ? 2 : 3 }}>
           {activeTab === 'repository' && !isMobile && (
-             <button className="btn-primary" onClick={() => setShowAddGame(true)} style={{ padding: '10px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-               <Plus size={14} /> Add Game
-             </button>
+            <button className="btn-primary" onClick={() => setShowAddGame(true)} style={{ padding: '10px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Plus size={14} /> Add Game
+            </button>
           )}
-          <button 
-            className="btn-secondary" 
-            onClick={handleLogout} 
+          <button
+            className="btn-secondary"
+            onClick={handleLogout}
             title="Logout"
-            style={{ 
-              display: 'flex', 
-              alignItems: 'center', 
-              justifyContent: 'center', 
-              width: '40px', 
-              height: '40px', 
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '40px',
+              height: '40px',
               borderRadius: '50%',
               background: 'rgba(255,255,255,0.05)',
               border: '0.5px solid var(--border-soft)',
@@ -232,7 +243,7 @@ export default function App() {
           initial={{ opacity: 0, y: 8, scale: 0.99 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, y: -8, scale: 0.99 }}
-          transition={{ 
+          transition={{
             type: "spring",
             stiffness: 450,
             damping: 35,
