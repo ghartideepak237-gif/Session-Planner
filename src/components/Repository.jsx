@@ -159,53 +159,65 @@ export default function Repository() {
           -webkit-backdrop-filter: blur(20px);
           border: 0.5px solid var(--border-main);
           border-radius: 20px;
-          padding: 20px;
+          padding: 24px;
           overflow: hidden;
           position: relative;
-          transition: transform 0.4s var(--spring-bounce), box-shadow 0.3s ease, background 0.3s ease;
+          transition: transform 0.4s var(--spring-bounce), box-shadow 0.3s ease, border-color 0.3s ease;
           display: flex;
           flex-direction: column;
-          gap: 12px;
-        }
-
-        .game-card-v8::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 0; right: 0; height: 1px;
-          background: linear-gradient(90deg, transparent, var(--border-main), transparent);
-          z-index: 1;
+          gap: 16px;
         }
 
         .shimmer-overlay-v8 {
           position: absolute;
-          top: -100%;
-          left: -100%;
-          width: 80%;
-          height: 300%;
-          background: linear-gradient(110deg, transparent, rgba(255,255,255,0.12), transparent);
-          opacity: 0;
-          transition: opacity 0.3s ease;
+          top: 0;
+          left: -150%;
+          width: 50%;
+          height: 100%;
+          background: linear-gradient(
+            90deg, 
+            transparent, 
+            rgba(255, 255, 255, 0.08) 30%, 
+            rgba(255, 255, 255, 0.18) 50%, 
+            rgba(255, 255, 255, 0.08) 70%, 
+            transparent
+          );
+          transform: skewX(-25deg);
           pointer-events: none;
-          z-index: 1;
+          z-index: 5;
         }
 
         .game-card-v8:hover {
-          transform: translateY(-6px) rotateX(4deg) rotateY(-2deg) scale(1.02);
-          box-shadow: 0 25px 70px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.10);
-          border-color: var(--border-accent);
-          background: linear-gradient(145deg, #11161C, #0C1015);
+          transform: translateY(-8px) scale(1.01);
+          box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
+          border-color: rgba(255, 255, 255, 0.4);
         }
 
         .game-card-v8:hover .shimmer-overlay-v8 {
-          opacity: 1;
-          animation: shimmerSweepV8 0.5s ease forwards;
+          animation: silverSweep 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
         }
 
-        @keyframes shimmerSweepV8 {
-          0% { left: -100%; opacity: 0; }
-          40% { opacity: 1; }
-          60% { opacity: 1; }
-          100% { left: 150%; opacity: 0; }
+        @keyframes silverSweep {
+          0% { left: -150%; }
+          100% { left: 150%; }
+        }
+
+        .repository-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+          gap: 32px;
+          padding: 40px 0;
+        }
+
+        @media (max-width: 768px) {
+          .repository-grid {
+            grid-template-columns: 1fr;
+            gap: 20px;
+            padding: 20px 0;
+          }
+          .game-card-v8 {
+            padding: 20px;
+          }
         }
 
          .game-title-v8 {
@@ -527,7 +539,7 @@ export default function Repository() {
             </div>
           </div>
 
-          <div className="game-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '24px' }}>
+          <div className="repository-grid">
             {filteredGames.map((game, i) => (
               <GameCard 
                 key={`${game.id || game.title}-${i}`} 

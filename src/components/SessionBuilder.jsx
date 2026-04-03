@@ -110,8 +110,38 @@ export default function SessionBuilder() {
     <EditActivityModal isOpen={!!editingActivity} onClose={() => setEditingActivity(null)} activity={editingActivity} />
     <EditSessionModal isOpen={isEditingSession} onClose={() => setIsEditingSession(false)} session={builder} />
     
-    <main className="container-max v8-theme" style={{ display: 'grid', gridTemplateColumns: '280px minmax(0, 1fr) 340px', minHeight: 'calc(100vh - 72px)', gap: '40px', padding: '40px 0' }}>
+    <main className="builder-main-v8 container-max v8-theme">
       <style>{`
+        .builder-main-v8 {
+          display: grid;
+          grid-template-columns: 280px minmax(0, 1fr) 340px;
+          min-height: calc(100vh - 72px);
+          gap: 40px;
+          padding: 40px 0;
+        }
+
+        @media (max-width: 1200px) {
+          .builder-main-v8 {
+            grid-template-columns: 250px 1fr;
+            gap: 20px;
+            padding: 20px;
+          }
+          .builder-main-v8 > aside:last-of-type {
+            display: none; /* Hide asset library on tablets to save space */
+          }
+        }
+
+        @media (max-width: 768px) {
+          .builder-main-v8 {
+            grid-template-columns: 1fr;
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+          }
+          .builder-main-v8 > aside:last-of-type {
+            display: flex; /* Show it again but stacked */
+          }
+        }
         .planner-aside-v8 {
           display: flex;
           flex-direction: column;

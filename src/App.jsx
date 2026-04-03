@@ -89,13 +89,15 @@ export default function App() {
               <img src="/e-logo.png?v=2" alt="Logo" style={{ height: '36px', width: '36px', objectFit: 'contain' }} />
             </div>
           </div>
-
-          {/* Heading */}
-          <h1 style={{ color: '#FFFFFF', fontSize: '22px', fontWeight: '700', margin: '0 0 6px 0', fontFamily: "'Playfair Display', serif", letterSpacing: '-0.01em' }}>Session Planner</h1>
-          <p style={{ color: 'rgba(255,255,255,0.4)', fontSize: '12px', margin: '0 0 32px 0', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: '500' }}>e-Socialize Program Tool</p>
-
-          {/* Divider */}
-          <div style={{ height: '1px', background: 'linear-gradient(to right, transparent, rgba(255,255,255,0.08), transparent)', marginBottom: '32px' }} />
+          {/* Logo Section */}
+          <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'center' }}>
+            <div style={{ width: '64px', height: '64px', background: 'rgba(255,255,255,0.03)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <img src="/e-logo.png" alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+            </div>
+          </div>
+          
+          <h1 style={{ fontSize: '24px', fontWeight: '800', color: '#FFFFFF', margin: '0 0 8px 0', letterSpacing: '-0.5px' }}>Session Planner</h1>
+          <p style={{ fontSize: '14px', color: 'rgba(255,255,255,0.4)', marginBottom: '32px', fontWeight: '500' }}>Platform Maintenance v9.5</p>
 
           {/* Form */}
           <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -109,7 +111,7 @@ export default function App() {
                   width: '100%',
                   padding: '14px 16px',
                   borderRadius: '12px',
-                  border: '0.5px solid rgba(255,255,255,0.1)',
+                  border: '1px solid rgba(255,255,255,0.1)',
                   background: 'rgba(255,255,255,0.04)',
                   color: '#FFFFFF',
                   fontSize: '14px',
@@ -118,7 +120,7 @@ export default function App() {
                   transition: 'border-color 0.2s',
                   fontFamily: "'DM Sans', sans-serif"
                 }}
-                onFocus={(e) => e.target.style.borderColor = 'rgba(125,211,252,0.4)'}
+                onFocus={(e) => e.target.style.borderColor = 'var(--accent-gold)'}
                 onBlur={(e) => e.target.style.borderColor = 'rgba(255,255,255,0.1)'}
                 autoFocus
               />
@@ -126,21 +128,8 @@ export default function App() {
             {error && <p style={{ color: '#F97316', fontSize: '12px', textAlign: 'left', margin: '-4px 0 0 4px', fontWeight: '500' }}>{error}</p>}
             <button
               type="submit"
-              style={{
-                padding: '14px',
-                borderRadius: '12px',
-                background: 'linear-gradient(135deg, rgba(125,211,252,0.15), rgba(125,211,252,0.05))',
-                border: '0.5px solid rgba(125,211,252,0.25)',
-                color: '#7DD3FC',
-                fontSize: '14px',
-                fontWeight: '700',
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-                fontFamily: "'DM Sans', sans-serif",
-                letterSpacing: '0.02em'
-              }}
-              onMouseEnter={(e) => { e.target.style.background = 'linear-gradient(135deg, rgba(125,211,252,0.25), rgba(125,211,252,0.1))'; e.target.style.boxShadow = '0 8px 24px rgba(125,211,252,0.15)'; }}
-              onMouseLeave={(e) => { e.target.style.background = 'linear-gradient(135deg, rgba(125,211,252,0.15), rgba(125,211,252,0.05))'; e.target.style.boxShadow = 'none'; }}
+              className="btn-primary"
+              style={{ width: '100%', padding: '14px', borderRadius: '12px', justifyContent: 'center' }}
             >Access Planner →</button>
           </form>
 
@@ -152,12 +141,14 @@ export default function App() {
   }
 
   return (
-    <div className="page-wrapper">
+    <div className={`page-wrapper ${isMobile ? 'is-mobile' : ''}`}>
       <nav className={`glass-header ${scrolled ? 'scrolled' : ''}`} style={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        padding: '20px 48px',
+        padding: isMobile ? '16px 20px' : '20px 48px',
+        flexWrap: isMobile ? 'wrap' : 'nowrap',
+        gap: isMobile ? '16px' : '0'
       }}>
         {/* Brand */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -165,18 +156,23 @@ export default function App() {
             onClick={() => setActiveTab('repository')}
             style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
           >
-            <div style={{ width: '40px', height: '40px', background: 'var(--accent-gold)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <Zap size={22} color="#000" fill="#000" />
+            <div style={{ width: isMobile ? '32px' : '40px', height: isMobile ? '32px' : '40px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
+              <img src="/e-logo.png" alt="Logo" style={{ width: isMobile ? '24px' : '30px', height: isMobile ? '24px' : '30px', objectFit: 'contain' }} />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.5px', color: '#FFFFFF', lineHeight: 1 }}>Session Planner</span>
-              <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '1px' }}>e-Socialize Program Tool</span>
+              <span style={{ fontSize: isMobile ? '14px' : '18px', fontWeight: '800', letterSpacing: '-0.5px', color: '#FFFFFF', lineHeight: 1 }}>Session Planner</span>
+              {!isMobile && <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '1px' }}>e-Socialize Program Tool</span>}
             </div>
           </div>
         </div>
 
-        <div className="nav-center">
-          <nav className="header-nav" style={{ display: 'flex', gap: '8px' }}>
+        <div className="nav-center" style={{ width: isMobile ? '100%' : 'auto', order: isMobile ? 3 : 2 }}>
+          <nav className="header-nav" style={{ 
+            display: 'flex', 
+            gap: isMobile ? '4px' : '8px', 
+            justifyContent: isMobile ? 'center' : 'flex-start',
+            width: '100%'
+          }}>
             {['repository', 'builder', 'programs', 'guidelines'].map(tab => (
               <button 
                 key={tab}
@@ -186,9 +182,9 @@ export default function App() {
                   background: activeTab === tab ? 'rgba(255,255,255,0.08)' : 'none',
                   border: 'none',
                   color: activeTab === tab ? 'var(--text-primary)' : 'var(--text-inactive)',
-                  padding: '8px 16px',
+                  padding: '8px 12px',
                   borderRadius: '8px',
-                  fontSize: '13px',
+                  fontSize: isMobile ? '11px' : '13px',
                   fontWeight: '600',
                   cursor: 'pointer',
                   transition: 'all 0.2s'
@@ -200,8 +196,8 @@ export default function App() {
           </nav>
         </div>
 
-        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          {activeTab === 'repository' && (
+        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', order: isMobile ? 2 : 3 }}>
+          {activeTab === 'repository' && !isMobile && (
              <button className="btn-primary" onClick={() => setShowAddGame(true)} style={{ padding: '10px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                <Plus size={14} /> Add Game
              </button>
