@@ -150,13 +150,14 @@ export default function Repository() {
   const { games, energyTypes, folders, addFolder, renameFolder, deleteFolder } = useStore();
   
   const [energyF, setEnergyF] = useState('all');
+  const [categoryF, setCategoryF] = useState('All');
   const [search, setSearch] = useState('');
   const [gameToRoute, setGameToRoute] = useState(null);
   const [editingRepoGame, setEditingRepoGame] = useState(null);
   const [primaryFilter, setPrimaryFilter] = useState('All');
   const [sortBy, setSortBy] = useState('Favorites first');
   const [activeFolderId, setActiveFolderId] = useState('all');
-  const [showRocket, setShowRocket] = useState(false);
+  const [showRocket] = useState(true);
   const [isLaunching, setIsLaunching] = useState(false);
 
   useEffect(() => {
@@ -177,9 +178,11 @@ export default function Repository() {
       const matchesSearch = g.title.toLowerCase().includes(search.toLowerCase()) || 
                            (g.rules && g.rules.toLowerCase().includes(search.toLowerCase()));
       const matchesFolder = activeFolderId === 'all' || (Array.isArray(g.folder_ids) && g.folder_ids.includes(activeFolderId));
+      const matchesCategory = categoryF === 'All' || (Array.isArray(g.interaction_types) && g.interaction_types.includes(categoryF)) || (g.energyType === categoryF);
+      
       let matchesPrimary = true;
       if (primaryFilter === 'Favorites') matchesPrimary = g.favorite;
-      return matchesEnergy && matchesSearch && matchesFolder && matchesPrimary;
+      return matchesEnergy && matchesSearch && matchesFolder && matchesPrimary && matchesCategory;
     });
 
     result.sort((a, b) => {
@@ -507,14 +510,14 @@ export default function Repository() {
                       setActiveFolderId(folder.id);
                       setPrimaryFilter('All');
                     }}
-                    className={`sidebar-link-v8 ${activeFolderId === folder.id ? 'active' : ''}`}
-                    style={{ justifyContent: 'space-between', paddingRight: '12px' }}
+                    className={`sidebar-link-v9 ${activeFolderId === folder.id ? 'active' : ''}`}
+                    style={{ position: 'relative' }}
                   >
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Folder size={14} fill={activeFolderId === folder.id ? 'var(--accent-silver)' : 'none'} style={{ opacity: 0.7 }} />
+                      <Folder size={14} fill={activeFolderId === folder.id ? 'var(--accent-silver)' : 'none'} style={{ opacity: activeFolderId === folder.id ? 1 : 0.5 }} />
                       <span>{folder.name}</span>
                     </div>
-                    <span style={{ fontSize: '10px', opacity: 0.5, fontWeight: '700' }}>{count}</span>
+                    <span style={{ fontSize: '10px', opacity: 0.6, fontWeight: '700' }}>{count}</span>
                   </button>
                 );
               })}
@@ -566,9 +569,20 @@ export default function Repository() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
               <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--text-inactive)', width: '60px' }}>CATEGORY</span>
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                <button className="pill-v8 active">All</button>
+                <button 
+                  onClick={() => setCategoryF('All')}
+                  className={`pill-v8 ${categoryF === 'All' ? 'active' : ''}`}
+                >
+                  All
+                </button>
                 {['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing', 'Nostalgia', 'Youth & Positivity', 'General', 'Team Building', 'Icebreaker', 'Creativity', 'Trivia', 'Fun & Engagement', 'Mindfulness', 'Problem Solving', 'Communication'].map(cat => (
-                  <button key={cat} className="pill-v8">{cat}</button>
+                  <button 
+                    key={cat} 
+                    onClick={() => setCategoryF(cat)}
+                    className={`pill-v8 ${categoryF === cat ? 'active' : ''}`}
+                  >
+                    {cat}
+                  </button>
                 ))}
               </div>
             </div>
