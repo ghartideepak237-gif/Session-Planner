@@ -9,14 +9,14 @@ import {
 
 const Tag = ({ children, type = 'neutral' }) => {
   const map = {
-    green:  { bg: 'rgba(34,197,94,0.1)',   border: 'rgba(34,197,94,0.25)',   color: '#4ade80'  },
-    red:    { bg: 'rgba(239,68,68,0.1)',    border: 'rgba(239,68,68,0.25)',   color: '#f87171'  },
-    orange: { bg: 'rgba(249,115,22,0.1)',   border: 'rgba(249,115,22,0.25)',  color: '#fb923c'  },
-    blue:   { bg: 'rgba(125,211,252,0.1)',  border: 'rgba(125,211,252,0.25)', color: '#7DD3FC'  },
-    gold:   { bg: 'rgba(234,179,8,0.1)',    border: 'rgba(234,179,8,0.3)',    color: '#EAB308'  },
-    neutral:{ bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)',  color: 'rgba(255,255,255,0.6)' },
+    green:  { bg: 'rgba(34,197,94,0.1)',   border: 'rgba(34,197,94,0.25)',   color: 'var(--success)'  },
+    red:    { bg: 'rgba(239,68,68,0.1)',    border: 'rgba(239,68,68,0.25)',   color: 'var(--danger)'   },
+    orange: { bg: 'rgba(249,115,22,0.1)',   border: 'rgba(249,115,22,0.25)',  color: '#fb923c'         },
+    blue:   { bg: 'rgba(125,211,252,0.1)',  border: 'rgba(125,211,252,0.25)', color: 'var(--accent-silver)' },
+    gold:   { bg: 'rgba(234,179,8,0.1)',    border: 'rgba(234,179,8,0.3)',    color: 'var(--accent-gold)' },
+    neutral:{ bg: 'rgba(255,255,255,0.06)', border: 'rgba(255,255,255,0.1)',  color: 'var(--text-muted)' },
   };
-  const s = map[type];
+  const s = map[type] || map.neutral;
   return (
     <span style={{
       display: 'inline-flex', alignItems: 'center',
@@ -29,24 +29,24 @@ const Tag = ({ children, type = 'neutral' }) => {
 
 const Bullet = ({ children }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', lineHeight: 1.55 }}>
-    <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'rgba(255,255,255,0.25)', marginTop: '7px', flexShrink: 0 }} />
-    <span style={{ fontSize: '12px', color: 'rgba(255,255,255,0.55)' }}>{children}</span>
+    <div style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--text-inactive)', marginTop: '7px', flexShrink: 0 }} />
+    <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>{children}</span>
   </div>
 );
 
 const Callout = ({ children, type = 'info' }) => {
   const map = {
-    info:    { border: '#7DD3FC', bg: 'rgba(125,211,252,0.04)' },
-    warning: { border: '#EAB308', bg: 'rgba(234,179,8,0.04)'   },
-    danger:  { border: '#f87171', bg: 'rgba(239,68,68,0.04)'   },
-    success: { border: '#4ade80', bg: 'rgba(34,197,94,0.04)'   },
+    info:    { border: 'var(--accent-silver)', bg: 'rgba(125,211,252,0.04)' },
+    warning: { border: 'var(--accent-gold)',   bg: 'rgba(234,179,8,0.04)'   },
+    danger:  { border: 'var(--danger)',        bg: 'rgba(239,68,68,0.04)'   },
+    success: { border: 'var(--success)',       bg: 'rgba(34,197,94,0.04)'   },
   };
   const s = map[type];
   return (
     <div style={{
       borderLeft: `2.5px solid ${s.border}`, background: s.bg,
       padding: '8px 12px', borderRadius: '0 8px 8px 0',
-      fontSize: '11px', color: 'rgba(255,255,255,0.6)', lineHeight: 1.5
+      fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.5
     }}>{children}</div>
   );
 };
@@ -54,10 +54,10 @@ const Callout = ({ children, type = 'info' }) => {
 const Quote = ({ children }) => (
   <div style={{
     padding: '10px 14px', background: 'rgba(255,255,255,0.03)',
-    borderLeft: '2px solid rgba(125,211,252,0.3)',
+    borderLeft: '2px solid var(--border-accent)',
     borderRadius: '0 10px 10px 0',
     fontSize: '11px', fontStyle: 'italic',
-    color: 'rgba(255,255,255,0.45)', lineHeight: 1.6
+    color: 'var(--text-muted)', lineHeight: 1.6
   }}>{children}</div>
 );
 
@@ -139,12 +139,12 @@ export default function AnchorGuidelines() {
       )
     },
     {
-      icon: <Wind size={16} />, iconColor: '#f472b6',
+      icon: <Wind size={16} />, iconColor: 'var(--accent-silver)',
       title: 'Energy & Flow',
       subtitle: 'Session Momentum',
       body: (
         <>
-          <div style={{ padding: '8px 12px', background: 'rgba(244,114,182,0.07)', border: '0.5px solid rgba(244,114,182,0.2)', borderRadius: '10px', fontSize: '12px', fontWeight: '600', color: '#f472b6', textAlign: 'center' }}>
+          <div style={{ padding: '8px 12px', background: 'rgba(125,211,252,0.07)', border: '0.5px solid rgba(125,211,252,0.2)', borderRadius: '10px', fontSize: '12px', fontWeight: '600', color: 'var(--accent-silver)', textAlign: 'center' }}>
             Goal: Session feels lively, never slow
           </div>
           <Flow steps={['Opener', 'Core Activity', 'Quick Transition', 'Close — No Dead Silence']} />
@@ -158,21 +158,21 @@ export default function AnchorGuidelines() {
       )
     },
     {
-      icon: <Layout size={16} />, iconColor: '#a78bfa',
+      icon: <Layout size={16} />, iconColor: 'var(--accent-gold)',
       title: 'Activity Design Principle',
       subtitle: 'Engagement Formula',
       body: (
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {[
-              { icon: <CheckCircle2 size={13} />, color: '#4ade80', label: 'BEST', desc: 'Short + High Engagement' },
-              { icon: <AlertCircle size={13} />,   color: '#fb923c', label: 'OK',   desc: 'Long + High Engagement' },
-              { icon: <XCircle size={13} />,       color: '#f87171', label: 'AVOID',desc: 'Long + Low Engagement'  },
+              { icon: <CheckCircle2 size={13} />, color: 'var(--success)', label: 'BEST', desc: 'Short + High Engagement' },
+              { icon: <AlertCircle size={13} />,   color: 'var(--accent-gold)',   label: 'OK',   desc: 'Long + High Engagement' },
+              { icon: <XCircle size={13} />,       color: 'var(--danger)',        label: 'AVOID',desc: 'Long + Low Engagement'  },
             ].map(({ icon, color, label, desc }) => (
               <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: `${color}12`, border: `0.5px solid ${color}30`, borderRadius: '9px', fontSize: '12px' }}>
                 <span style={{ color }}>{icon}</span>
                 <strong style={{ color, minWidth: '42px', fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</strong>
-                <span style={{ color: 'rgba(255,255,255,0.6)' }}>{desc}</span>
+                <span style={{ color: 'var(--text-secondary)' }}>{desc}</span>
               </div>
             ))}
           </div>
@@ -197,7 +197,7 @@ export default function AnchorGuidelines() {
       )
     },
     {
-      icon: <Layers size={16} />, iconColor: '#4ade80',
+      icon: <Layers size={16} />, iconColor: 'var(--accent-silver)',
       title: 'Standard Session Structure',
       subtitle: 'Every Session Must Have',
       body: (
@@ -244,12 +244,12 @@ export default function AnchorGuidelines() {
       )
     },
     {
-      icon: <Heart size={16} />, iconColor: '#f472b6',
+      icon: <Heart size={16} />, iconColor: 'var(--accent-silver)',
       title: 'Engagement Philosophy',
       subtitle: 'We are Unconventional',
       body: (
         <>
-          <div style={{ fontSize: '12px', fontWeight: '700', color: '#FFFFFF', padding: '8px 12px', background: 'rgba(244,114,182,0.06)', border: '0.5px solid rgba(244,114,182,0.15)', borderRadius: '10px' }}>
+          <div style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', padding: '8px 12px', background: 'rgba(125,211,252,0.06)', border: '0.5px solid rgba(125,211,252,0.15)', borderRadius: '10px' }}>
             Address awkwardness through activity, not by talking about it.
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -261,12 +261,12 @@ export default function AnchorGuidelines() {
       )
     },
     {
-      icon: <UserCheck size={16} />, iconColor: '#4ade80',
+      icon: <UserCheck size={16} />, iconColor: 'var(--accent-gold)',
       title: 'Physical Involvement',
       subtitle: 'Presence = Engagement',
       body: (
         <>
-          <div style={{ padding: '8px 12px', background: 'rgba(34,197,94,0.07)', border: '0.5px solid rgba(34,197,94,0.2)', borderRadius: '10px', fontSize: '12px', fontWeight: '700', color: '#4ade80', textAlign: 'center' }}>
+          <div style={{ padding: '8px 12px', background: 'rgba(234,179,8,0.07)', border: '0.5px solid rgba(234,179,8,0.2)', borderRadius: '10px', fontSize: '12px', fontWeight: '700', color: 'var(--accent-gold)', textAlign: 'center' }}>
             Physical involvement = Higher engagement
           </div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px' }}>
@@ -276,7 +276,7 @@ export default function AnchorGuidelines() {
       )
     },
     {
-      icon: <Timer size={16} />, iconColor: '#f87171',
+      icon: <Timer size={16} />, iconColor: 'var(--danger)',
       title: 'Time Discipline',
       subtitle: 'Start on Time. End on Time.',
       body: (
@@ -297,13 +297,13 @@ export default function AnchorGuidelines() {
       )
     },
     {
-      icon: <Globe size={16} />, iconColor: '#a78bfa',
+      icon: <Globe size={16} />, iconColor: 'var(--accent-silver)',
       title: 'Culture Communication',
       subtitle: 'Show, Don\'t Tell',
       body: (
         <>
           <Tag type="red">Don't lecture about Respect, Equality, No Judgment</Tag>
-          <div style={{ padding: '8px 12px', background: 'rgba(167,139,250,0.07)', border: '0.5px solid rgba(167,139,250,0.2)', borderRadius: '10px', fontSize: '12px', fontWeight: '600', color: '#a78bfa' }}>
+          <div style={{ padding: '8px 12px', background: 'rgba(125,211,252,0.07)', border: '0.5px solid rgba(125,211,252,0.2)', borderRadius: '10px', fontSize: '12px', fontWeight: '600', color: 'var(--accent-silver)' }}>
             Show culture through design, not speeches.
           </div>
           <Bullet>Values should reflect naturally through how you facilitate.</Bullet>
