@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Video, Rocket, Wind, MessageCircle, Layers, CalendarCheck,
   Monitor, Heart, UserCheck, Timer, Layout, Globe, Star,
   Smartphone, CheckCircle2, AlertCircle, XCircle, Zap, ArrowRight
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /* ─── Primitive components ─── */
 
@@ -86,15 +87,22 @@ const CardIcon = ({ icon, color }) => (
 );
 
 export default function AnchorGuidelines() {
-  const card = {
-    background: 'rgba(11,16,22,0.85)',
-    backdropFilter: 'blur(20px)',
-    WebkitBackdropFilter: 'blur(20px)',
-    border: '0.5px solid rgba(255,255,255,0.08)',
-    borderRadius: '20px',
-    padding: '22px',
-    display: 'flex', flexDirection: 'column', gap: '12px',
-    transition: 'border-color 0.25s, box-shadow 0.25s',
+  const [showRocket, setShowRocket] = useState(false);
+  const [isLaunching, setIsLaunching] = useState(false);
+  const staggerDelay = "0.1s"; // Define staggerDelay if needed for cards
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowRocket(window.scrollY > 400);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    setIsLaunching(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => setIsLaunching(false), 1200);
   };
 
   const sections = [
@@ -367,12 +375,15 @@ export default function AnchorGuidelines() {
       {/* ── 2-Column Grid ── */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
         {sections.map((s, i) => (
-          <section key={i} style={card}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.14)'; e.currentTarget.style.boxShadow = '0 16px 40px rgba(0,0,0,0.4)'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; e.currentTarget.style.boxShadow = 'none'; }}>
+          <section 
+            key={i} 
+            className="premium-card-v9"
+            style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: '12px' }}
+          >
+            <div className="shimmer-overlay-v9" />
 
             {/* Card header row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 2 }}>
               <CardIcon icon={s.icon} color={s.iconColor} />
               <div>
                 <div style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', fontFamily: 'var(--font-serif)', lineHeight: 1.2 }}>{s.title}</div>
@@ -400,6 +411,26 @@ export default function AnchorGuidelines() {
         </p>
       </div>
 
+      {/* Rocket Button */}
+      <AnimatePresence>
+        {showRocket && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0, y: 20 }}
+            onClick={scrollToTop}
+            className={`rocket-btn ${isLaunching ? 'rocket-animate' : ''}`}
+            style={{ 
+              position: 'fixed',
+              bottom: '40px',
+              right: '40px',
+              zIndex: 1000
+            }}
+          >
+            <Rocket size={24} style={{ transform: 'rotate(-45deg)' }} />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

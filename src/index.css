@@ -225,3 +225,47 @@ button, input, select, textarea {
   border-color: var(--accent-gold);
   color: #FFFFFF;
 }
+
+/* Premium V9 Architecture */
+.premium-card-v9 {
+  background: var(--card-grad);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid var(--border-main);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.4s var(--spring-bounce), box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+}
+
+.premium-card-v9:hover {
+  transform: translateY(-6px) rotateX(4deg) rotateY(-2deg) scale(1.02);
+  box-shadow: 0 25px 70px rgba(0,0,0,.65), inset 0 1px 0 rgba(255,255,255,.10);
+  border-color: var(--border-accent);
+  background: linear-gradient(145deg, #11161C, #0C1015);
+}
+
+.shimmer-overlay-v9 {
+  position: absolute;
+  top: -100%;
+  left: -100%;
+  width: 80%;
+  height: 300%;
+  background: linear-gradient(110deg, transparent, rgba(255,255,255,0.12), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.premium-card-v9:hover .shimmer-overlay-v9 {
+  opacity: 1;
+  animation: shimmerSweepV9 0.6s ease forwards;
+}
+
+@keyframes shimmerSweepV9 {
+  0% { left: -100%; opacity: 0; }
+  40% { opacity: 1; }
+  60% { opacity: 1; }
+  100% { left: 150%; opacity: 0; }
+}

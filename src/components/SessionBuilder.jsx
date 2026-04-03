@@ -127,21 +127,8 @@ export default function SessionBuilder() {
         }
 
         .timeline-node-v8 {
-          background: var(--card-grad);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 0.5px solid var(--border-main);
-          border-radius: 16px;
           padding: 16px;
           position: relative;
-          transition: all 0.4s var(--smooth);
-        }
-
-        .timeline-node-v8:hover {
-          background: linear-gradient(145deg, #11161C, #0C1015);
-          border-color: var(--border-accent);
-          transform: translateX(4px);
-          box-shadow: 0 20px 40px rgba(0,0,0,0.5);
         }
 
         .timeline-dot-v8 {
@@ -214,47 +201,67 @@ export default function SessionBuilder() {
           </div>
         </div>
 
-        <div className="planner-card-v8">
-          <div style={{ marginBottom: '20px' }}>
-            <label className="timing-label-v8">College / Target Group</label>
-            <input 
-              value={builder.college} 
-              onChange={e => setBuilderField('college', e.target.value)}
-              className="v8-input"
-              style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border-soft)', color: 'var(--text-primary)', borderRadius: '12px', padding: '10px', fontSize: '13px' }}
-              placeholder="e.g. Master Design Team" 
-            />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
-            <div>
-              <label className="timing-label-v8">Target (min)</label>
-              <div className="timing-value-v8">{builder.baseDuration}</div>
+        <div className="premium-card-v9" style={{ padding: '20px' }}>
+          <div className="shimmer-overlay-v9" />
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <div style={{ marginBottom: '20px' }}>
+              <label className="timing-label-v8">College / Target Group</label>
+              <input 
+                value={builder.college} 
+                onChange={e => setBuilderField('college', e.target.value)}
+                className="v8-input"
+                style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid var(--border-soft)', color: 'var(--text-primary)', borderRadius: '12px', padding: '10px', fontSize: '13px' }}
+                placeholder="e.g. Master Design Team" 
+              />
             </div>
-            <div>
-              <label className="timing-label-v8">Remaining</label>
-              <div className="timing-value-v8" style={{ color: remainingTime < 0 ? 'var(--danger)' : 'var(--text-primary)' }}>
-                {Math.abs(remainingTime)}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              <div>
+                <label className="timing-label-v8">Target (min)</label>
+                <div className="timing-value-v8">{builder.baseDuration}</div>
+              </div>
+              <div>
+                <label className="timing-label-v8">Remaining</label>
+                <div className="timing-value-v8" style={{ color: remainingTime < 0 ? 'var(--danger)' : 'var(--text-primary)' }}>
+                  {Math.abs(remainingTime)}
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <div className="planner-card-v8" style={{ padding: '16px' }}>
-          <h4 style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '16px' }}>PEL Performance Flow</h4>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {[
-              { label: 'Quick Engage', icon: '⚡', desc: 'Shatter social barriers' },
-              { label: 'Build Energy', icon: '🎯', desc: 'Calibrate collaboration' },
-              { label: 'Core Interaction', icon: '🧠', desc: 'Cognitive heart' },
-              { label: 'Tadka', icon: '🔥', desc: 'Peak exit high' }
-            ].map(flow => (
-              <div key={flow.label}>
-                <div style={{ fontSize: '11px', color: 'var(--text-primary)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ color: 'var(--accent-silver)' }}>{flow.icon}</span> {flow.label}
+        <div className="premium-card-v9" style={{ padding: '20px' }}>
+          <div className="shimmer-overlay-v9" />
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <label className="timing-label-v8">Session Notes</label>
+            <textarea 
+              value={builder.notes || ''}
+              onChange={e => setBuilderField('notes', e.target.value)}
+              placeholder="Add strategic notes for this session..."
+              className="v8-input"
+              style={{ width: '100%', minHeight: '100px', background: 'rgba(255,255,255,0.02)', border: '0.5px solid var(--border-soft)', color: 'var(--text-secondary)', borderRadius: '12px', padding: '12px', fontSize: '12px', resize: 'none', lineHeight: '1.6' }}
+            />
+          </div>
+        </div>
+
+        <div className="premium-card-v9" style={{ padding: '16px' }}>
+          <div className="shimmer-overlay-v9" />
+          <div style={{ position: 'relative', zIndex: 2 }}>
+            <h4 style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '16px' }}>PEL Performance Flow</h4>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[
+                { label: 'Quick Engage', icon: '⚡', desc: 'Shatter social barriers' },
+                { label: 'Build Energy', icon: '🎯', desc: 'Calibrate collaboration' },
+                { label: 'Core Interaction', icon: '🧠', desc: 'Cognitive heart' },
+                { label: 'Tadka', icon: '🔥', desc: 'Peak exit high' }
+              ].map(flow => (
+                <div key={flow.label}>
+                  <div style={{ fontSize: '11px', color: 'var(--text-primary)', fontWeight: '700', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span style={{ color: 'var(--accent-silver)' }}>{flow.icon}</span> {flow.label}
+                  </div>
+                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '2px 0 0 18px', fontFamily: 'var(--font-sans)' }}>{flow.desc}</p>
                 </div>
-                <p style={{ fontSize: '10px', color: 'var(--text-muted)', margin: '2px 0 0 18px', fontFamily: 'var(--font-sans)' }}>{flow.desc}</p>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         </div>
 
@@ -287,22 +294,25 @@ export default function SessionBuilder() {
                   <div {...provided.droppableProps} ref={provided.innerRef} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                     {builder.selectedGames.map((game, index) => (
                       <Draggable key={game.instanceId} draggableId={game.instanceId} index={index}>
-                        {(provided, snapshot) => (
+                        {(provided) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
+                            className="premium-card-v9"
                             style={{ 
                               ...provided.draggableProps.style,
-                              position: 'relative'
+                              position: 'relative',
+                              padding: '20px'
                             }}
                           >
-                            <div className={`timeline-dot-v8 ${
-                              game.flowPosition?.includes('Zap') ? 'glow-zap' : 
-                              game.flowPosition?.includes('Focus') ? 'glow-focus' : 
-                              game.flowPosition?.includes('Tadka') ? 'glow-tadka' : ''
-                            }`}></div>
+                            <div className="shimmer-overlay-v9" />
+                            <div style={{ position: 'relative', zIndex: 2 }}>
+                              <div className={`timeline-dot-v8 ${
+                                game.flowPosition?.includes('Zap') ? 'glow-zap' : 
+                                game.flowPosition?.includes('Focus') ? 'glow-focus' : 
+                                game.flowPosition?.includes('Tadka') ? 'glow-tadka' : ''
+                              }`}></div>
 
-                            <div className="timeline-node-v8">
                               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                   <div {...provided.dragHandleProps} style={{ cursor: 'grab', opacity: 0.3 }}>

@@ -129,17 +129,19 @@ export default function ProgramDetail() {
                     const focusBullets = focus ? focus.split(/[•\n,]+/).map(f => f.trim()).filter(Boolean) : [];
 
                     return (
-                      <div key={session.id} style={{
-                        width: '270px',
-                        flexShrink: 0,
-                        background: 'rgba(12,16,20,0.9)',
-                        border: `0.5px solid ${isPlanned ? 'rgba(125,211,252,0.2)' : 'rgba(255,255,255,0.07)'}`,
-                        borderRadius: '14px',
-                        padding: '14px',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: '8px'
-                      }}>
+                      <div 
+                        key={session.id} 
+                        className="premium-card-v9"
+                        style={{
+                          width: '270px',
+                          flexShrink: 0,
+                          padding: '14px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px'
+                        }}
+                      >
+                        <div className="shimmer-overlay-v9" />
                         {/* Card top: session number + status */}
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, ArrowRight, LogOut, Zap } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Repository from './components/Repository';
 import SessionBuilder from './components/SessionBuilder';
 import Programs from './components/Programs';
@@ -223,11 +224,26 @@ export default function App() {
 
       <GameForm isOpen={showAddGame} onClose={() => setShowAddGame(false)} />
 
-      {activeTab === 'repository' && <Repository />}
-      {activeTab === 'builder' && <SessionBuilder />}
-      {activeTab === 'programs' && <Programs />}
-      {activeTab === 'roadmap' && activeProgramId && <ProgramDetail />}
-      {activeTab === 'guidelines' && <AnchorGuidelines />}
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={activeTab}
+          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -20, scale: 0.98 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 260,
+            damping: 20
+          }}
+          style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
+        >
+          {activeTab === 'repository' && <Repository />}
+          {activeTab === 'builder' && <SessionBuilder />}
+          {activeTab === 'programs' && <Programs />}
+          {activeTab === 'roadmap' && activeProgramId && <ProgramDetail />}
+          {activeTab === 'guidelines' && <AnchorGuidelines />}
+        </motion.div>
+      </AnimatePresence>
 
       <footer style={{ padding: 'var(--spacing-4)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
         <p style={{ fontSize: '11px', color: 'var(--text-dim)', fontWeight: '500' }}>

@@ -167,9 +167,20 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
                 <label className="v8-form-label">Activity Description / Rules</label>
                 <textarea 
                   className="v8-input-premium"
-                  style={{ width: '100%', height: '120px', resize: 'none', lineHeight: '1.6' }}
+                  style={{ width: '100%', height: '100px', resize: 'none', lineHeight: '1.6' }}
                   value={formData.description} 
                   onChange={e => setFormData({...formData, description: e.target.value})} 
+                />
+              </div>
+
+              <div className="v8-form-group">
+                <label className="v8-form-label" style={{ color: 'var(--accent-gold)' }}>Anchor Notes (Facilitation context)</label>
+                <textarea 
+                  className="v8-input-premium"
+                  style={{ width: '100%', height: '80px', resize: 'none', lineHeight: '1.6', background: 'rgba(234,179,8,0.02)', borderColor: 'rgba(234,179,8,0.1)' }}
+                  placeholder="Private notes for the facilitator..."
+                  value={formData.notes} 
+                  onChange={e => setFormData({...formData, notes: e.target.value})} 
                 />
               </div>
 
