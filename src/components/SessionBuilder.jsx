@@ -174,6 +174,18 @@ export default function SessionBuilder() {
           margin-bottom: 24px;
           letter-spacing: -0.2px;
         }
+
+        .dragging-v9 {
+          box-shadow: 0 40px 80px rgba(0,0,0,0.8) !important;
+          border-color: var(--accent-gold) !important;
+          transform: scale(1.05) !important;
+          z-index: 1000 !important;
+        }
+
+        .drop-highlight-v9 {
+          background: rgba(234, 179, 8, 0.05) !important;
+          border: 1px dashed var(--accent-gold) !important;
+        }
       `}</style>
       
       {/* COLUMN 1: Session Control */}
@@ -290,79 +302,109 @@ export default function SessionBuilder() {
 
             <DragDropContext onDragEnd={handleDragEnd}>
               <Droppable droppableId="builder-list">
-                {(provided) => (
-                  <div {...provided.droppableProps} ref={provided.innerRef} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {(provided, snapshot) => (
+                  <div 
+                    {...provided.droppableProps} 
+                    ref={provided.innerRef} 
+                    style={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      gap: '16px',
+                      minHeight: '200px',
+                      background: snapshot.isDraggingOver ? 'rgba(125, 211, 252, 0.02)' : 'transparent',
+                      borderRadius: '24px',
+                      transition: 'all 0.3s ease'
+                    }}
+                  >
                     {builder.selectedGames.map((game, index) => (
                       <Draggable key={game.instanceId} draggableId={game.instanceId} index={index}>
-                        {(provided) => (
+                        {(provided, snapshot) => (
                           <div
                             ref={provided.innerRef}
                             {...provided.draggableProps}
-                            className="premium-card-v9"
+                            className={`premium-card-v9 ${snapshot.isDragging ? 'dragging-active-v9' : ''}`}
                             style={{ 
                               ...provided.draggableProps.style,
-                              position: 'relative',
-                              padding: '20px'
+                              marginBottom: '16px',
+                              zIndex: snapshot.isDragging ? 1000 : 1
                             }}
                           >
-                            <div className="shimmer-overlay-v9" />
-                            <div style={{ position: 'relative', zIndex: 2 }}>
-                              <div className={`timeline-dot-v8 ${
-                                game.flowPosition?.includes('Zap') ? 'glow-zap' : 
-                                game.flowPosition?.includes('Focus') ? 'glow-focus' : 
-                                game.flowPosition?.includes('Tadka') ? 'glow-tadka' : ''
-                              }`}></div>
-
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <div {...provided.dragHandleProps} style={{ cursor: 'grab', opacity: 0.3 }}>
-                                    <GripVertical size={16} />
-                                  </div>
-                                  <div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                      <h3 
-                                        onClick={() => setEditingActivity(game)}
-                                        style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', cursor: 'pointer', margin: 0, fontFamily: 'var(--font-serif)' }}
-                                      >
-                                        {game.title}
-                                      </h3>
-                                      <div style={{ display: 'flex', gap: '4px' }}>
-                                        <button onClick={() => setEditingActivity(game)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}><Pencil size={12} /></button>
-                                        <button onClick={() => duplicateActivityInSession(game.instanceId)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer' }}><Copy size={12} /></button>
-                                      </div>
+                            <div 
+                              className={`premium-card-content-v9 ${snapshot.isDragging ? 'dragging-visual-v9' : ''}`}
+                              style={{
+                                background: snapshot.isDragging ? 'rgba(20, 24, 28, 0.98)' : 'rgba(12, 16, 20, 0.8)',
+                                border: snapshot.isDragging ? '1px solid var(--accent-gold)' : '1px solid rgba(255,255,255,0.08)',
+                                borderRadius: '20px',
+                                padding: '20px',
+                                transition: snapshot.isDragging ? 'none' : 'all 0.2s cubic-bezier(0.2, 0, 0, 1)',
+                                transform: snapshot.isDragging ? 'scale(0.96)' : 'scale(1)',
+                                boxShadow: snapshot.isDragging ? '0 40px 80px rgba(0,0,0,0.8)' : 'none',
+                                position: 'relative',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              <div className="shimmer-overlay-v9" />
+                              <div style={{ position: 'relative', zIndex: 2 }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div {...provided.dragHandleProps} style={{ cursor: snapshot.isDragging ? 'grabbing' : 'grab', opacity: 0.3 }}>
+                                      <GripVertical size={16} />
                                     </div>
-                                    <div style={{ display: 'flex', gap: '10px', fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px', fontWeight: '500', fontFamily: 'var(--font-sans)' }}>
-                                      <span style={{ color: 'var(--text-primary)', opacity: 0.7 }}>{game.flowPosition}</span>
-                                      <span style={{ opacity: 0.2 }}>|</span>
-                                      <span>Original: {game.baseDurationNum}m</span>
-                                    </div>
+                                    <h4 
+                                      onClick={() => setEditingActivity(game)}
+                                      style={{ margin: 0, fontSize: '16px', fontWeight: '700', color: '#FFF', fontFamily: 'var(--font-serif)', cursor: 'pointer' }}
+                                    >
+                                      {game.title}
+                                    </h4>
                                   </div>
-                                </div>
-
-                                <button onClick={() => removeGameFromSession(game.instanceId)} style={{ background: 'none', border: 'none', color: 'var(--text-inactive)', cursor: 'pointer', padding: '6px' }}>
-                                  <Trash2 size={16} />
-                                </button>
-                              </div>
-
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.03)', padding: '10px 16px', borderRadius: '12px', border: '0.5px solid rgba(255,255,255,0.08)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                                  <span style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', fontFamily: 'var(--font-sans)' }}>Allocation</span>
-                                  <div style={{ display: 'flex', gap: '6px' }}>
-                                    {[ -5, -1, 1, 5 ].map(delta => (
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                                    <div style={{ display: 'flex', gap: '4px' }}>
                                       <button 
-                                        key={delta}
-                                        onClick={() => adjustGameDuration(game.instanceId, delta)}
-                                        style={{ width: '28px', height: '22px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.05)', border: '0.5px solid var(--border-soft)', borderRadius: '6px', fontSize: '10px', color: 'var(--text-primary)', cursor: 'pointer' }}
+                                        onClick={(e) => { e.stopPropagation(); setEditingActivity(game); }}
+                                        style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', padding: '4px' }}
                                       >
-                                        {delta > 0 ? `+${delta}` : delta}
+                                        <Pencil size={14} />
                                       </button>
-                                    ))}
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); moveSessionGameUp(game.instanceId); }}
+                                        disabled={index === 0}
+                                        style={{ background: 'none', border: 'none', color: index === 0 ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.3)', cursor: index === 0 ? 'default' : 'pointer', padding: '4px' }}
+                                      >
+                                        <ChevronUp size={16} />
+                                      </button>
+                                      <button 
+                                        onClick={(e) => { e.stopPropagation(); moveSessionGameDown(game.instanceId); }}
+                                        disabled={index === builder.selectedGames.length - 1}
+                                        style={{ background: 'none', border: 'none', color: index === builder.selectedGames.length - 1 ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.3)', cursor: index === builder.selectedGames.length - 1 ? 'default' : 'pointer', padding: '4px' }}
+                                      >
+                                        <ChevronDown size={16} />
+                                      </button>
+                                    </div>
+                                    <div style={{ fontSize: '16px', fontWeight: '800', color: 'var(--accent-gold)', fontFamily: 'var(--font-serif)', minWidth: '40px', textAlign: 'right' }}>{game.actualDuration}m</div>
+                                    <button onClick={() => removeGameFromSession(game.instanceId)} style={{ background: 'none', border: 'none', color: 'rgba(255,100,100,0.3)', cursor: 'pointer', padding: '4px' }}>
+                                      <Trash2 size={16} />
+                                    </button>
                                   </div>
                                 </div>
-
-                                <div style={{ fontSize: '16px', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)' }}>
-                                  {game.actualDuration}m
+                              
+                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px' }}>
+                                <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                                  <span style={{ fontSize: '10px', color: 'var(--accent-silver)', fontWeight: '800', textTransform: 'uppercase' }}>{game.flowPosition}</span>
+                                  <span style={{ width: '4px', height: '4px', borderRadius: '20px', background: 'rgba(255,255,255,0.2)' }} />
+                                  <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: '700' }}>{game.baseDurationNum}m base</span>
                                 </div>
+                                <div style={{ display: 'flex', gap: '4px' }}>
+                                  {[-5, -1, 1, 5].map(delta => (
+                                    <button 
+                                      key={delta}
+                                      onClick={(e) => { e.stopPropagation(); adjustGameDuration(game.instanceId, delta); }}
+                                      style={{ width: '28px', height: '22px', background: 'rgba(255,255,255,0.05)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '6px', fontSize: '10px', color: '#FFF', cursor: 'pointer' }}
+                                    >
+                                      {delta > 0 ? `+${delta}` : delta}
+                                    </button>
+                                  ))}
+                                </div>
+                              </div>
                               </div>
                             </div>
                           </div>

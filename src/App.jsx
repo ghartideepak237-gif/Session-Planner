@@ -159,15 +159,21 @@ export default function App() {
         alignItems: 'center', 
         padding: '20px 48px',
       }}>
-        <a href="/" onClick={(e) => { e.preventDefault(); setActiveTab('repository'); }} style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
-          <div style={{ width: '40px', height: '40px', background: 'var(--accent-gold)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Zap size={22} color="#000" fill="#000" />
+        {/* Brand */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div 
+            onClick={() => setActiveTab('repository')}
+            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
+          >
+            <div style={{ width: '40px', height: '40px', background: 'var(--accent-gold)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Zap size={22} color="#000" fill="#000" />
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column' }}>
+              <span style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.5px', color: '#FFFFFF', lineHeight: 1 }}>Session Planner</span>
+              <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '1px' }}>e-Socialize Program Tool</span>
+            </div>
           </div>
-          <div className="logo-text">
-            <h1 style={{ color: 'var(--text-primary)', margin: 0, fontSize: '18px', fontWeight: '700' }}>Session Planner</h1>
-            <p style={{ margin: 0, fontSize: '10px', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>e-Socialize Program Tool</p>
-          </div>
-        </a>
+        </div>
 
         <div className="nav-center">
           <nav className="header-nav" style={{ display: 'flex', gap: '8px' }}>
@@ -227,13 +233,14 @@ export default function App() {
       <AnimatePresence mode="wait">
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, y: 20, scale: 0.98 }}
+          initial={{ opacity: 0, y: 8, scale: 0.99 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -20, scale: 0.98 }}
+          exit={{ opacity: 0, y: -8, scale: 0.99 }}
           transition={{ 
             type: "spring",
-            stiffness: 260,
-            damping: 20
+            stiffness: 450,
+            damping: 35,
+            mass: 0.5
           }}
           style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
         >

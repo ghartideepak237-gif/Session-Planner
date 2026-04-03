@@ -36,7 +36,19 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
 
   const handleSave = () => {
     if (!formData.title) return alert('Title is required');
-    const activityUpdates = { ...formData, theme_clean: formData.category };
+    
+    // Ensure interaction_types includes the selected category to avoid "General" fallback
+    let finalInteractionTypes = [...(formData.interaction_types || [])];
+    if (formData.category && !finalInteractionTypes.includes(formData.category)) {
+      finalInteractionTypes.push(formData.category);
+    }
+    
+    const activityUpdates = { 
+      ...formData, 
+      theme_clean: formData.category,
+      interaction_types: finalInteractionTypes 
+    };
+
     updateActivityInSession(activity.instanceId, activityUpdates);
     if (saveMode === 'repository') {
        updateGame(activity.id || activity.title, activityUpdates);

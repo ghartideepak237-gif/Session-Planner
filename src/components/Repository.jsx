@@ -7,12 +7,10 @@ import ManageFoldersModal from './ManageFoldersModal';
 import EditActivityModal from './EditActivityModal';
 
 const GameCard = ({ game, onAdd, onEdit, index }) => {
-  const { toggleFavorite, folders, toggleActivityInFolder } = useStore();
-  const [isPickingFolder, setIsPickingFolder] = useState(false);
-
+  const { toggleFavorite, folders } = useStore();
   const assignedFolderIds = Array.isArray(game.folder_ids) ? game.folder_ids : [];
   const isInFolder = assignedFolderIds.length > 0;
-  const staggerDelay = `${index * 0.06}s`;
+  const staggerDelay = `${index * 0.04}s`;
 
   return (
     <div 
@@ -20,126 +18,61 @@ const GameCard = ({ game, onAdd, onEdit, index }) => {
       style={{
         animation: `fadeInUp 0.6s var(--spring-bounce) ${staggerDelay} forwards`,
         opacity: 0,
-        padding: '20px'
+        padding: '24px',
+        background: 'rgba(12, 16, 20, 0.6)',
+        border: '1px solid rgba(255, 255, 255, 0.05)',
+        borderRadius: '24px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '12px',
+        position: 'relative'
       }}
     >
-      <div className="shimmer-overlay-v8" />
-      
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 2 }}>
-        <h3 className="game-title-v8" style={{ fontSize: '16px' }}>{game.title}</h3>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF', margin: 0, fontFamily: 'var(--font-serif)' }}>{game.title}</h3>
         <button 
           onClick={() => toggleFavorite(game.id || game.title)} 
-          className="fav-btn-v8"
+          style={{ background: 'none', border: 'none', color: game.favorite ? 'var(--accent-gold)' : 'rgba(255,255,255,0.2)', cursor: 'pointer' }}
         >
-          <Star size={13} fill={game.favorite ? 'var(--accent-gold)' : 'none'} color={game.favorite ? 'var(--accent-gold)' : 'var(--text-primary)'} strokeWidth={2.5} />
+          <Star size={18} fill={game.favorite ? 'var(--accent-gold)' : 'none'} color={game.favorite ? 'var(--accent-gold)' : 'currentColor'} />
         </button>
       </div>
 
-      <div className="game-meta-v8" style={{ position: 'relative', zIndex: 2, marginTop: '8px' }}>
-        <span>{game.duration || 'Flexible'}</span>
-        <span className="dot-sep-v8" />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', color: 'rgba(255,255,255,0.4)', fontWeight: '600' }}>
+        <span>{game.duration || '10m'}</span>
+        <span style={{ width: '3px', height: '3px', borderRadius: '50%', background: 'currentColor' }} />
         <span>{game.energyType}</span>
       </div>
 
-      <p className="game-desc-v8" style={{ position: 'relative', zIndex: 2, marginTop: '12px', fontSize: '13px', lineHeight: '1.5', height: '60px', overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical' }}>
+      <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.5)', lineHeight: '1.6', margin: '8px 0', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden', height: '60px' }}>
         {game.rules || game.description}
       </p>
 
       {/* Footer: Folder + Category + Add */}
-      <div className="game-footer-v8" style={{ position: 'relative', zIndex: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '20px', paddingTop: '16px', borderTop: '0.5px solid var(--border-soft)' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '16px', borderTop: '0.5px solid rgba(255,255,255,0.08)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           
-          <div style={{ position: 'relative' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <button 
-                onClick={() => setIsPickingFolder(!isPickingFolder)}
-                style={{ 
-                  background: 'none', 
-                  border: 'none', 
-                  color: isInFolder ? 'var(--accent-silver)' : 'var(--text-muted)', 
-                  cursor: 'pointer', 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px', 
-                  padding: 0,
-                  opacity: isInFolder ? 0.9 : 0.6,
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <Folder size={12} fill={isInFolder ? 'var(--accent-silver)' : 'none'} />
-                <span style={{ fontSize: '11px' }}>
-                  {isPickingFolder ? 'Select folder...' : isInFolder ? 'In Library' : 'Add to folder'}
-                </span>
-              </button>
-              
-              {isPickingFolder && (
-                <div style={{ 
-                  position: 'absolute', bottom: '100%', left: 0, marginBottom: '8px', 
-                  background: 'var(--bg-secondary)', border: '0.5px solid var(--border-main)', 
-                  borderRadius: '12px', padding: '6px', zIndex: 1000, minWidth: '160px',
-                  boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
-                  backdropFilter: 'blur(20px)'
-                }}>
-                  <div style={{ padding: '4px 8px 8px', fontSize: '10px', color: 'var(--text-dim)', borderBottom: '0.5px solid var(--border-soft)', marginBottom: '4px' }}>
-                    ASSIGN TO FOLDER
-                  </div>
-                  <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                    {folders.map(f => {
-                      const isActivityInThisFolder = assignedFolderIds.includes(f.id);
-                      return (
-                        <button 
-                          key={f.id}
-                          onClick={() => {
-                            toggleActivityInFolder(game.id, f.id);
-                            // Keep menu open for multi-assignment
-                          }}
-                          style={{ 
-                            width: '100%', textAlign: 'left', padding: '8px 10px', background: isActivityInThisFolder ? 'rgba(125, 211, 252, 0.05)' : 'none', 
-                            border: 'none', color: isActivityInThisFolder ? 'var(--accent-silver)' : 'var(--text-secondary)', fontSize: '11px', cursor: 'pointer',
-                            borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                            marginBottom: '2px'
-                          }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = isActivityInThisFolder ? 'rgba(125, 211, 252, 0.05)' : 'none'}
-                        >
-                          <span>{f.name}</span>
-                          {isActivityInThisFolder && <CheckCircle2 size={10} color="var(--accent-silver)" />}
-                        </button>
-                      );
-                    })}
-                  </div>
-                  {folders.length === 0 && (
-                    <div style={{ padding: '8px 10px', fontSize: '10px', color: 'var(--text-dim)', textAlign: 'center' }}>No folders created</div>
-                  )}
-                  <button 
-                    onClick={() => setIsPickingFolder(false)}
-                    style={{ width: '100%', marginTop: '4px', padding: '6px', fontSize: '10px', background: 'rgba(255,255,255,0.03)', border: '0.5px solid var(--border-soft)', borderRadius: '6px', color: 'var(--text-muted)', cursor: 'pointer' }}
-                  >
-                    Done
-                  </button>
-                </div>
-              )}
-            </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: isInFolder ? 'var(--accent-silver)' : 'rgba(255,255,255,0.25)', fontSize: '11px', fontWeight: '700' }}>
+            <Folder size={12} fill={isInFolder ? 'var(--accent-silver)' : 'none'} />
+            <span>{isInFolder ? 'In Library' : 'Add to Folder'}</span>
           </div>
 
-          <div style={{ fontSize: '10px', color: 'var(--text-inactive)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>
-            {game.interaction_types?.[0] || 'GENERAL'} 
+          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+            {game.interaction_types?.[0] || game.theme_clean || 'GENERAL'} 
             <button 
               onClick={() => onEdit(game)}
-              style={{ background: 'none', border: 'none', color: 'var(--text-inactive)', cursor: 'pointer', display: 'flex', alignItems: 'center', padding: 2 }}
+              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', padding: '2px' }}
             >
-              <Pencil size={10} style={{ opacity: 0.6 }} />
+              <Pencil size={10} />
             </button>
           </div>
         </div>
         
         <button 
           onClick={() => onAdd(game)}
-          style={{ background: 'none', border: 'none', color: 'var(--text-primary)', fontSize: '13px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', transition: 'transform 0.2s ease' }}
-          onMouseEnter={(e) => e.currentTarget.style.transform = 'translateX(4px)'}
-          onMouseLeave={(e) => e.currentTarget.style.transform = 'translateX(0)'}
+          style={{ background: 'none', border: 'none', color: '#FFFFFF', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
         >
-          Add <ArrowRight size={14} style={{ color: '#F97316' }} />
+          Add <ArrowRight size={16} strokeWidth={3} style={{ color: '#F97316' }} />
         </button>
       </div>
     </div>
@@ -202,7 +135,7 @@ export default function Repository() {
     }
     
     return result;
-  }, [games, energyF, search, primaryFilter, sortBy, activeFolderId]);
+  }, [games, energyF, search, primaryFilter, sortBy, activeFolderId, categoryF]);
 
   return (
     <div className="page-wrapper v8-theme">
@@ -530,6 +463,12 @@ export default function Repository() {
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
               <h2 className="title-v8">Games Library</h2>
               <span style={{ fontSize: '18px', color: 'var(--text-muted)', fontWeight: '500' }}>{filteredGames.length}</span>
+              <button 
+                onClick={() => { if(confirm("Run bulk categorization? This will update interaction_types in Supabase for all games.")) runBulkCategoryUpdate(); }}
+                style={{ opacity: 0.2, background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '10px', marginLeft: '20px' }}
+              >
+                Sync Categories
+              </button>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>

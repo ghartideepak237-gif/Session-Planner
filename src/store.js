@@ -6,7 +6,11 @@ import { supabase } from './supabaseClient';
 const ENERGY_TYPES = ['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing'];
 const ENGAGEMENT_TYPES = ['Talking', 'Movement', 'Thinking', 'Laughing', 'Storytelling', 'Team interaction'];
 const FLOW_POSITIONS = ['Quick Engage ⚡', 'Build Energy 🎯', 'Core Interaction 🧠', 'Tadka 🔥'];
-const INTERACTION_TYPES = ['Talking', 'Laughing', 'Physical', 'Thinking', 'Team interaction', 'Deep connect'];
+const INTERACTION_TYPES = [
+  'Icebreaker', 'Team Building', 'Communication', 'Problem Solving', 
+  'Energy Booster', 'Deep Connect', 'Closing', 'Mindfulness',
+  'Talking', 'Laughing', 'Physical', 'Thinking', 'Team interaction', 'Nostalgia', 'Trivia', 'Creativity'
+];
 
 // Helper to sanitize base game data on load
 const parseDuration = (dStr) => {
@@ -15,24 +19,31 @@ const parseDuration = (dStr) => {
 };
 
 const mapLegacyToNewFields = (game) => {
-  let energyType = 'Interactive';
-  let engagementType = 'Team interaction';
+  let energyType = game.energyType || 'Interactive';
+  let interaction_types = game.interaction_types || [];
 
-  // Heuristic mapping from old tiers
-  if (game.tier === 'quick-fire') energyType = 'Quick Fire';
-  if (game.tier === 'deep-dive') energyType = 'Deep Connect';
-  if (game.theme_clean === 'Icebreaker') energyType = 'Opening';
-  
-  if (game.theme_clean === 'Communication') engagementType = 'Talking';
-  if (game.theme_clean === 'Problem Solving') engagementType = 'Thinking';
+  // Enhanced heuristic mapping
+  if (game.theme_clean === 'Icebreaker') interaction_types.push('Icebreaker');
+  if (game.theme_clean === 'Team Building') interaction_types.push('Team Building');
+  if (game.theme_clean === 'Nostalgia') interaction_types.push('Nostalgia');
+  if (game.theme_clean === 'Youth & Positivity') interaction_types.push('Youth & Positivity');
+  if (game.theme_clean === 'Fun & Engagement') interaction_types.push('Fun & Engagement');
+  if (game.theme_clean === 'Creativity') interaction_types.push('Creativity');
+  if (game.theme_clean === 'Trivia') interaction_types.push('Trivia');
+  if (game.theme_clean === 'Mindfulness') interaction_types.push('Mindfulness');
+  if (game.theme_clean === 'Problem Solving') interaction_types.push('Problem Solving');
+  if (game.theme_clean === 'Communication') interaction_types.push('Communication');
+
+  // De-duplicate interaction types
+  interaction_types = [...new Set(interaction_types)];
+  if (interaction_types.length === 0) interaction_types = ['General'];
 
   return {
     ...game,
     baseDurationNum: parseDuration(game.duration),
-    energyType: game.energyType || energyType,
-    engagementType: game.engagementType || engagementType,
+    energyType: energyType,
+    interaction_types: interaction_types,
     folder_ids: game.folder_ids || (game.folder_id ? [game.folder_id] : []),
-    interaction_types: game.interaction_types || [engagementType],
     description: game.description || game.rules || game.comments || '',
     objective: game.objective || '',
     context: game.context || '',
@@ -189,13 +200,23 @@ export const useStore = create((set, get) => ({
 
   // Actions - Folders
   addFolder: async (name) => {
-    console.log('[Supabase] Saving new folder...');
-    const newFolder = { id: uuidv4(), name, created_at: new Date().toISOString() };
+    if (!name || name.trim().length === 0) return;
+    console.log('[Supabase] Saving new folder:', name);
+    const newFolder = { 
+      id: uuidv4(), 
+      name: name.trim(), 
+      created_at: new Date().toISOString() 
+    };
+    
+    // Optimistic update
+    set((state) => ({ folders: [...state.folders, newFolder] }));
+
     const { error } = await supabase.from('folders').insert([newFolder]);
-    if (!error) {
-      set((state) => ({ folders: [...state.folders, newFolder] }));
-    } else {
+    if (error) {
       console.error('[Supabase] Error saving folder:', error.message);
+      // Rollback on error
+      set((state) => ({ folders: state.folders.filter(f => f.id !== newFolder.id) }));
+      alert("Failed to create folder. Please ensure the folders table exists in Supabase.");
     }
   },
   renameFolder: async (folderId, newName) => {
@@ -760,6 +781,23 @@ export const useStore = create((set, get) => ({
     if (!error) {
       await get().initialize(); // Full sync
     }
+  },
+
+  // v9.5 Bulk Categorization Utility
+  runBulkCategoryUpdate: async () => {
+    const { games } = get();
+    console.log('[Maintenance] Running bulk categorization for', games.length, 'activities...');
+    
+    for (const game of games) {
+      const updated = mapLegacyToNewFields(game);
+      if (JSON.stringify(updated.interaction_types) !== JSON.stringify(game.interaction_types)) {
+        console.log(`[Maintenance] Updating categories for: ${game.title}`);
+        await supabase.from('activities').update({ 
+          interaction_types: updated.interaction_types 
+        }).eq('id', game.id);
+      }
+    }
+    await get().initialize();
   }
 
 }));
