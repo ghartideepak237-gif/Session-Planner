@@ -429,13 +429,13 @@ export const useStore = create((set, get) => ({
   }),
   
   adjustGameDuration: (instanceId, delta) => set((state) => ({
-    builder: {
-      ...state.builder,
+    builder: { 
+      ...state.builder, 
       selectedGames: state.builder.selectedGames.map(g => 
         g.instanceId === instanceId 
-          ? { ...g, actualDuration: Math.max(1, g.actualDuration + delta) } 
+          ? { ...g, actualDuration: Math.max(1, (g.actualDuration || g.baseDurationNum || 10) + delta) } 
           : g
-      )
+      ) 
     }
   })),
   setGameFlowPosition: (instanceId, newPosition) => set((state) => ({
@@ -467,6 +467,28 @@ export const useStore = create((set, get) => ({
   }),
 
   // Actions - Sessions
+  updateActivity: async (id, updates) => {
+    console.log('[Supabase] Updating activity in Supabase...', id);
+    // Sanitize updates: exclude columns that don't exist in 'activities' table
+    const { actualDuration, flowPosition, instanceId, ...validUpdates } = updates;
+    
+    try {
+      const { error } = await supabase.from('activities').update(validUpdates).eq('id', id);
+      if (error) {
+        console.error('[Supabase] Update failed:', error.message);
+        return false;
+      }
+      console.log('[Supabase] Update successful');
+      set((state) => ({
+        games: state.games.map(g => g.id === id ? { ...g, ...validUpdates } : g)
+      }));
+      return true;
+    } catch (err) {
+      console.error('[Supabase] Unexpected error during update:', err);
+      return false;
+    }
+  },
+  
   updateSession: async (sessionId, updates) => {
     console.log('[Supabase] Updating session in Supabase...');
     const { error } = await supabase.from('sessions').update(updates).eq('id', sessionId);

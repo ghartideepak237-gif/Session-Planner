@@ -56,7 +56,7 @@ export default function AddGameModal({ game, onClose }) {
 
   if (targetSessionObj) {
     baseTargetDuration = targetSessionObj.baseDuration || 45;
-    currentPlannedTime = targetSessionObj.selectedGames ? targetSessionObj.selectedGames.reduce((acc, g) => acc + g.actualDuration, 0) : 0;
+    currentPlannedTime = targetSessionObj.selectedGames ? targetSessionObj.selectedGames.reduce((acc, g) => acc + (g.actualDuration || g.baseDurationNum || 10), 0) : 0;
   }
   
   const originalDuration = game.baseDurationNum || 10;

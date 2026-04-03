@@ -5,7 +5,7 @@ export default function SessionOverviewModal({ isOpen, onClose, session }) {
   if (!isOpen || !session) return null;
 
   const games = session.selectedGames || [];
-  const totalDuration = games.reduce((acc, g) => acc + (g.actualDuration || 0), 0);
+  const totalDuration = games.reduce((acc, g) => acc + (g.actualDuration || g.baseDurationNum || 0), 0);
 
   return (
     <div className="modal-overlay" style={{ zIndex: 1000, background: 'rgba(0,0,0,0.9)', backdropFilter: 'blur(20px)' }}>
@@ -73,7 +73,7 @@ export default function SessionOverviewModal({ isOpen, onClose, session }) {
                         </div>
                       </div>
                       <div style={{ padding: '8px 16px', borderRadius: '12px', background: 'rgba(253,186,116,0.1)', border: '1px solid rgba(253,186,116,0.2)', fontSize: '15px', fontWeight: '900', color: '#FDBA74' }}>
-                        {game.actualDuration}m
+                        {(game.actualDuration || game.baseDurationNum || 10)}m
                       </div>
                     </div>
 

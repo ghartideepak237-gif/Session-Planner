@@ -46,12 +46,16 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
     const activityUpdates = { 
       ...formData, 
       theme_clean: formData.category,
-      interaction_types: finalInteractionTypes 
+      interaction_types: finalInteractionTypes,
+      baseDurationNum: formData.actualDuration // Sync numeric value for repository
     };
 
     updateActivityInSession(activity.instanceId, activityUpdates);
+    
     if (saveMode === 'repository') {
-       updateGame(activity.id || activity.title, activityUpdates);
+       // STRIP actualDuration and other session-only fields before master update
+       const { actualDuration, flowPosition, ...masterUpdates } = activityUpdates;
+       updateGame(activity.id || activity.title, masterUpdates);
     } else if (saveMode === 'new') {
        addGame({ ...activityUpdates, duration: `${formData.actualDuration} min` });
     }

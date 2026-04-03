@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Search, Save, FileDown, Plus, GripVertical, Trash2, Copy, Pencil, CheckCircle2, RotateCcw, ChevronUp, ChevronDown, Folder } from 'lucide-react';
+import { Search, Save, FileDown, Plus, GripVertical, Trash2, Copy, Edit, CheckCircle, RotateCcw, ChevronUp, ChevronDown, Folder } from 'lucide-react';
 import { useStore, computeSessionEnergy } from '../store';
 import { generateSessionPDF } from '../utils/pdfGenerator';
 import EditActivityModal from './EditActivityModal';
@@ -393,7 +393,7 @@ export default function SessionBuilder() {
                                         onClick={(e) => { e.stopPropagation(); setEditingActivity(game); }}
                                         style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.2)', cursor: 'pointer', padding: '4px' }}
                                       >
-                                        <Pencil size={14} />
+                                        <Edit size={14} style={{ opacity: 0.6 }} />
                                       </button>
                                       <button 
                                         onClick={(e) => { e.stopPropagation(); moveSessionGameUp(game.instanceId); }}
