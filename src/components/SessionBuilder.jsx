@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Search, Save, FileDown, Plus, GripVertical, Trash2, Copy, Edit, CheckCircle, CheckCircle2, Pencil, Folder } from 'lucide-react';
+import { Search, Save, FileDown, Plus, GripVertical, Trash2, Copy, Edit, CheckCircle, CheckCircle2, Pencil, Folder, ChevronUp, ChevronDown } from 'lucide-react';
 import { useStore, computeSessionEnergy } from '../store';
 import { generateSessionPDF } from '../utils/pdfGenerator';
 import EditActivityModal from './EditActivityModal';
