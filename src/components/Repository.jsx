@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Shuffle, Star, Clock, Plus, ArrowRight, Zap, Users, Pencil, Trash2, Folder, FolderPlus, Edit2, ListFilter, Rocket } from 'lucide-react';
+import { Search, Shuffle, Star, Clock, Plus, ArrowRight, Zap, Users, Pencil, Trash2, Folder, FolderPlus, Edit2, ListFilter, Rocket, CheckCircle2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
 import AddGameModal from './AddGameModal';
@@ -10,7 +10,8 @@ const GameCard = ({ game, onAdd, onEdit, index }) => {
   const { toggleFavorite, folders, toggleActivityInFolder } = useStore();
   const [isPickingFolder, setIsPickingFolder] = useState(false);
 
-  const isInFolder = Array.isArray(game.folder_ids) && game.folder_ids.length > 0;
+  const assignedFolderIds = Array.isArray(game.folder_ids) ? game.folder_ids : [];
+  const isInFolder = assignedFolderIds.length > 0;
   const staggerDelay = `${index * 0.06}s`;
 
   return (
@@ -49,57 +50,76 @@ const GameCard = ({ game, onAdd, onEdit, index }) => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           
           <div style={{ position: 'relative' }}>
-            {!isInFolder ? (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <button 
-                  onClick={() => setIsPickingFolder(!isPickingFolder)}
-                  style={{ background: 'none', border: 'none', color: isPickingFolder ? 'var(--accent-gold)' : 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', padding: 0 }}
-                >
-                  <Folder size={12} />
-                  {isPickingFolder ? (
-                     <span style={{ fontSize: '11px', color: 'var(--accent-gold)' }}>Select folder...</span>
-                  ) : (
-                     <span style={{ fontSize: '11px' }}>Add to folder</span>
-                  )}
-                </button>
-                
-                {isPickingFolder && (
-                  <div style={{ 
-                    position: 'absolute', bottom: '100%', left: 0, marginBottom: '8px', 
-                    background: 'var(--bg-secondary)', border: '0.5px solid var(--border-main)', 
-                    borderRadius: '8px', padding: '4px', zIndex: 100, minWidth: '140px',
-                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
-                  }}>
-                    {folders.map(f => (
-                      <button 
-                        key={f.id}
-                        onClick={() => {
-                          toggleActivityInFolder(game.id, f.id);
-                          setIsPickingFolder(false);
-                        }}
-                        style={{ 
-                          width: '100%', textAlign: 'left', padding: '8px 10px', background: 'none', 
-                          border: 'none', color: 'var(--text-secondary)', fontSize: '11px', cursor: 'pointer',
-                          borderRadius: '4px'
-                        }}
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                      >
-                        {f.name}
-                      </button>
-                    ))}
-                    {folders.length === 0 && (
-                      <div style={{ padding: '8px 10px', fontSize: '10px', color: 'var(--text-dim)' }}>No folders created</div>
-                    )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <button 
+                onClick={() => setIsPickingFolder(!isPickingFolder)}
+                style={{ 
+                  background: 'none', 
+                  border: 'none', 
+                  color: isInFolder ? 'var(--accent-silver)' : 'var(--text-muted)', 
+                  cursor: 'pointer', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '6px', 
+                  padding: 0,
+                  opacity: isInFolder ? 0.9 : 0.6,
+                  transition: 'all 0.2s ease'
+                }}
+              >
+                <Folder size={12} fill={isInFolder ? 'var(--accent-silver)' : 'none'} />
+                <span style={{ fontSize: '11px' }}>
+                  {isPickingFolder ? 'Select folder...' : isInFolder ? 'In Library' : 'Add to folder'}
+                </span>
+              </button>
+              
+              {isPickingFolder && (
+                <div style={{ 
+                  position: 'absolute', bottom: '100%', left: 0, marginBottom: '8px', 
+                  background: 'var(--bg-secondary)', border: '0.5px solid var(--border-main)', 
+                  borderRadius: '12px', padding: '6px', zIndex: 1000, minWidth: '160px',
+                  boxShadow: '0 10px 40px rgba(0,0,0,0.6)',
+                  backdropFilter: 'blur(20px)'
+                }}>
+                  <div style={{ padding: '4px 8px 8px', fontSize: '10px', color: 'var(--text-dim)', borderBottom: '0.5px solid var(--border-soft)', marginBottom: '4px' }}>
+                    ASSIGN TO FOLDER
                   </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', color: 'var(--accent-silver)', opacity: 0.8 }}>
-                <Folder size={12} fill="var(--accent-silver)" />
-                <span>In Library</span>
-              </div>
-            )}
+                  <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
+                    {folders.map(f => {
+                      const isActivityInThisFolder = assignedFolderIds.includes(f.id);
+                      return (
+                        <button 
+                          key={f.id}
+                          onClick={() => {
+                            toggleActivityInFolder(game.id, f.id);
+                            // Keep menu open for multi-assignment
+                          }}
+                          style={{ 
+                            width: '100%', textAlign: 'left', padding: '8px 10px', background: isActivityInThisFolder ? 'rgba(125, 211, 252, 0.05)' : 'none', 
+                            border: 'none', color: isActivityInThisFolder ? 'var(--accent-silver)' : 'var(--text-secondary)', fontSize: '11px', cursor: 'pointer',
+                            borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                            marginBottom: '2px'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.05)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = isActivityInThisFolder ? 'rgba(125, 211, 252, 0.05)' : 'none'}
+                        >
+                          <span>{f.name}</span>
+                          {isActivityInThisFolder && <CheckCircle2 size={10} color="var(--accent-silver)" />}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  {folders.length === 0 && (
+                    <div style={{ padding: '8px 10px', fontSize: '10px', color: 'var(--text-dim)', textAlign: 'center' }}>No folders created</div>
+                  )}
+                  <button 
+                    onClick={() => setIsPickingFolder(false)}
+                    style={{ width: '100%', marginTop: '4px', padding: '6px', fontSize: '10px', background: 'rgba(255,255,255,0.03)', border: '0.5px solid var(--border-soft)', borderRadius: '6px', color: 'var(--text-muted)', cursor: 'pointer' }}
+                  >
+                    Done
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div style={{ fontSize: '10px', color: 'var(--text-inactive)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'flex', alignItems: 'center', gap: '4px' }}>

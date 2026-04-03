@@ -214,10 +214,28 @@ export const useStore = create((set, get) => ({
     const now = new Date().toISOString();
     const { error } = await supabase.from('folders').update({ deleted_at: now }).eq('id', folderId);
     if (!error) {
+      // 1. Clean up legacy single folder_id
       await supabase.from('activities').update({ folder_id: null }).eq('folder_id', folderId);
+      
+      // 2. Clean up new folder_ids array
+      const gamesToUpdate = get().games.filter(g => Array.isArray(g.folder_ids) && g.folder_ids.includes(folderId));
+      for (const game of gamesToUpdate) {
+        const newFolderIds = game.folder_ids.filter(id => id !== folderId);
+        await supabase.from('activities').update({ folder_ids: newFolderIds }).eq('id', game.id);
+      }
+
       set((state) => ({
         folders: state.folders.filter(f => f.id !== folderId),
-        games: state.games.map(g => g.folder_id === folderId ? { ...g, folder_id: null } : g)
+        games: state.games.map(g => {
+          if (g.folder_id === folderId || (Array.isArray(g.folder_ids) && g.folder_ids.includes(folderId))) {
+            return { 
+              ...g, 
+              folder_id: g.folder_id === folderId ? null : g.folder_id,
+              folder_ids: Array.isArray(g.folder_ids) ? g.folder_ids.filter(id => id !== folderId) : []
+            };
+          }
+          return g;
+        })
       }));
     } else {
       console.error('[Supabase] Error deleting folder:', error.message);
