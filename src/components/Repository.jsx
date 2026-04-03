@@ -498,22 +498,26 @@ export default function Repository() {
               >
                 All Activities
               </button>
-              {folders?.map(folder => (
-                <button 
-                  key={folder.id}
-                  onClick={() => {
-                    setActiveFolderId(folder.id);
-                    setPrimaryFilter('All');
-                  }}
-                  className={`sidebar-link-v9 ${activeFolderId === folder.id ? 'active' : ''}`}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Folder size={12} opacity={0.6} />
-                    <span>{folder.name}</span>
-                  </div>
-                  <span style={{ fontSize: '10px', opacity: 0.5 }}>{folder.gameIds?.length || 0}</span>
-                </button>
-              ))}
+              {folders?.map(folder => {
+                const count = games.filter(g => Array.isArray(g.folder_ids) && g.folder_ids.includes(folder.id)).length;
+                return (
+                  <button 
+                    key={folder.id}
+                    onClick={() => {
+                      setActiveFolderId(folder.id);
+                      setPrimaryFilter('All');
+                    }}
+                    className={`sidebar-link-v8 ${activeFolderId === folder.id ? 'active' : ''}`}
+                    style={{ justifyContent: 'space-between', paddingRight: '12px' }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <Folder size={14} fill={activeFolderId === folder.id ? 'var(--accent-silver)' : 'none'} style={{ opacity: 0.7 }} />
+                      <span>{folder.name}</span>
+                    </div>
+                    <span style={{ fontSize: '10px', opacity: 0.5, fontWeight: '700' }}>{count}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         </aside>

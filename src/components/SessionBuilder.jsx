@@ -406,13 +406,45 @@ export default function SessionBuilder() {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', flex: 1, overflow: 'hidden' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '99px', padding: '10px 16px' }}>
-              <Search size={14} style={{ opacity: 0.4, flexShrink: 0 }} />
-              <input 
-                placeholder="Search repository..." 
-                style={{ flex: 1, background: 'transparent', border: 'none', color: '#FFFFFF', fontSize: '13px', outline: 'none', minWidth: 0 }}
-                value={search} onChange={(e) => setSearch(e.target.value)}
-              />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '99px', padding: '10px 16px' }}>
+                <Search size={14} style={{ opacity: 0.4, flexShrink: 0 }} />
+                <input 
+                  placeholder="Search repository..." 
+                  style={{ flex: 1, background: 'transparent', border: 'none', color: '#FFFFFF', fontSize: '13px', outline: 'none', minWidth: 0 }}
+                  value={search} onChange={(e) => setSearch(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+                <button 
+                  onClick={() => setSelectedFolderId(null)}
+                  style={{ 
+                    whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: '700',
+                    background: !selectedFolderId ? 'var(--accent-silver)' : 'rgba(255,255,255,0.05)',
+                    color: !selectedFolderId ? 'var(--bg-deep)' : 'var(--text-muted)',
+                    border: 'none', cursor: 'pointer', transition: 'all 0.2s'
+                  }}
+                >
+                  All
+                </button>
+                {folders.map(f => (
+                  <button 
+                    key={f.id}
+                    onClick={() => setSelectedFolderId(f.id)}
+                    style={{ 
+                      whiteSpace: 'nowrap', padding: '6px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: '700',
+                      background: selectedFolderId === f.id ? 'var(--accent-silver)' : 'rgba(255,255,255,0.05)',
+                      color: selectedFolderId === f.id ? 'var(--bg-deep)' : 'var(--text-muted)',
+                      border: 'none', cursor: 'pointer', transition: 'all 0.2s',
+                      display: 'flex', alignItems: 'center', gap: '4px'
+                    }}
+                  >
+                    <Folder size={10} fill={selectedFolderId === f.id ? 'var(--bg-deep)' : 'none'} />
+                    {f.name}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
