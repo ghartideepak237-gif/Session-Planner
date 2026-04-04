@@ -89,7 +89,14 @@ const CardIcon = ({ icon, color }) => (
 export default function AnchorGuidelines() {
   const [showRocket, setShowRocket] = useState(false);
   const [isLaunching, setIsLaunching] = useState(false);
-  const staggerDelay = "0.1s"; // Define staggerDelay if needed for cards
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const staggerDelay = "0.1s";
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -359,26 +366,26 @@ export default function AnchorGuidelines() {
     <main style={{ maxWidth: '1100px', margin: '0 auto', padding: '48px 32px 80px' }}>
 
       {/* ── Header ── */}
-      <header style={{ marginBottom: '52px', textAlign: 'center' }}>
+      <header style={{ marginBottom: isMobile ? '32px' : '52px', textAlign: 'center' }}>
         <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-          <Zap color="#EAB308" fill="#EAB308" size={26} />
-          <h1 style={{ margin: 0, fontSize: '36px', fontWeight: '800', fontFamily: 'var(--font-serif)', color: '#FFFFFF', letterSpacing: '-0.02em' }}>
+          <Zap color="#EAB308" fill="#EAB308" size={isMobile ? 22 : 26} />
+          <h1 style={{ margin: 0, fontSize: isMobile ? '28px' : '36px', fontWeight: '800', fontFamily: 'var(--font-serif)', color: '#FFFFFF', letterSpacing: '-0.02em' }}>
             Anchor{' '}
             <span style={{ color: '#EAB308', fontStyle: 'italic' }}>Guideline</span>
           </h1>
         </div>
-        <p style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.35em', fontWeight: '700', margin: 0 }}>
+        <p style={{ fontSize: '9px', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.35em', fontWeight: '700', margin: 0 }}>
           Operational Excellence Protocols
         </p>
       </header>
 
-      {/* ── 2-Column Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px' }}>
+      {/* ── Grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '16px' : '20px' }}>
         {sections.map((s, i) => (
           <section 
             key={i} 
             className="premium-card-v9"
-            style={{ padding: '22px', display: 'flex', flexDirection: 'column', gap: '12px' }}
+            style={{ padding: isMobile ? '18px' : '22px', display: 'flex', flexDirection: 'column', gap: '12px' }}
           >
             <div className="shimmer-overlay-v9" />
 
@@ -386,10 +393,10 @@ export default function AnchorGuidelines() {
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 2 }}>
               <CardIcon icon={s.icon} color={s.iconColor} />
               <div>
-                <div style={{ fontSize: '14px', fontWeight: '700', color: '#FFFFFF', fontFamily: 'var(--font-serif)', lineHeight: 1.2 }}>{s.title}</div>
-                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.35)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{s.subtitle}</div>
+                <div style={{ fontSize: isMobile ? '13px' : '14px', fontWeight: '700', color: '#FFFFFF', fontFamily: 'var(--font-serif)', lineHeight: 1.2 }}>{s.title}</div>
+                <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{s.subtitle}</div>
               </div>
-              <div style={{ marginLeft: 'auto', width: '22px', height: '22px', borderRadius: '7px', background: `${s.iconColor}14`, border: `0.5px solid ${s.iconColor}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '800', color: s.iconColor, flexShrink: 0 }}>
+              <div style={{ marginLeft: 'auto', width: '20px', height: '20px', borderRadius: '6px', background: `${s.iconColor}14`, border: `0.5px solid ${s.iconColor}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '800', color: s.iconColor, flexShrink: 0 }}>
                 {i + 1}
               </div>
             </div>
@@ -404,9 +411,9 @@ export default function AnchorGuidelines() {
       </div>
 
       {/* ── Footer Banner ── */}
-      <div style={{ marginTop: '48px', padding: '28px 40px', background: 'rgba(234,179,8,0.04)', border: '0.5px solid rgba(234,179,8,0.15)', borderRadius: '18px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ marginTop: isMobile ? '32px' : '48px', padding: isMobile ? '20px' : '28px 40px', background: 'rgba(234,179,8,0.04)', border: '0.5px solid rgba(234,179,8,0.15)', borderRadius: '18px', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', top: 0, left: '50%', transform: 'translateX(-50%)', width: '400px', height: '100%', background: 'radial-gradient(ellipse at center, rgba(234,179,8,0.06) 0%, transparent 70%)', pointerEvents: 'none' }} />
-        <p style={{ fontSize: '20px', fontWeight: '700', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-serif)', letterSpacing: '0.04em', margin: 0 }}>
+        <p style={{ fontSize: isMobile ? '13px' : '20px', fontWeight: '700', color: 'rgba(255,255,255,0.8)', fontFamily: 'var(--font-serif)', letterSpacing: '0.04em', margin: 0, lineHeight: 1.4 }}>
           FAST &bull; <span style={{ color: '#EAB308' }}>INTERACTIVE</span> &bull; PHYSICAL &bull; ENGAGING &bull; STRUCTURED &bull; PREPARED
         </p>
       </div>

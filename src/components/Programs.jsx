@@ -124,8 +124,38 @@ export default function Programs() {
           color: var(--text-muted);
           margin-top: 4px;
         }
+
+        @media (max-width: 768px) {
+          .programs-header-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 16px !important;
+            padding: 16px 0 0 !important;
+            margin-bottom: 24px !important;
+          }
+          .programs-header-row .btn-primary {
+            width: 100% !important;
+            justify-content: center !important;
+          }
+          .program-form-grid {
+            grid-template-columns: 1fr !important;
+            gap: 12px !important;
+          }
+          .program-grid {
+            grid-template-columns: 1fr !important;
+            gap: 16px !important;
+          }
+          .program-card-v8 {
+            padding: 16px !important;
+            gap: 8px !important;
+          }
+          .hub-title-v8 {
+            font-size: 20px !important;
+          }
+        }
+
       `}</style>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px', padding: '40px 0 0' }}>
+      <div className="programs-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px', padding: '40px 0 0' }}>
         <div>
           <h2 className="hub-title-v8">Program <span style={{ fontStyle: 'italic', background: 'linear-gradient(to right, var(--accent-silver), var(--accent-gold))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Curriculum</span></h2>
           <p className="hub-subtitle-v8">Structured multi-week developmental architectures</p>
@@ -153,7 +183,7 @@ export default function Programs() {
         <form className="glass-panel" style={{ marginBottom: '48px', padding: '32px' }} onSubmit={handleSubmit}>
           <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-serif)', color: '#FFFFFF', marginBottom: '24px' }}>Architect New Roadmap</h3>
           
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
+          <div className="program-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
             <div>
               <label style={{ fontSize: '11px', fontWeight: '700', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', display: 'block', marginBottom: '8px' }}>Program Name *</label>
               <input className="v7-input" style={{ width: '100%', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)', color: '#FFFFFF', borderRadius: '12px', padding: '12px' }} value={form.name} onChange={e => setForm({...form, name: e.target.value})} required autoFocus />
@@ -184,7 +214,7 @@ export default function Programs() {
                 const weekNum = i + 1;
                 const activeData = form.weeks.find(w => w.week === weekNum) || { theme: '', focus: '' };
                 return (
-                  <div key={weekNum} style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr', gap: '12px', alignItems: 'center' }}>
+                  <div key={weekNum} className="week-mapping-row" style={{ display: 'grid', gridTemplateColumns: '80px 1fr 1fr', gap: '12px', alignItems: 'center' }}>
                     <span style={{ fontSize: '12px', fontWeight: '600', color: 'rgba(255,255,255,0.4)' }}>Week {weekNum}</span>
                     <input style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)', color: '#FFFFFF', borderRadius: '10px', padding: '10px', fontSize: '13px' }} placeholder="Week Theme" value={activeData.theme} onChange={e => handleWeekChange(weekNum, 'theme', e.target.value)} />
                     <input style={{ background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)', color: '#FFFFFF', borderRadius: '10px', padding: '10px', fontSize: '13px' }} placeholder="Key Focus Area" value={activeData.focus} onChange={e => handleWeekChange(weekNum, 'focus', e.target.value)} />
@@ -207,7 +237,7 @@ export default function Programs() {
           <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', maxWidth: '400px', margin: '0 auto' }}>Initialize a new multi-week developmental program to begin structuring your sessions.</p>
         </div>
       ) : (
-        <div className="game-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '32px' }}>
+        <div className="program-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '32px' }}>
           {programs.map(p => {
              const { activeProgram } = useStore.getState();
              const isActive = activeProgram?.id === p.id;

@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Shuffle, Star, Clock, Plus, ArrowRight, Zap, Users, Pencil, Trash2, Folder, FolderPlus, Edit2, ListFilter, Rocket, CheckCircle2 } from 'lucide-react';
+import { Search, Shuffle, Star, Clock, Plus, ArrowRight, Zap, Users, Pencil, Trash2, Folder, FolderPlus, Edit2, ListFilter, Rocket, CheckCircle2, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
 import AddGameModal from './AddGameModal';
@@ -92,6 +92,9 @@ export default function Repository() {
   const [activeFolderId, setActiveFolderId] = useState('all');
   const [showRocket, setShowRocket] = useState(true);
   const [isLaunching, setIsLaunching] = useState(false);
+  const [isFoldersExpanded, setIsFoldersExpanded] = useState(false);
+  const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setShowRocket(window.scrollY > 400);
@@ -137,8 +140,16 @@ export default function Repository() {
     return result;
   }, [games, energyF, search, primaryFilter, sortBy, activeFolderId, categoryF]);
 
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   return (
-    <div className="page-wrapper v8-theme">
+    <div className={`page-wrapper v8-theme ${isMobile ? 'compact-mobile' : ''}`}>
       <AnimatePresence>
         {showRocket && (
           <motion.button
@@ -217,6 +228,40 @@ export default function Repository() {
           }
           .game-card-v8 {
             padding: 20px;
+          }
+          .repository-main-layout {
+            display: flex !important;
+            flex-direction: column !important;
+            gap: 20px !important;
+            padding: 16px 12px !important;
+          }
+          .repository-header-row {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 12px !important;
+          }
+          .filter-row-v8 {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            gap: 6px !important;
+          }
+          .filter-row-v8 span {
+            width: auto !important;
+            font-size: 9px !important;
+          }
+          .title-v8 {
+            font-size: 20px !important;
+          }
+          .game-card-v8 {
+            padding: 16px !important;
+            gap: 12px !important;
+          }
+          .game-title-v8 {
+            font-size: 15px !important;
+          }
+          .game-desc-v8 {
+            font-size: 11px !important;
+            height: 52px !important;
           }
         }
 
@@ -395,11 +440,11 @@ export default function Repository() {
         mode="repository"
       />
 
-      <main className="container-max" style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '48px', padding: '60px 20px', position: 'relative', zIndex: 10 }}>
+      <main className="container-max repository-main-layout" style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '48px', padding: '60px 20px', position: 'relative', zIndex: 10 }}>
 
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
+        <aside style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '20px' : '40px' }}>
           <div className="search-container-v8">
-            <Search className="search-icon-v8" size={16} />
+            <Search className="search-icon-v8" size={14} />
             <input
               type="text"
               placeholder="Search assets..."
@@ -409,29 +454,28 @@ export default function Repository() {
             />
           </div>
 
-          <div style={{ marginTop: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h4 style={{ fontSize: '10px', color: 'var(--text-inactive)', letterSpacing: '0.15em', fontWeight: '700', textTransform: 'uppercase', margin: 0 }}>VIEWS</h4>
+          {isMobile && (
+            <div style={{ marginTop: '12px' }}>
+              <button 
+                onClick={() => setIsFiltersModalOpen(true)}
+                className="btn-secondary" 
+                style={{ width: '100%', justifyContent: 'center', padding: '10px 16px', fontSize: '11px', borderRadius: '10px', gap: '6px', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)' }}
+              >
+                <ListFilter size={12} />
+                <span>Adjust Filters & Categories</span>
+              </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {['All', 'Favorites', 'Recently Added'].map(filter => (
-                <button
-                  key={filter}
-                  onClick={() => {
-                    setPrimaryFilter(filter);
-                    setActiveFolderId('all');
-                  }}
-                  className={`sidebar-link-v9 ${primaryFilter === filter ? 'active' : ''}`}
-                >
-                  {filter}
-                </button>
-              ))}
-            </div>
-          </div>
+          )}
 
-          <div style={{ marginTop: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-              <h4 style={{ fontSize: '10px', color: 'var(--text-inactive)', letterSpacing: '0.15em', fontWeight: '700', textTransform: 'uppercase', margin: 0 }}>CUSTOM FOLDERS</h4>
+          <div style={{ marginTop: isMobile ? '8px' : '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile && !isFoldersExpanded ? '0' : '12px' }}>
+              <button 
+                onClick={() => isMobile && setIsFoldersExpanded(!isFoldersExpanded)}
+                style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: isMobile ? 'pointer' : 'default', flex: 1, textAlign: 'left', padding: isMobile ? '8px 0' : '0' }}
+              >
+                <h4 style={{ fontSize: '9px', color: 'var(--text-inactive)', letterSpacing: '0.15em', fontWeight: '700', textTransform: 'uppercase', margin: 0 }}>CUSTOM FOLDERS</h4>
+                {isMobile && (isFoldersExpanded ? <ChevronUp size={14} color="var(--text-inactive)" /> : <ChevronDown size={14} color="var(--text-inactive)" />)}
+              </button>
               <button
                 onClick={() => { const name = window.prompt('Folder Name?'); if (name) addFolder(name); }}
                 style={{ background: 'none', border: 'none', color: 'var(--accent-gold)', cursor: 'pointer' }}
@@ -439,39 +483,48 @@ export default function Repository() {
                 <FolderPlus size={14} />
               </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button
-                onClick={() => setActiveFolderId('all')}
-                className={`sidebar-link-v9 ${activeFolderId === 'all' && (primaryFilter !== 'Favorites' && primaryFilter !== 'Recently Added') ? 'active' : ''}`}
-              >
-                All Activities
-              </button>
-              {folders?.map(folder => {
-                const count = games.filter(g => Array.isArray(g.folder_ids) && g.folder_ids.includes(folder.id)).length;
-                return (
+            <AnimatePresence>
+              {(!isMobile || isFoldersExpanded) && (
+                <motion.div 
+                  initial={isMobile ? { height: 0, opacity: 0 } : false}
+                  animate={{ height: 'auto', opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  style={{ overflow: 'hidden', display: 'flex', flexDirection: 'column', gap: '8px' }}
+                >
                   <button
-                    key={folder.id}
-                    onClick={() => {
-                      setActiveFolderId(folder.id);
-                      setPrimaryFilter('All');
-                    }}
-                    className={`sidebar-link-v9 ${activeFolderId === folder.id ? 'active' : ''}`}
-                    style={{ position: 'relative' }}
+                    onClick={() => setActiveFolderId('all')}
+                    className={`sidebar-link-v9 ${activeFolderId === 'all' && (primaryFilter !== 'Favorites' && primaryFilter !== 'Recently Added') ? 'active' : ''}`}
                   >
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <Folder size={14} fill={activeFolderId === folder.id ? 'var(--accent-silver)' : 'none'} style={{ opacity: activeFolderId === folder.id ? 1 : 0.5 }} />
-                      <span>{folder.name}</span>
-                    </div>
-                    <span style={{ fontSize: '10px', opacity: 0.6, fontWeight: '700' }}>{count}</span>
+                    All Activities
                   </button>
-                );
-              })}
-            </div>
+                  {folders?.map(folder => {
+                    const count = games.filter(g => Array.isArray(g.folder_ids) && g.folder_ids.includes(folder.id)).length;
+                    return (
+                      <button
+                        key={folder.id}
+                        onClick={() => {
+                          setActiveFolderId(folder.id);
+                          setPrimaryFilter('All');
+                        }}
+                        className={`sidebar-link-v9 ${activeFolderId === folder.id ? 'active' : ''}`}
+                        style={{ position: 'relative' }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <Folder size={14} fill={activeFolderId === folder.id ? 'var(--accent-silver)' : 'none'} style={{ opacity: activeFolderId === folder.id ? 1 : 0.5 }} />
+                          <span>{folder.name}</span>
+                        </div>
+                        <span style={{ fontSize: '10px', opacity: 0.6, fontWeight: '700' }}>{count}</span>
+                      </button>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </aside>
 
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '40px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+        <section style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
+          <div className="repository-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
             <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
               <h2 className="title-v8">Games Library</h2>
               <span style={{ fontSize: '18px', color: 'var(--text-muted)', fontWeight: '500' }}>{filteredGames.length}</span>
@@ -507,37 +560,40 @@ export default function Repository() {
             </div>
           </div>
 
-          <div className="filters-grid-v8" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--text-inactive)', width: '60px' }}>ENERGY</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                <button onClick={() => setEnergyF('all')} className={`pill-v8 ${energyF === 'all' ? 'active' : ''}`}>All</button>
-                {energyTypes.map(t => (
-                  <button key={t} onClick={() => setEnergyF(t)} className={`pill-v8 ${energyF === t ? 'active' : ''}`}>{t}</button>
-                ))}
+          {!isMobile && (
+            <div className="filters-grid-v8" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="filter-row-v8" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--text-inactive)', width: '60px' }}>ENERGY</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  <button onClick={() => setEnergyF('all')} className={`pill-v8 ${energyF === 'all' ? 'active' : ''}`}>All</button>
+                  {energyTypes.map(t => (
+                    <button key={t} onClick={() => setEnergyF(t)} className={`pill-v8 ${energyF === t ? 'active' : ''}`}>{t}</button>
+                  ))}
+                </div>
               </div>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-              <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--text-inactive)', width: '60px' }}>CATEGORY</span>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                <button
-                  onClick={() => setCategoryF('All')}
-                  className={`pill-v8 ${categoryF === 'All' ? 'active' : ''}`}
-                >
-                  All
-                </button>
-                {['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing', 'Nostalgia', 'Youth & Positivity', 'General', 'Team Building', 'Icebreaker', 'Creativity', 'Trivia', 'Fun & Engagement', 'Mindfulness', 'Problem Solving', 'Communication'].map(cat => (
+              <div className="filter-row-v8" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--text-inactive)', width: '60px' }}>CATEGORY</span>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   <button
-                    key={cat}
-                    onClick={() => setCategoryF(cat)}
-                    className={`pill-v8 ${categoryF === cat ? 'active' : ''}`}
+                    onClick={() => setCategoryF('All')}
+                    className={`pill-v8 ${categoryF === 'All' ? 'active' : ''}`}
                   >
-                    {cat}
+                    All
                   </button>
-                ))}
+                  {['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing', 'Nostalgia', 'Youth & Positivity', 'General', 'Team Building', 'Icebreaker', 'Creativity', 'Trivia', 'Fun & Engagement', 'Mindfulness', 'Problem Solving', 'Communication'].map(cat => (
+                    <button
+                      key={cat}
+                      onClick={() => setCategoryF(cat)}
+                      className={`pill-v8 ${categoryF === cat ? 'active' : ''}`}
+                    >
+                      {cat}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
-          </div>
+          )}
+
 
           <div className="repository-grid">
             {filteredGames.map((game, i) => (
@@ -554,7 +610,89 @@ export default function Repository() {
             ))}
           </div>
         </section>
-      </main>
-    </div>
-  );
-}
+      {/* Mobile Filters Modal */}
+      <AnimatePresence>
+        {isFiltersModalOpen && (
+          <div className="modal-overlay" style={{ zIndex: 3000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)' }}>
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="premium-card-v9" 
+              style={{ 
+                width: '100%', 
+                maxHeight: '85vh', 
+                position: 'fixed', 
+                bottom: 0, 
+                left: 0, 
+                borderRadius: '24px 24px 0 0',
+                padding: '32px 24px 48px',
+                border: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px'
+              }}
+            >
+              <div className="shimmer-overlay-v9" style={{ opacity: 0.1 }} />
+              <div style={{ position: 'relative', zIndex: 2 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+                  <h3 style={{ fontSize: '20px', fontWeight: '800', color: '#FFFFFF', fontFamily: 'var(--font-serif)', margin: 0 }}>Filter Architecture</h3>
+                  <button onClick={() => setIsFiltersModalOpen(false)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#FFF', borderRadius: '50%', padding: '8px' }}>
+                    <X size={20} />
+                  </button>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', overflowY: 'auto', maxHeight: '60vh', paddingRight: '4px' }}>
+                  <div className="filter-row-v8">
+                    <span style={{ fontSize: '10px', fontWeight: '900', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '12px' }}>ENERGY LEVELS</span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      <button onClick={() => setEnergyF('all')} className={`pill-v8 ${energyF === 'all' ? 'active' : ''}`} style={{ padding: '10px 18px', fontSize: '12px' }}>All</button>
+                      {energyTypes.map(t => (
+                        <button key={t} onClick={() => setEnergyF(t)} className={`pill-v8 ${energyF === t ? 'active' : ''}`} style={{ padding: '10px 18px', fontSize: '12px' }}>{t}</button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="filter-row-v8">
+                    <span style={{ fontSize: '10px', fontWeight: '900', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '12px' }}>CATEGORY</span>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                      <button
+                        onClick={() => setCategoryF('All')}
+                        className={`pill-v8 ${categoryF === 'All' ? 'active' : ''}`}
+                        style={{ padding: '10px 18px', fontSize: '12px' }}
+                      >
+                        All
+                      </button>
+                      {['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing', 'Nostalgia', 'Youth & Positivity', 'General', 'Team Building', 'Icebreaker', 'Creativity', 'Trivia', 'Fun & Engagement', 'Mindfulness', 'Problem Solving', 'Communication'].map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setCategoryF(cat)}
+                          className={`pill-v8 ${categoryF === cat ? 'active' : ''}`}
+                          style={{ padding: '10px 18px', fontSize: '12px' }}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  className="btn-primary" 
+                  onClick={() => setIsFiltersModalOpen(false)}
+                  style={{ width: '100%', marginTop: '32px', justifyContent: 'center', padding: '16px' }}
+                >
+                  Apply Filters
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AddGameModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+        </main>
+      </div>
+    );
+  }

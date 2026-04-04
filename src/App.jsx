@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, ArrowRight, LogOut, Zap } from 'lucide-react';
+import { Users, Plus, ArrowRight, LogOut, Zap, Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Repository from './components/Repository';
 import SessionBuilder from './components/SessionBuilder';
@@ -19,6 +19,7 @@ export default function App() {
   const [error, setError] = useState('');
   const [scrolled, setScrolled] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleResize = () => {
@@ -88,9 +89,10 @@ export default function App() {
           WebkitBackdropFilter: 'blur(24px)',
           border: '0.5px solid rgba(255,255,255,0.08)',
           borderRadius: '24px',
-          padding: '48px 40px',
-          width: '100%',
+          padding: isMobile ? '32px 24px' : '48px 40px',
+          width: 'calc(100% - 32px)',
           maxWidth: '420px',
+          margin: '16px',
           textAlign: 'center',
           boxShadow: '0 40px 80px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.05) inset'
         }}>
@@ -153,87 +155,145 @@ export default function App() {
 
   return (
     <div className={`page-wrapper ${isMobile ? 'is-mobile' : ''}`}>
-      <nav className={`glass-header ${scrolled ? 'scrolled' : ''}`} style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: isMobile ? '16px 20px' : '20px 48px',
-        flexWrap: isMobile ? 'wrap' : 'nowrap',
-        gap: isMobile ? '16px' : '0'
-      }}>
+      {/* Mobile Drawer */}
+      <AnimatePresence>
+        {isMobile && isMenuOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuOpen(false)}
+              style={{
+                position: 'fixed',
+                top: 0, left: 0, right: 0, bottom: 0,
+                background: 'rgba(0,0,0,0.8)',
+                backdropFilter: 'blur(8px)',
+                zIndex: 2000
+              }}
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              style={{
+                position: 'fixed',
+                top: 0, left: 0, bottom: 0,
+                width: '100%',
+                maxWidth: '280px',
+                background: 'var(--bg-deep)',
+                borderRight: '1px solid var(--border-soft)',
+                zIndex: 2001,
+                padding: '32px 24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '40px'
+              }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <img src="/e-logo.png" alt="Logo" style={{ width: '24px', height: '24px' }} />
+                  <span style={{ fontSize: '16px', fontWeight: '800', color: '#FFF' }}>Navigation</span>
+                </div>
+                <button onClick={() => setIsMenuOpen(false)} style={{ background: 'none', border: 'none', color: '#FFF' }}>
+                  <X size={20} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {['repository', 'builder', 'programs', 'guidelines'].map(tab => (
+                  <button
+                    key={tab}
+                    className={`sidebar-link-v9 ${activeTab === tab || (tab === 'builder' && activeTab === 'plan') || (tab === 'programs' && activeTab === 'roadmap') ? 'active' : ''}`}
+                    onClick={() => {
+                      setActiveTab(tab);
+                      setIsMenuOpen(false);
+                    }}
+                    style={{ justifyContent: 'flex-start', padding: '16px 20px', fontSize: '14px' }}
+                  >
+                    {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                  </button>
+                ))}
+              </div>
+
+              <div style={{ marginTop: 'auto' }}>
+                <button 
+                  onClick={handleLogout}
+                  className="sidebar-link-v9"
+                  style={{ width: '100%', justifyContent: 'flex-start', color: 'var(--danger)', gap: '12px', padding: '16px 20px' }}
+                >
+                  <LogOut size={16} /> Logout
+                </button>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      <nav className={`navbar glass-header ${scrolled ? 'scrolled' : ''}`}>
         {/* Brand */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div
-            onClick={() => setActiveTab('repository')}
-            style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '12px' }}
-          >
-            <div style={{ width: isMobile ? '32px' : '40px', height: isMobile ? '32px' : '40px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <img src="/e-logo.png" alt="Logo" style={{ width: isMobile ? '24px' : '30px', height: isMobile ? '24px' : '30px', objectFit: 'contain' }} />
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <span style={{ fontSize: isMobile ? '14px' : '18px', fontWeight: '800', letterSpacing: '-0.5px', color: '#FFFFFF', lineHeight: 1 }}>Session Planner</span>
-              {!isMobile && <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '1px' }}>e-Socialize Program Tool</span>}
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', cursor: 'pointer' }} onClick={() => setActiveTab('repository')}>
+          {isMobile && (
+            <button 
+              onClick={(e) => { e.stopPropagation(); setIsMenuOpen(true); }}
+              style={{ background: 'none', border: 'none', color: '#FFF', padding: '8px' }}
+            >
+              <Menu size={20} />
+            </button>
+          )}
+          <div style={{ width: '36px', height: '36px', background: 'rgba(255,255,255,0.03)', borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
+            <img src="/e-logo.png" alt="Logo" style={{ width: '26px', height: '26px', objectFit: 'contain' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column' }}>
+            <span style={{ fontSize: '18px', fontWeight: '800', letterSpacing: '-0.5px', color: '#FFFFFF', lineHeight: 1 }}>Session Planner</span>
+            <span className="hide-mobile" style={{ fontSize: '10px', fontWeight: '700', color: 'var(--text-inactive)', textTransform: 'uppercase', letterSpacing: '1px' }}>e-Socialize Program Tool</span>
           </div>
         </div>
 
-        <div className="nav-center" style={{ width: isMobile ? '100%' : 'auto', order: isMobile ? 3 : 2 }}>
-          <nav className="header-nav" style={{
-            display: 'flex',
-            gap: isMobile ? '4px' : '8px',
-            justifyContent: isMobile ? 'center' : 'flex-start',
-            width: '100%'
-          }}>
-            {['repository', 'builder', 'programs', 'guidelines'].map(tab => (
-              <button
-                key={tab}
-                className={`nav-link ${activeTab === tab || (tab === 'builder' && activeTab === 'plan') || (tab === 'programs' && activeTab === 'roadmap') ? 'active' : ''}`}
-                onClick={() => setActiveTab(tab)}
-                style={{
-                  background: activeTab === tab ? 'rgba(255,255,255,0.08)' : 'none',
-                  border: 'none',
-                  color: activeTab === tab ? 'var(--text-primary)' : 'var(--text-inactive)',
-                  padding: '8px 12px',
-                  borderRadius: '8px',
-                  fontSize: isMobile ? '11px' : '13px',
-                  fontWeight: '600',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s'
-                }}
-              >
-                {tab.charAt(0).toUpperCase() + tab.slice(1)}
-              </button>
-            ))}
-          </nav>
-        </div>
-
-        <div className="nav-actions" style={{ display: 'flex', alignItems: 'center', gap: '12px', order: isMobile ? 2 : 3 }}>
-          {activeTab === 'repository' && !isMobile && (
-            <button className="btn-primary" onClick={() => setShowAddGame(true)} style={{ padding: '10px 20px', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Plus size={14} /> Add Game
-            </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {!isMobile && (
+            <div className="nav-center">
+              {['repository', 'builder', 'programs', 'guidelines'].map(tab => (
+                <button
+                  key={tab}
+                  className={`nav-link ${activeTab === tab || (tab === 'builder' && activeTab === 'plan') || (tab === 'programs' && activeTab === 'roadmap') ? 'active' : ''}`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                </button>
+              ))}
+            </div>
           )}
-          <button
-            className="btn-secondary"
-            onClick={handleLogout}
-            title="Logout"
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '40px',
-              height: '40px',
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.05)',
-              border: '0.5px solid var(--border-soft)',
-              color: 'var(--text-primary)',
-              padding: 0
-            }}
-          >
-            <span style={{ color: '#FFFFFF', fontSize: '11px', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Out</span>
-          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            {activeTab === 'repository' && !isMobile && (
+              <button className="btn-primary" onClick={() => setShowAddGame(true)}>
+                <Plus size={14} /> Add Game
+              </button>
+            )}
+            <button
+              className="btn-secondary"
+              onClick={handleLogout}
+              title="Logout"
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 0
+              }}
+            >
+              <span className={isMobile ? 'hide-mobile' : ''} style={{ color: '#FFFFFF', fontSize: '11px', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>Out</span>
+              {isMobile && <LogOut size={16} color="#FFF" />}
+            </button>
+          </div>
         </div>
       </nav>
+
+
 
       <GameForm isOpen={showAddGame} onClose={() => setShowAddGame(false)} />
 

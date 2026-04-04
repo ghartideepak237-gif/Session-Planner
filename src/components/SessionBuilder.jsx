@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { Search, Save, FileDown, Plus, GripVertical, Trash2, Copy, Edit, CheckCircle, CheckCircle2, Pencil, Folder, ChevronUp, ChevronDown } from 'lucide-react';
+import { Search, Save, FileDown, Plus, GripVertical, Trash2, Copy, Edit, CheckCircle, CheckCircle2, Pencil, Folder, ChevronUp, ChevronDown, X, RotateCcw } from 'lucide-react';
 import { useStore, computeSessionEnergy } from '../store';
 import { generateSessionPDF } from '../utils/pdfGenerator';
 import EditActivityModal from './EditActivityModal';
@@ -16,6 +17,14 @@ export default function SessionBuilder() {
   const [customForm, setCustomForm] = useState({
     title: '', duration: '', rules: '', context: '', energyType: energyTypes[0], theme_clean: categories[0] || 'General'
   });
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const [isLibraryModalOpen, setIsLibraryModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;
@@ -122,25 +131,51 @@ export default function SessionBuilder() {
         @media (max-width: 1200px) {
           .builder-main-v8 {
             grid-template-columns: 250px 1fr;
-            gap: 20px;
-            padding: 20px;
+            gap: 24px;
+            padding: 24px;
           }
           .builder-main-v8 > aside:last-of-type {
             display: none; /* Hide asset library on tablets to save space */
           }
         }
-
+        
         @media (max-width: 768px) {
           .builder-main-v8 {
-            grid-template-columns: 1fr;
-            display: flex;
-            flex-direction: column;
-            gap: 32px;
+            display: flex !important;
+            flex-direction: column !important;
+            grid-template-columns: 1fr !important;
+            gap: 20px !important;
+            padding: 12px !important;
           }
           .builder-main-v8 > aside:last-of-type {
-            display: flex; /* Show it again but stacked */
+            display: flex !important;
+            max-height: none !important;
+            height: auto !important;
+          }
+          .timeline-container-v8 {
+            border-left: none !important;
+            padding: 0 !important;
+          }
+          .builder-aside-v8 {
+             gap: 16px !important;
+          }
+          .btn-group-mobile {
+            flex-direction: column !important;
+            gap: 8px !important;
+          }
+          .premium-card-v9 {
+            padding: 16px !important;
+          }
+          .v8-panel-header {
+            font-size: 20px !important;
+            margin-bottom: 16px !important;
+          }
+          .timing-value-v8 {
+            font-size: 18px !important;
           }
         }
+
+
         .planner-aside-v8 {
           display: flex;
           flex-direction: column;
@@ -218,7 +253,7 @@ export default function SessionBuilder() {
       `}</style>
 
         {/* COLUMN 1: Session Control */}
-        <aside className="planner-aside-v8">
+        <aside className="planner-aside-v8 builder-aside-v8">
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
               <h2 style={{ fontSize: '24px', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)', margin: 0 }}>
@@ -270,19 +305,21 @@ export default function SessionBuilder() {
             </div>
           </div>
 
-          <div className="premium-card-v9" style={{ padding: '20px' }}>
-            <div className="shimmer-overlay-v9" />
-            <div style={{ position: 'relative', zIndex: 2 }}>
-              <label className="timing-label-v8">Session Notes</label>
-              <textarea
-                value={builder.notes || ''}
-                onChange={e => setBuilderField('notes', e.target.value)}
-                placeholder="Add strategic notes for this session..."
-                className="v8-input"
-                style={{ width: '100%', minHeight: '100px', background: 'rgba(255,255,255,0.02)', border: '0.5px solid var(--border-soft)', color: 'var(--text-secondary)', borderRadius: '12px', padding: '12px', fontSize: '12px', resize: 'none', lineHeight: '1.6' }}
-              />
+          {!isMobile && (
+            <div className="premium-card-v9" style={{ padding: '20px' }}>
+              <div className="shimmer-overlay-v9" />
+              <div style={{ position: 'relative', zIndex: 2 }}>
+                <label className="timing-label-v8">Session Notes</label>
+                <textarea
+                  value={builder.notes || ''}
+                  onChange={e => setBuilderField('notes', e.target.value)}
+                  placeholder="Add strategic notes for this session..."
+                  className="v8-input"
+                  style={{ width: '100%', minHeight: '100px', background: 'rgba(255,255,255,0.02)', border: '0.5px solid var(--border-soft)', color: 'var(--text-secondary)', borderRadius: '12px', padding: '12px', fontSize: '12px', resize: 'none', lineHeight: '1.6' }}
+                />
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="premium-card-v9" style={{ padding: '16px' }}>
             <div className="shimmer-overlay-v9" />
@@ -306,7 +343,7 @@ export default function SessionBuilder() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
+          <div className="btn-group-mobile" style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: 'auto' }}>
             <button className="btn-primary" onClick={() => generateSessionPDF(builder)} style={{ justifyContent: 'center' }}>
               <FileDown size={14} /> Deployment PDF
             </button>
@@ -314,10 +351,11 @@ export default function SessionBuilder() {
               <Save size={14} /> Synchronize
             </button>
           </div>
+
         </aside>
 
         {/* COLUMN 2: Timeline Builder */}
-        <div style={{ display: 'flex', flexDirection: 'column', borderLeft: '0.5px solid var(--border-soft)', padding: '0 40px' }}>
+        <div className="timeline-container-v8" style={{ display: 'flex', flexDirection: 'column', borderLeft: '0.5px solid var(--border-soft)', padding: '0 40px' }}>
           <h3 className="v8-panel-header">Session <span style={{ fontStyle: 'italic', background: 'linear-gradient(to right, var(--accent-silver), var(--accent-gold))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Architecture</span></h3>
 
           {builder.selectedGames.length === 0 ? (
@@ -518,8 +556,8 @@ export default function SessionBuilder() {
                 </div>
               </div>
 
-              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
-                {availableGames.map(game => (
+              <div style={{ flex: 1, overflowY: isMobile ? 'hidden' : 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
+                {(isMobile ? availableGames.slice(0, 4) : availableGames).map(game => (
                   <div key={game.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', border: '0.5px solid var(--border-soft)', borderRadius: '14px' }}>
                     <div style={{ flex: 1 }}>
                       <h5 style={{ fontSize: '13px', fontWeight: '700', margin: '0 0 2px 0', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)' }}>{game.title}</h5>
@@ -528,11 +566,112 @@ export default function SessionBuilder() {
                     <button onClick={() => addGameToSession(game)} style={{ width: '28px', height: '28px', background: 'var(--text-primary)', border: 'none', borderRadius: '50%', color: 'var(--bg-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}><Plus size={14} /></button>
                   </div>
                 ))}
+                {isMobile && availableGames.length > 4 && (
+                  <button 
+                    onClick={() => setIsLibraryModalOpen(true)}
+                    className="btn-secondary" 
+                    style={{ width: '100%', marginTop: '8px', justifyContent: 'center', fontSize: '11px' }}
+                  >
+                    See all {availableGames.length} assets
+                  </button>
+                )}
               </div>
             </div>
           )}
         </aside>
-      </main>
-    </>
-  );
+
+        {isMobile && (
+          <div className="premium-card-v9" style={{ padding: '20px', marginTop: '24px', gridColumn: 'span 1' }}>
+            <div className="shimmer-overlay-v9" />
+            <div style={{ position: 'relative', zIndex: 2 }}>
+              <label className="timing-label-v8">Session Notes</label>
+              <textarea
+                value={builder.notes || ''}
+                onChange={e => setBuilderField('notes', e.target.value)}
+                placeholder="Add strategic notes for this session..."
+                className="v8-input"
+                style={{ width: '100%', minHeight: '100px', background: 'rgba(255,255,255,0.02)', border: '0.5px solid var(--border-soft)', color: 'var(--text-secondary)', borderRadius: '12px', padding: '12px', fontSize: '12px', resize: 'none', lineHeight: '1.6' }}
+              />
+            </div>
+          </div>
+        )}
+      {/* Asset Library Modal (Mobile) */}
+      <AnimatePresence>
+        {isLibraryModalOpen && (
+          <div className="modal-overlay" style={{ zIndex: 3000, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(24px)' }}>
+            <motion.div 
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              className="premium-card-v9"
+              style={{
+                width: '100%',
+                height: '90vh',
+                position: 'fixed',
+                bottom: 0,
+                left: 0,
+                borderRadius: '32px 32px 0 0',
+                padding: '32px 24px',
+                border: 'none',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+                overflow: 'hidden'
+              }}
+            >
+              <div className="shimmer-overlay-v9" style={{ opacity: 0.1 }} />
+              <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <h3 style={{ fontSize: '22px', fontWeight: '800', color: '#FFFFFF', fontFamily: 'var(--font-serif)', margin: 0 }}>Asset Library</h3>
+                  <button onClick={() => setIsLibraryModalOpen(false)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#FFF', borderRadius: '50%', padding: '8px' }}>
+                    <X size={20} />
+                  </button>
+                </div>
+                
+                <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', marginBottom: '20px' }}>Deploy activities into your session architecture</p>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.12)', borderRadius: '16px', padding: '12px 16px', marginBottom: '24px' }}>
+                  <Search size={16} style={{ opacity: 0.4 }} />
+                  <input
+                    placeholder="Search activities..."
+                    style={{ flex: 1, background: 'transparent', border: 'none', color: '#FFFFFF', fontSize: '14px', outline: 'none' }}
+                    value={search} onChange={(e) => setSearch(e.target.value)}
+                  />
+                </div>
+
+                <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px', paddingRight: '4px' }}>
+                  {availableGames.map(game => (
+                    <div key={game.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)', borderRadius: '18px' }}>
+                      <div style={{ flex: 1 }}>
+                        <h5 style={{ fontSize: '15px', fontWeight: '700', margin: '0 0 4px 0', color: '#FFF', fontFamily: 'var(--font-serif)' }}>{game.title}</h5>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', fontWeight: '600' }}>{game.baseDurationNum}m</span>
+                          <span style={{ width: '3px', height: '3px', background: 'rgba(255,255,255,0.2)', borderRadius: '50%' }} />
+                          <span style={{ fontSize: '11px', color: 'var(--accent-silver)', fontWeight: '700' }}>{game.energyType}</span>
+                        </div>
+                      </div>
+                      <button 
+                        onClick={() => { addGameToSession(game); setIsLibraryModalOpen(false); }} 
+                        style={{ width: '36px', height: '36px', background: '#FFF', color: '#000', border: 'none', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                      >
+                        <Plus size={18} />
+                      </button>
+                    </div>
+                  ))}
+                  {availableGames.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '48px 24px', opacity: 0.4 }}>
+                      <Search size={32} style={{ marginBottom: '12px' }} />
+                      <p>No matching activities found</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+    </main>
+  </>
+);
 }

@@ -272,37 +272,84 @@ button, input, select, textarea {
   100% { left: 150%; opacity: 0; }
 }
 
-/* Global Responsive Tweaks */
+/* v9.5 Premium Responsive Engine */
+:root {
+  --spacing-main: 40px;
+  --header-height: 72px;
+}
+
+@media (max-width: 1024px) {
+  :root {
+    --spacing-main: 24px;
+    --header-height: 64px;
+  }
+}
+
 @media (max-width: 768px) {
   :root {
-    --spacing-main: 20px;
+    --spacing-main: 16px;
+    --header-height: auto; /* Allow header to expand if needed */
+  }
+  
+  /* Compact Mobile Scale */
+  .compact-mobile {
+    --spacing-main: 12px !important;
+    font-size: 13px !important;
   }
   
   .container-max {
-    padding: 0 16px !important;
+    padding: 0 12px !important;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
-  h1 { font-size: 26px !important; }
-  h2 { font-size: 22px !important; }
-  h3 { font-size: 18px !important; }
+  h1 { font-size: 20px !important; letter-spacing: -0.02em !important; }
+  h2 { font-size: 18px !important; }
+  h3 { font-size: 15px !important; }
   
   .glass-header {
-    padding: 12px 16px !important;
+    padding: 8px 12px !important;
+    position: sticky !important;
+    height: 56px !important;
   }
   
-  .nav-link {
-    padding: 6px 12px !important;
-    font-size: 11px !important;
-    white-space: nowrap;
-  }
-
-  .btn-primary, .btn-secondary {
-    padding: 10px 16px !important;
-    font-size: 12px !important;
-    border-radius: 10px !important;
-  }
-
   .page-wrapper {
-    padding-top: 100px !important; /* Adjust for double-row header on mobile */
+    padding-top: 0 !important;
+  }
+
+  /* Force vertical stacking for common layouts */
+  .flex-responsive {
+    flex-direction: column !important;
+    gap: 16px !important;
+  }
+
+  /* Grid adaptations */
+  .grid-responsive-2 {
+    grid-template-columns: 1fr !important;
+  }
+  
+  /* Utility: Hide on mobile */
+  .hide-mobile {
+    display: none !important;
+  }
+
+  /* Small Screen Scrollbars */
+  ::-webkit-scrollbar {
+    height: 4px;
+    width: 4px;
   }
 }
+
+/* Base Responsive Utilities */
+.w-full-mobile {
+  @media (max-width: 768px) {
+    width: 100% !important;
+  }
+}
+
+.m-0-mobile {
+  @media (max-width: 768px) {
+    margin: 0 !important;
+  }
+}
+
