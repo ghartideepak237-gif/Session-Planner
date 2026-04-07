@@ -18,7 +18,14 @@ export default function ProgramDetail() {
   const [editingSession, setEditingSession] = useState(null);
   const [sessionOverview, setSessionOverview] = useState(null);
   
-  const program = programs.find(p => p.id === activeProgramId);
+    const [isMobile, setIsMobile] = React.useState(window.innerWidth < 768);
+    React.useEffect(() => {
+      const handleResize = () => setIsMobile(window.innerWidth < 768);
+      window.addEventListener('resize', handleResize);
+      return () => window.removeEventListener('resize', handleResize);
+    }, []);
+
+    const program = programs.find(p => p.id === activeProgramId);
 
   if (!program) {
     return (
@@ -104,10 +111,10 @@ export default function ProgramDetail() {
             const focusPoints = wData.focus ? wData.focus.split(/[•\n,]+/).map(f => f.trim()).filter(Boolean) : [];
 
             return (
-              <section key={week} style={{ display: 'flex', gap: '28px', alignItems: 'flex-start' }}>
+              <section key={week} style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '20px' : '28px', alignItems: 'flex-start' }}>
                 
                 {/* Left label column */}
-                <div style={{ width: '150px', flexShrink: 0, paddingTop: '4px' }}>
+                <div style={{ width: isMobile ? '100%' : '150px', flexShrink: 0, paddingTop: '4px' }}>
                   <div style={{ fontSize: '13px', fontWeight: '700', color: 'var(--accent-gold)', marginBottom: '6px' }}>Week {week}</div>
                   <div style={{ fontSize: '13px', fontWeight: '600', color: '#FFFFFF', lineHeight: '1.4', marginBottom: '8px' }}>{wData.theme}</div>
                   {focusPoints.length > 0 && (
@@ -121,7 +128,7 @@ export default function ProgramDetail() {
                 </div>
 
                 {/* Session Cards - fixed width, left-aligned, no stretching */}
-                <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'flex-start' }}>
+                <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'flex-start', width: isMobile ? '100%' : 'auto' }}>
                   {weekSessions.map((session, sessionIndex) => {
                     const isPlanned = session.selectedGames && session.selectedGames.length > 0 && session.totalActualDuration > 0;
                     const theme = session.programTheme || wData.theme || '';
@@ -133,12 +140,13 @@ export default function ProgramDetail() {
                         key={session.id} 
                         className="premium-card-v9"
                         style={{
-                          width: '270px',
+                          width: isMobile ? '100%' : '270px',
                           flexShrink: 0,
                           padding: '14px',
                           display: 'flex',
                           flexDirection: 'column',
-                          gap: '8px'
+                          gap: '8px',
+                          margin: isMobile ? '0 auto' : '0'
                         }}
                       >
                         <div className="shimmer-overlay-v9" />
@@ -219,12 +227,12 @@ export default function ProgramDetail() {
 
         {/* Unassigned Sessions */}
         {unassignedSessions.length > 0 && (
-          <section style={{ marginTop: '48px', display: 'flex', gap: '28px', alignItems: 'flex-start' }}>
-            <div style={{ width: '150px', flexShrink: 0 }}>
+          <section style={{ marginTop: '48px', display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '20px' : '28px', alignItems: 'flex-start' }}>
+            <div style={{ width: isMobile ? '100%' : '150px', flexShrink: 0 }}>
               <div style={{ fontSize: '13px', fontWeight: '700', color: 'rgba(255,255,255,0.3)' }}>Unassigned</div>
               <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.25)', marginTop: '4px' }}>Floating sessions</div>
             </div>
-            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: '16px', width: isMobile ? '100%' : 'auto' }}>
               {unassignedSessions.map(session => (
                 <div key={session.id} style={{ background: 'rgba(12,16,20,0.9)', border: '0.5px solid rgba(255,255,255,0.08)', borderRadius: '16px', padding: '18px' }}>
                   <h4 style={{ fontSize: '14px', fontWeight: '700', color: 'rgba(255,255,255,0.4)', margin: '0 0 12px' }}>{session.sessionNumber || 'Floating Session'}</h4>

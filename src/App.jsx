@@ -97,15 +97,9 @@ export default function App() {
           boxShadow: '0 40px 80px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.05) inset'
         }}>
           {/* Logo */}
-          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '24px' }}>
-            <div style={{ width: '56px', height: '56px', background: 'linear-gradient(135deg, #EAB308, #F59E0B)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 8px 24px rgba(234,179,8,0.3)' }}>
-              <img src="/e-logo.png?v=2" alt="Logo" style={{ height: '36px', width: '36px', objectFit: 'contain' }} />
-            </div>
-          </div>
-          {/* Logo Section */}
-          <div style={{ marginBottom: '32px', display: 'flex', justifyContent: 'center' }}>
-            <div style={{ width: '64px', height: '64px', background: 'rgba(255,255,255,0.03)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid rgba(255,255,255,0.1)' }}>
-              <img src="/e-logo.png" alt="Logo" style={{ width: '40px', height: '40px', objectFit: 'contain' }} />
+          <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+            <div style={{ width: '64px', height: '64px', background: 'linear-gradient(135deg, #EAB308, #F59E0B)', borderRadius: '18px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 12px 32px rgba(234,179,8,0.3)' }}>
+              <img src="/e-logo.png?v=3" alt="Logo" style={{ height: '40px', width: '40px', objectFit: 'contain' }} />
             </div>
           </div>
 
@@ -317,6 +311,40 @@ export default function App() {
           {activeTab === 'roadmap' && activeProgramId && <ProgramDetail />}
           {activeTab === 'guidelines' && <AnchorGuidelines />}
         </motion.div>
+      </AnimatePresence>
+
+      {/* Mobile FAB for Adding Games */}
+      <AnimatePresence>
+        {isMobile && activeTab === 'repository' && (
+          <motion.button
+            initial={{ opacity: 0, scale: 0, y: 20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0, y: 20 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={() => setShowAddGame(true)}
+            style={{
+              position: 'fixed',
+              bottom: '84px',
+              right: '18px',
+              width: '48px',
+              height: '48px',
+              borderRadius: '50%',
+              background: 'rgba(15, 19, 24, 0.6)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1.5px solid rgba(234, 179, 8, 0.25)',
+              color: 'var(--accent-gold)',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 1000,
+              cursor: 'pointer'
+            }}
+          >
+            <Plus size={22} strokeWidth={3} />
+          </motion.button>
+        )}
       </AnimatePresence>
 
       <footer style={{ padding: 'var(--spacing-4)', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>

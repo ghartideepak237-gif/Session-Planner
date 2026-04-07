@@ -598,33 +598,36 @@ export default function SessionBuilder() {
       {/* Asset Library Modal (Mobile) */}
       <AnimatePresence>
         {isLibraryModalOpen && (
-          <div className="modal-overlay" style={{ zIndex: 3000, background: 'rgba(0,0,0,0.95)', backdropFilter: 'blur(24px)' }}>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="modal-overlay" 
+            onClick={() => setIsLibraryModalOpen(false)}
+            style={{ zIndex: 3000 }}
+          >
             <motion.div 
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
+              initial={{ opacity: 0, scale: 0.9, y: 30 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 30 }}
               transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="premium-card-v9"
+              className="modal-content-glass"
               style={{
-                width: '100%',
-                height: '90vh',
-                position: 'fixed',
-                bottom: 0,
-                left: 0,
-                borderRadius: '32px 32px 0 0',
+                width: isMobile ? '92%' : '80%',
+                maxWidth: '640px',
+                height: '80vh',
                 padding: '32px 24px',
-                border: 'none',
                 display: 'flex',
                 flexDirection: 'column',
-                gap: '24px',
-                overflow: 'hidden'
+                gap: '24px'
               }}
+              onClick={e => e.stopPropagation()}
             >
               <div className="shimmer-overlay-v9" style={{ opacity: 0.1 }} />
               <div style={{ position: 'relative', zIndex: 2, display: 'flex', flexDirection: 'column', height: '100%' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
                   <h3 style={{ fontSize: '22px', fontWeight: '800', color: '#FFFFFF', fontFamily: 'var(--font-serif)', margin: 0 }}>Asset Library</h3>
-                  <button onClick={() => setIsLibraryModalOpen(false)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#FFF', borderRadius: '50%', padding: '8px' }}>
+                  <button onClick={() => setIsLibraryModalOpen(false)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#FFF', borderRadius: '50%', padding: '8px', cursor: 'pointer' }}>
                     <X size={20} />
                   </button>
                 </div>
@@ -668,7 +671,7 @@ export default function SessionBuilder() {
                 </div>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </main>

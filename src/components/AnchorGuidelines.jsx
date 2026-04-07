@@ -139,15 +139,18 @@ export default function AnchorGuidelines() {
       subtitle: 'First 10 Minutes',
       body: (
         <>
-          <Callout type="warning">3–5 highly engaging starters needed — Simple. Low-effort. Instant interaction.</Callout>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '10px' }}>
-              <div style={{ fontSize: '9px', fontWeight: '800', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>Quick Interaction</div>
-              {['Colour you feel like?', 'Show 1 near object', 'Do something unique', 'Gesture game (dumb charades)'].map(t => <Bullet key={t}>{t}</Bullet>)}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '12px' }}>
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '16px' }}>
+              <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px', opacity: 0.8 }}>Quick Interaction</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {['Colour you feel like?', 'Show 1 near object', 'Do something unique', 'Gesture game (dumb charades)'].map(t => <Bullet key={t}>{t}</Bullet>)}
+              </div>
             </div>
-            <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '10px', padding: '10px' }}>
-              <div style={{ fontSize: '9px', fontWeight: '800', color: 'rgba(255,255,255,0.3)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>Fastest Fingers</div>
-              {['Type names fastest', 'Team typing challenge', 'Touch body part (Nose/Ear)', 'Quick team formation'].map(t => <Bullet key={t}>{t}</Bullet>)}
+            <div style={{ background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '12px', padding: '16px' }}>
+              <div style={{ fontSize: '10px', fontWeight: '800', color: 'var(--accent-gold)', textTransform: 'uppercase', letterSpacing: '0.12em', marginBottom: '10px', opacity: 0.8 }}>Fastest Fingers</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {['Type names fastest', 'Team typing challenge', 'Touch body part (Nose/Ear)', 'Quick team formation'].map(t => <Bullet key={t}>{t}</Bullet>)}
+              </div>
             </div>
           </div>
         </>
@@ -380,30 +383,35 @@ export default function AnchorGuidelines() {
       </header>
 
       {/* ── Grid ── */}
-      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(2, 1fr)', gap: isMobile ? '16px' : '20px' }}>
+      <div style={{ 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', 
+        gap: isMobile ? '16px' : '24px',
+        paddingBottom: '60px'
+      }}>
         {sections.map((s, i) => (
           <section 
             key={i} 
             className="premium-card-v9"
-            style={{ padding: isMobile ? '18px' : '22px', display: 'flex', flexDirection: 'column', gap: '12px' }}
+            style={{ padding: isMobile ? '20px' : '28px', display: 'flex', flexDirection: 'column', gap: '16px', height: '100%' }}
           >
             <div className="shimmer-overlay-v9" />
 
             {/* Card header row */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', position: 'relative', zIndex: 2 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '14px', position: 'relative', zIndex: 2 }}>
               <CardIcon icon={s.icon} color={s.iconColor} />
               <div>
-                <div style={{ fontSize: isMobile ? '13px' : '14px', fontWeight: '700', color: '#FFFFFF', fontFamily: 'var(--font-serif)', lineHeight: 1.2 }}>{s.title}</div>
-                <div style={{ fontSize: '9px', color: 'rgba(255,255,255,0.35)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: '2px' }}>{s.subtitle}</div>
+                <div style={{ fontSize: isMobile ? '15px' : '17px', fontWeight: '800', color: '#FFFFFF', fontFamily: 'var(--font-serif)', lineHeight: 1.2 }}>{s.title}</div>
+                <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.4)', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.1em', marginTop: '4px' }}>{s.subtitle}</div>
               </div>
-              <div style={{ marginLeft: 'auto', width: '20px', height: '20px', borderRadius: '6px', background: `${s.iconColor}14`, border: `0.5px solid ${s.iconColor}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: '800', color: s.iconColor, flexShrink: 0 }}>
+              <div style={{ marginLeft: 'auto', width: '24px', height: '24px', borderRadius: '8px', background: `${s.iconColor}14`, border: `0.5px solid ${s.iconColor}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '11px', fontWeight: '900', color: s.iconColor, flexShrink: 0 }}>
                 {i + 1}
               </div>
             </div>
 
-            <div style={{ height: '0.5px', background: 'rgba(255,255,255,0.07)' }} />
+            <Divider />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', flex: 1 }}>
               {s.body}
             </div>
           </section>

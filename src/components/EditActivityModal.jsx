@@ -72,13 +72,20 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
 
   return (
     <AnimatePresence>
-      <div className="modal-overlay" onClick={onClose} style={{ zIndex: 1100, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="modal-overlay"
+        onClick={onClose}
+        style={{ zIndex: 1100 }}
+      >
         <motion.div 
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           className="modal-content-glass"
-          style={{ maxWidth: '640px', width: '90%', maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}
+          style={{ padding: '0', display: 'flex', flexDirection: 'column' }}
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
@@ -97,7 +104,7 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
           <div style={{ flex: 1, overflowY: 'auto', padding: '32px' }}>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               
-              <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
                 <div className="v8-form-group">
                   <label className="v8-form-label">Activity Name</label>
                   <input 
@@ -115,12 +122,12 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
                     value={formData.category} 
                     onChange={e => setFormData({...formData, category: e.target.value})}
                   >
-                    {categories.map(c => <option key={c} value={c}>{c}</option>)}
+                    {categories.map(c => <option key={c} value={c} style={{ background: 'var(--bg-deep)' }}>{c}</option>)}
                   </select>
                 </div>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
                 <div className="v8-form-group">
                   <label className="v8-form-label">Planned Duration (min)</label>
                   <input 
@@ -142,7 +149,7 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
                        setFormData({...formData, flowPosition: val, energyType: val.split(' ')[0]});
                     }}
                   >
-                    {flowPositions.map(fp => <option key={fp} value={fp}>{fp}</option>)}
+                    {flowPositions.map(fp => <option key={fp} value={fp} style={{ background: 'var(--bg-deep)' }}>{fp}</option>)}
                   </select>
                 </div>
               </div>
@@ -202,22 +209,22 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
 
               <div style={{ marginTop: '16px', paddingTop: '24px', borderTop: '0.5px solid var(--border-soft)' }}>
                 <label className="v8-form-label" style={{ marginBottom: '16px', display: 'block' }}>Save Specification</label>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '8px' }}>
                   {[
-                    { id: 'session', icon: <Save size={14} />, label: 'Session Only', desc: 'Local jump' },
-                    { id: 'repository', icon: <Share2 size={14} />, label: 'Update Master', desc: 'Sync library' },
-                    { id: 'new', icon: <PlusCircle size={14} />, label: 'Save New', desc: 'Create copy' }
+                    { id: 'session', icon: <Save size={14} />, label: 'Session', desc: 'Local' },
+                    { id: 'repository', icon: <Share2 size={14} />, label: 'Master', desc: 'Sync' },
+                    { id: 'new', icon: <PlusCircle size={14} />, label: 'New', desc: 'Copy' }
                   ].map(opt => (
                     <button 
                       key={opt.id}
                       type="button"
                       onClick={() => setSaveMode(opt.id)}
                       className={`sidebar-link-v9 ${saveMode === opt.id ? 'active' : ''}`}
-                      style={{ padding: '12px', textAlign: 'left', minHeight: '80px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '4px' }}
+                      style={{ padding: '12px', textAlign: 'left', minHeight: '70px', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'center', gap: '2px' }}
                     >
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: saveMode === opt.id ? 'var(--accent-silver)' : 'var(--text-secondary)' }}>
                         {opt.icon}
-                        <span style={{ fontSize: '11px', fontWeight: '800', textTransform: 'uppercase' }}>{opt.label}</span>
+                        <span style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase' }}>{opt.label}</span>
                       </div>
                       <span style={{ fontSize: '9px', opacity: 0.5 }}>{opt.desc}</span>
                     </button>
@@ -238,7 +245,7 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
             </div>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
     </AnimatePresence>
   );
 }

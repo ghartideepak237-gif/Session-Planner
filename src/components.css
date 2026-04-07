@@ -113,27 +113,26 @@
 
 /* Graphite Panels & Modals */
 .glass-panel, .modal-content {
-  background: var(--card-grad) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 0.5px solid var(--border-main) !important;
-  border-radius: 20px !important;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6) !important;
+  background: rgba(11, 13, 16, 0.6) !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
 }
 
 .modal-overlay {
-  background: rgba(11, 13, 16, 0.85) !important;
-  backdrop-filter: blur(12px) !important;
+  background: rgba(8, 10, 12, 0.88) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   position: fixed !important;
-  top: 0 !important;
-  left: 0 !important;
-  right: 0 !important;
-  bottom: 0 !important;
-  z-index: 1000 !important;
+  inset: 0 !important;
+  z-index: 2000 !important;
   padding: 40px !important;
+  opacity: 1;
 }
 
 /* Inputs & Form Elements */
@@ -255,13 +254,18 @@ input:focus {
 }
 
 .modal-content-glass {
-  background: var(--bg-deep);
-  backdrop-filter: blur(40px);
-  border: 0.5px solid var(--border-main);
+  background: rgba(11, 13, 16, 0.6) !important;
+  backdrop-filter: blur(32px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   border-radius: 28px;
   overflow-y: auto;
   max-height: 90vh;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08) !important;
+  width: 95%;
+  max-width: 640px;
+  position: relative;
+  margin: auto;
 }
 
 .search-icon-v8 {
@@ -321,12 +325,27 @@ input:focus {
 
   /* Modal Mobile Optimization */
   .modal-overlay {
-    padding: 12px !important;
+    padding: 12px 16px !important;
+    overflow: hidden !important;
   }
 
   .modal-content-glass, .glass-panel {
-    border-radius: 20px !important;
-    padding: 16px !important;
+    width: 88vw !important;
+    max-width: 88vw !important;
+    margin: auto !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
+    border-radius: 24px !important;
+  }
+
+  .premium-card-v9 {
+    width: 88vw !important;
+    max-width: 88vw !important;
+    margin: auto !important;
+    border-radius: 24px !important;
+    /* Cards should expand to fit content, not scroll */
+    max-height: none !important;
+    overflow: hidden !important;
   }
 
   .btn-primary, .btn-secondary {

@@ -42,93 +42,94 @@ export default function EditProgramModal({ isOpen, onClose, program }) {
   };
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 1000 }}>
-      <div className="modal-content" style={{ maxWidth: '600px' }}>
-        <div style={{ padding: 'var(--spacing-3)', borderBottom: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: '600' }}>Edit Program Details</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--text-dim)', cursor: 'pointer' }}>
-            <X size={20} />
+    <div className="modal-overlay" style={{ zIndex: 1100 }}>
+      <div className="modal-content-glass" style={{ maxWidth: '640px', width: '90%', maxHeight: '85vh', display: 'flex', flexDirection: 'column', padding: '0' }}>
+        <div style={{ padding: '24px 32px', borderBottom: '0.5px solid var(--border-soft)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)' }}>
+          <h3 style={{ fontSize: '20px', fontWeight: '700', fontFamily: 'var(--font-serif)', color: 'var(--text-primary)', margin: 0 }}>
+            Program <span style={{ fontStyle: 'italic', color: 'var(--accent-gold)' }}>Architecture</span>
+          </h3>
+          <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.05)', border: 'none', color: 'var(--text-primary)', cursor: 'pointer', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <X size={18} />
           </button>
         </div>
 
-        <div style={{ padding: 'var(--spacing-3)', display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)', maxHeight: '70vh', overflowY: 'auto' }}>
+        <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', overflowY: 'auto', flex: 1 }}>
           
-          <div>
-            <label className="form-label">Program Name</label>
+          <div className="v8-form-group">
+            <label className="v8-form-label">Program Name</label>
             <input 
-              className="search-input" 
+              className="v8-input-premium" 
               value={formData.name} 
               onChange={e => setFormData({...formData, name: e.target.value})} 
             />
           </div>
 
-          <div>
-            <label className="form-label">College / Institution</label>
+          <div className="v8-form-group">
+            <label className="v8-form-label">College / Institution</label>
             <input 
-              className="search-input" 
+              className="v8-input-premium" 
               value={formData.college} 
               onChange={e => setFormData({...formData, college: e.target.value})} 
             />
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-2)' }}>
-            <div>
-              <label className="form-label">Duration (Weeks)</label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '16px' }}>
+            <div className="v8-form-group">
+              <label className="v8-form-label">Duration (Weeks)</label>
               <input 
                 type="number"
-                className="search-input" 
+                className="v8-input-premium" 
                 value={formData.duration} 
                 onChange={e => setFormData({...formData, duration: parseInt(e.target.value) || 0})} 
               />
             </div>
-            <div>
-              <label className="form-label">Total Sessions</label>
+            <div className="v8-form-group">
+              <label className="v8-form-label">Total Sessions</label>
               <input 
                 type="number"
-                className="search-input" 
+                className="v8-input-premium" 
                 value={formData.totalSessions} 
                 onChange={e => setFormData({...formData, totalSessions: parseInt(e.target.value) || 0})} 
               />
             </div>
           </div>
 
-          <div>
-            <label className="form-label">Program Objective</label>
+          <div className="v8-form-group">
+            <label className="v8-form-label">Program Objective</label>
             <textarea 
-              className="search-input" 
-              style={{ height: '60px' }}
+              className="v8-input-premium" 
+              style={{ height: '80px', resize: 'none' }}
               value={formData.objective} 
               onChange={e => setFormData({...formData, objective: e.target.value})} 
             />
           </div>
 
-          <div style={{ marginTop: 'var(--spacing-2)' }}>
-            <label className="form-label">Weekly Themes & Focus</label>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-2)', marginTop: 'var(--spacing-2)' }}>
+          <div style={{ marginTop: '8px' }}>
+            <label className="v8-form-label" style={{ marginBottom: '16px', display: 'block' }}>Weekly Themes & Focus</label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {Array.from({ length: formData.duration }).map((_, i) => {
                 const weekNum = i + 1;
                 const weekData = formData.weeks.find(w => w.week === weekNum) || { week: weekNum, theme: '', focus: '' };
                 const weekIdx = formData.weeks.findIndex(w => w.week === weekNum);
 
-                // Ensure week exists in array for editing
                 if (weekIdx === -1) {
                    formData.weeks.push(weekData);
                 }
                 const actualIdx = formData.weeks.findIndex(w => w.week === weekNum);
 
                 return (
-                  <div key={weekNum} style={{ padding: '12px', background: 'var(--bg-dark)', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }}>
-                    <p style={{ fontSize: '12px', fontWeight: 'bold', color: 'var(--accent)', marginBottom: '8px' }}>Week {weekNum}</p>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div key={weekNum} style={{ padding: '20px', background: 'rgba(255,255,255,0.03)', border: '0.5px solid var(--border-soft)', borderRadius: '16px' }}>
+                    <p style={{ fontSize: '11px', fontWeight: '900', color: 'var(--accent-silver)', marginBottom: '12px', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Week {weekNum}</p>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
                       <input 
                         placeholder="Theme" 
-                        className="search-input" 
+                        className="v8-input-premium" 
                         value={formData.weeks[actualIdx]?.theme || ''} 
                         onChange={e => updateWeekData(actualIdx, 'theme', e.target.value)}
                       />
                       <input 
                         placeholder="Focus Area" 
-                        className="search-input" 
+                        className="v8-input-premium" 
                         value={formData.weeks[actualIdx]?.focus || ''} 
                         onChange={e => updateWeekData(actualIdx, 'focus', e.target.value)}
                       />
@@ -140,9 +141,9 @@ export default function EditProgramModal({ isOpen, onClose, program }) {
           </div>
         </div>
 
-        <div style={{ padding: 'var(--spacing-3)', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', gap: 'var(--spacing-2)' }}>
-          <button className="btn-secondary" onClick={onClose}>Cancel</button>
-          <button className="btn-primary" onClick={handleSave}>Update Program</button>
+        <div style={{ padding: '24px 32px', borderTop: '0.5px solid var(--border-soft)', display: 'flex', justifyContent: 'flex-end', gap: '16px', background: 'rgba(255,255,255,0.02)' }}>
+          <button className="btn-secondary" onClick={onClose} style={{ border: 'none', background: 'none' }}>Cancel</button>
+          <button className="btn-primary" onClick={handleSave} style={{ padding: '10px 24px', borderRadius: '12px' }}>Update Program</button>
         </div>
       </div>
     </div>

@@ -329,6 +329,33 @@ export const useStore = create((set, get) => ({
       console.error('[Supabase] Error syncing favorite:', error.message);
     }
   },
+  toggleGameFolder: async (gameId, folderId) => {
+    const game = get().games.find(g => g.id === gameId);
+    if (!game) return;
+    
+    // Ensure folder_ids is an array
+    const currentFolders = Array.isArray(game.folder_ids) ? [...game.folder_ids] : [];
+    const idx = currentFolders.indexOf(folderId);
+    
+    let newFolderIds;
+    if (idx >= 0) {
+      newFolderIds = currentFolders.filter(id => id !== folderId);
+    } else {
+      newFolderIds = [...currentFolders, folderId];
+    }
+    
+    console.log(`[Supabase] Toggling folder assignment for "${game.title}"...`, newFolderIds);
+    const { error } = await supabase.from('activities').update({ folder_ids: newFolderIds }).eq('id', gameId);
+    
+    if (!error) {
+      console.log('[Supabase] Folder assignment successful');
+      set((state) => ({
+        games: state.games.map(g => g.id === gameId ? { ...g, folder_ids: newFolderIds } : g)
+      }));
+    } else {
+      console.error('[Supabase] Error toggling folder:', error.message);
+    }
+  },
   updateGame: async (gameId, updates) => {
     console.log('[Supabase] Updating activity in Supabase...');
     set({ autosaveStatus: 'saving' });

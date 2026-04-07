@@ -1,33 +1,52 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { Search, Shuffle, Star, Clock, Plus, ArrowRight, Zap, Users, Pencil, Trash2, Folder, FolderPlus, Edit2, ListFilter, Rocket, CheckCircle2, ChevronUp, ChevronDown, X } from 'lucide-react';
+import { Search, Shuffle, Star, Clock, Plus, ArrowRight, Zap, Users, Pencil, Trash2, Folder, FolderPlus, Edit2, ListFilter, ArrowUp, Rocket, CheckCircle2, ChevronUp, ChevronDown, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../store';
 import AddGameModal from './AddGameModal';
 import ManageFoldersModal from './ManageFoldersModal';
 import EditActivityModal from './EditActivityModal';
 
-const GameCard = ({ game, onAdd, onEdit, index }) => {
+const ENERGY_COLORS = {
+  'Quick Fire': '#ef9f27',
+  'Interactive': '#5dcaa5',
+  'Core Engagement': '#7f77dd',
+  'Deep Connect': '#378add',
+  'Closing': '#d85a30',
+  'Nostalgia': '#d4537e'
+};
+
+const GameCard = ({ game, onAdd, onEdit, onManageFolders, index, isMobile }) => {
   const { toggleFavorite, folders } = useStore();
   const assignedFolderIds = Array.isArray(game.folder_ids) ? game.folder_ids : [];
   const isInFolder = assignedFolderIds.length > 0;
   const staggerDelay = `${index * 0.04}s`;
+  const energyColor = ENERGY_COLORS[game.energyType] || '#7DD3FC';
 
   return (
     <div
-      className="game-card-v8"
+      className="premium-card-v9"
       style={{
         animation: `fadeInUp 0.6s var(--spring-bounce) ${staggerDelay} forwards`,
         opacity: 0,
-        padding: '24px',
-        background: 'rgba(12, 16, 20, 0.6)',
-        border: '1px solid rgba(255, 255, 255, 0.05)',
-        borderRadius: '24px',
+        padding: isMobile ? '16px' : '24px',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
-        position: 'relative'
+        position: 'relative',
+        height: '100%',
+        minHeight: '280px'
       }}
     >
+      <div className="shimmer-overlay-v9" />
+      <div 
+        style={{ 
+          position: 'absolute', 
+          top: 0, left: 0, right: 0, height: '3px', 
+          background: `linear-gradient(90deg, ${energyColor}, transparent)`,
+          borderRadius: '20px 20px 0 0',
+          zIndex: 2
+        }} 
+      />
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
         <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#FFFFFF', margin: 0, fontFamily: 'var(--font-serif)' }}>{game.title}</h3>
         <button
@@ -49,15 +68,18 @@ const GameCard = ({ game, onAdd, onEdit, index }) => {
       </p>
 
       {/* Footer: Folder + Category + Add */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '16px', borderTop: '0.5px solid rgba(255,255,255,0.08)' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto', paddingTop: '16px', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: isInFolder ? 'var(--accent-silver)' : 'rgba(255,255,255,0.25)', fontSize: '11px', fontWeight: '700' }}>
+          <button 
+            onClick={() => onManageFolders(game)}
+            style={{ background: 'none', border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: '6px', color: isInFolder ? 'var(--accent-silver)' : 'rgba(255,255,255,0.25)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
+          >
             <Folder size={12} fill={isInFolder ? 'var(--accent-silver)' : 'none'} />
-            <span>{isInFolder ? 'In Library' : 'Add to Folder'}</span>
-          </div>
+            <span style={{ borderBottom: '1px dashed currentColor' }}>{isInFolder ? (assignedFolderIds.length === 1 ? 'In 1 Folder' : `In ${assignedFolderIds.length} Folders`) : 'Add to Folder'}</span>
+          </button>
 
-          <div style={{ fontSize: '11px', color: 'rgba(255,255,255,0.3)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '4px' }}>
+          <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '4px' }}>
             {game.interaction_types?.[0] || game.theme_clean || 'GENERAL'}
             <button
               onClick={() => onEdit(game)}
@@ -70,23 +92,224 @@ const GameCard = ({ game, onAdd, onEdit, index }) => {
 
         <button
           onClick={() => onAdd(game)}
-          style={{ background: 'none', border: 'none', color: '#FFFFFF', fontSize: '14px', fontWeight: '800', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}
+          className="ghost-add-btn"
+          style={{ 
+            background: 'rgba(255,255,255,0.06)', 
+            border: '1px solid rgba(255,255,255,0.09)', 
+            borderRadius: '5px', 
+            padding: '4px 10px', 
+            fontSize: '12px', 
+            color: 'rgba(255,255,255,0.6)',
+            fontWeight: '600',
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: '6px', 
+            cursor: 'pointer',
+            transition: 'all 0.2s ease'
+          }}
         >
-          Add <ArrowRight size={16} strokeWidth={3} style={{ color: '#F97316' }} />
+          Add →
         </button>
       </div>
     </div>
   );
 };
 
+const FilterDropdown = ({ label, options, value, onChange, type, isOpen, onToggle, isMobile }) => {
+  return (
+    <div style={{ position: 'relative' }}>
+      <button
+        onClick={onToggle}
+        style={{
+          background: value === 'all' || value === 'All' ? 'rgba(125, 200, 255, 0.04)' : 'rgba(125, 200, 255, 0.12)',
+          border: value === 'all' || value === 'All' ? '1px solid rgba(125, 200, 255, 0.15)' : '1px solid rgba(125, 200, 255, 0.45)',
+          color: value === 'all' || value === 'All' ? 'rgba(255,255,255,0.55)' : 'var(--accent-silver)',
+          borderRadius: '20px',
+          padding: '6px 13px',
+          fontSize: '13px',
+          fontWeight: '600',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          transition: 'all 0.2s ease',
+          minHeight: isMobile ? '44px' : 'auto',
+          whiteSpace: 'nowrap'
+        }}
+      >
+        {value === 'all' || value === 'All' ? label : value}
+        <ChevronDown size={14} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+      </button>
+
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="modal-overlay"
+            onClick={onToggle}
+            style={{ zIndex: 1100 }}
+          >
+            <motion.div
+              initial={isMobile ? { opacity: 0, scale: 0.9, y: 20 } : { opacity: 0, y: 10, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={isMobile ? { opacity: 0, scale: 0.9, y: 20 } : { opacity: 0, y: 10, scale: 0.95 }}
+              className="modal-content-glass"
+              style={{
+                width: isMobile ? '92%' : '380px',
+                maxWidth: '420px',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px'
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3 style={{ fontSize: '18px', margin: 0, color: '#FFF', fontFamily: 'var(--font-serif)' }}>Select {label}</h3>
+                <button onClick={onToggle} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: '#FFF', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={18} />
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', maxHeight: '50vh', overflowY: 'auto', paddingRight: '4px' }}>
+                {options.map(opt => {
+                  const isActive = value === opt;
+                  const dotColor = type === 'energy' ? ENERGY_COLORS[opt] : null;
+                  return (
+                    <button
+                      key={opt}
+                      onClick={() => { onChange(opt); onToggle(); }}
+                      className="pill-v8-new"
+                      style={{
+                        background: isActive ? 'rgba(125, 200, 255, 0.15)' : 'rgba(255,255,255,0.06)',
+                        border: isActive ? '1px solid rgba(125, 200, 255, 0.4)' : '1px solid rgba(255,255,255,0.10)',
+                        color: isActive ? 'var(--accent-silver)' : 'rgba(255,255,255,0.55)',
+                        borderRadius: '20px',
+                        padding: '8px 16px',
+                        fontSize: '13px',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        transition: 'all 0.2s ease',
+                        minHeight: '44px'
+                      }}
+                    >
+                      {dotColor && (
+                        <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: dotColor }} />
+                      )}
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+const FolderAssignmentModal = ({ isOpen, onClose, activity, folders, toggleFolder }) => {
+  if (!activity) return null;
+  const assigned = Array.isArray(activity.folder_ids) ? activity.folder_ids : [];
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="modal-overlay"
+          onClick={onClose}
+          style={{ zIndex: 3000 }}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+            className="modal-content-glass"
+            style={{
+              padding: '32px',
+              width: '90%',
+              maxWidth: '400px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '24px'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <h3 style={{ fontSize: '20px', fontWeight: '800', color: '#FFFFFF', margin: 0, fontFamily: 'var(--font-serif)' }}>Folders</h3>
+                <p style={{ fontSize: '12px', color: 'rgba(255,255,255,0.4)', margin: '4px 0 0' }}>Assign "{activity.title}" to folders</p>
+              </div>
+              <button onClick={onClose} style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: '#FFF', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '50vh', overflowY: 'auto' }}>
+              {folders.length === 0 && (
+                <p style={{ textAlign: 'center', color: 'var(--text-inactive)', fontSize: '13px', padding: '20px' }}>No folders created yet.</p>
+              )}
+              {folders.map(folder => {
+                const isAssigned = assigned.includes(folder.id);
+                return (
+                  <button
+                    key={folder.id}
+                    onClick={() => toggleFolder(activity.id, folder.id)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      padding: '16px 20px',
+                      background: isAssigned ? 'rgba(125, 200, 255, 0.08)' : 'rgba(255,255,255,0.02)',
+                      border: `1px solid ${isAssigned ? 'rgba(125, 200, 255, 0.3)' : 'rgba(255,255,255,0.08)'}`,
+                      borderRadius: '16px',
+                      transition: 'all 0.2s ease',
+                      cursor: 'pointer',
+                      color: isAssigned ? '#FFF' : 'rgba(255,255,255,0.6)'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <Folder size={18} fill={isAssigned ? 'var(--accent-silver)' : 'none'} color={isAssigned ? 'var(--accent-silver)' : 'currentColor'} />
+                      <span style={{ fontWeight: '600', fontSize: '14px' }}>{folder.name}</span>
+                    </div>
+                    {isAssigned && <CheckCircle2 size={18} color="var(--accent-silver)" />}
+                  </button>
+                );
+              })}
+            </div>
+
+            <button 
+              className="btn-primary" 
+              onClick={onClose}
+              style={{ width: '100%', justifyContent: 'center', padding: '16px', marginTop: '8px' }}
+            >
+              Done
+            </button>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+};
+
 export default function Repository() {
-  const { games, energyTypes, folders, addFolder, renameFolder, deleteFolder } = useStore();
+  const { games, energyTypes, folders, addFolder, renameFolder, deleteFolder, toggleGameFolder } = useStore();
 
   const [energyF, setEnergyF] = useState('all');
   const [categoryF, setCategoryF] = useState('All');
   const [search, setSearch] = useState('');
   const [gameToRoute, setGameToRoute] = useState(null);
   const [editingRepoGame, setEditingRepoGame] = useState(null);
+  const [managingGameFolders, setManagingGameFolders] = useState(null);
   const [primaryFilter, setPrimaryFilter] = useState('All');
   const [sortBy, setSortBy] = useState('Favorites first');
   const [activeFolderId, setActiveFolderId] = useState('all');
@@ -95,6 +318,9 @@ export default function Repository() {
   const [isFoldersExpanded, setIsFoldersExpanded] = useState(false);
   const [isFiltersModalOpen, setIsFiltersModalOpen] = useState(false);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [openDropdown, setOpenDropdown] = useState(null); // 'energy' or 'category' or 'sort' or null
+
+  const CATEGORIES = ['All', 'Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing', 'Nostalgia', 'Youth & Positivity', 'General', 'Team Building', 'Icebreaker', 'Creativity', 'Trivia', 'Fun & Engagement', 'Mindfulness', 'Problem Solving', 'Communication'];
 
   useEffect(() => {
     const handleScroll = () => setShowRocket(window.scrollY > 400);
@@ -113,7 +339,15 @@ export default function Repository() {
       const matchesEnergy = energyF === 'all' || g.energyType === energyF;
       const matchesSearch = g.title.toLowerCase().includes(search.toLowerCase()) ||
         (g.rules && g.rules.toLowerCase().includes(search.toLowerCase()));
-      const matchesFolder = activeFolderId === 'all' || (Array.isArray(g.folder_ids) && g.folder_ids.includes(activeFolderId));
+      
+      const assigned = Array.isArray(g.folder_ids) ? g.folder_ids : [];
+      let matchesFolder = false;
+      if (activeFolderId === 'all') {
+        matchesFolder = true; // Show all games in the library view
+      } else {
+        matchesFolder = assigned.includes(activeFolderId);
+      }
+
       const matchesCategory = categoryF === 'All' || (Array.isArray(g.interaction_types) && g.interaction_types.includes(categoryF)) || (g.energyType === categoryF);
 
       let matchesPrimary = true;
@@ -149,68 +383,66 @@ export default function Repository() {
   }, []);
 
   return (
-    <div className={`page-wrapper v8-theme ${isMobile ? 'compact-mobile' : ''}`}>
+    <div className={`repository-v8-content ${isMobile ? 'compact-mobile' : ''}`}>
       <AnimatePresence>
         {showRocket && (
           <motion.button
             initial={{ opacity: 0, scale: 0, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0, y: 20 }}
+            whileTap={{ scale: 0.9 }}
             onClick={scrollToTop}
-            className={`rocket-btn ${isLaunching ? 'rocket-animate' : ''}`}
+            style={{
+              position: 'fixed',
+              bottom: isMobile ? '24px' : '40px',
+              right: isMobile ? '18px' : '40px',
+              width: isMobile ? '44px' : '54px',
+              height: isMobile ? '44px' : '54px',
+              background: 'rgba(15, 19, 24, 0.6)',
+              backdropFilter: 'blur(16px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
+              border: '1.5px solid rgba(125, 211, 252, 0.15)',
+              borderRadius: '50%',
+              color: 'var(--accent-silver)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              zIndex: 900,
+              boxShadow: '0 12px 40px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1)',
+              transition: 'all 0.3s var(--smooth)'
+            }}
           >
-            <Rocket size={24} style={{ transform: 'rotate(-45deg)' }} />
+            <ArrowUp size={isMobile ? 20 : 24} strokeWidth={2.5} />
           </motion.button>
         )}
       </AnimatePresence>
       <style>{`
-        .game-card-v8 {
-          background: var(--card-grad);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 0.5px solid var(--border-main);
-          border-radius: 20px;
-          padding: 24px;
-          overflow: hidden;
-          position: relative;
-          transition: transform 0.4s var(--spring-bounce), box-shadow 0.3s ease, border-color 0.3s ease;
+        .repository-v8-content {
+          width: 100%;
           display: flex;
           flex-direction: column;
-          gap: 16px;
+          align-items: center;
+          position: relative;
         }
 
-        .shimmer-overlay-v8 {
-          position: absolute;
-          top: 0;
-          left: -150%;
-          width: 50%;
-          height: 100%;
-          background: linear-gradient(
-            90deg, 
-            transparent, 
-            rgba(255, 255, 255, 0.08) 30%, 
-            rgba(255, 255, 255, 0.18) 50%, 
-            rgba(255, 255, 255, 0.08) 70%, 
-            transparent
-          );
-          transform: skewX(-25deg);
-          pointer-events: none;
-          z-index: 5;
+        .repository-main-layout {
+          display: grid;
+          grid-template-columns: 240px 1fr;
+          gap: 48px;
+          padding: 60px 40px;
+          max-width: 1300px;
+          margin: 0 auto;
+          width: 100%;
+          position: relative;
+          z-index: 10;
         }
 
-        .game-card-v8:hover {
-          transform: translateY(-8px) scale(1.01);
-          box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1);
-          border-color: rgba(255, 255, 255, 0.4);
-        }
-
-        .game-card-v8:hover .shimmer-overlay-v8 {
-          animation: silverSweep 0.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-        }
-
-        @keyframes silverSweep {
-          0% { left: -150%; }
-          100% { left: 150%; }
+        .repository-content-section {
+          display: flex;
+          flex-direction: column;
+          gap: 32px;
+          width: 100%;
         }
 
         .repository-grid {
@@ -218,62 +450,18 @@ export default function Repository() {
           grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
           gap: 32px;
           padding: 40px 0;
+          width: 100%;
         }
 
-        @media (max-width: 768px) {
-          .repository-grid {
-            grid-template-columns: 1fr;
-            gap: 20px;
-            padding: 20px 0;
-          }
-          .game-card-v8 {
-            padding: 20px;
-          }
-          .repository-main-layout {
-            display: flex !important;
-            flex-direction: column !important;
-            gap: 20px !important;
-            padding: 16px 12px !important;
-          }
-          .repository-header-row {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 12px !important;
-          }
-          .filter-row-v8 {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 6px !important;
-          }
-          .filter-row-v8 span {
-            width: auto !important;
-            font-size: 9px !important;
-          }
-          .title-v8 {
-            font-size: 20px !important;
-          }
-          .game-card-v8 {
-            padding: 16px !important;
-            gap: 12px !important;
-          }
-          .game-title-v8 {
-            font-size: 15px !important;
-          }
-          .game-desc-v8 {
-            font-size: 11px !important;
-            height: 52px !important;
-          }
+        .game-title-v8 {
+          font-family: var(--font-serif);
+          font-size: 17px;
+          font-weight: 700;
+          color: var(--text-primary);
+          line-height: 1.3;
+          letter-spacing: -0.2px;
+          margin: 0;
         }
-
-         .game-title-v8 {
-           font-family: var(--font-serif);
-           font-size: 17px;
-           font-weight: 700;
-           color: var(--text-primary);
-           line-height: 1.3;
-           letter-spacing: -0.2px;
-           margin: 0;
-         }
 
         .game-meta-v8 {
           display: flex;
@@ -332,46 +520,6 @@ export default function Repository() {
           border-color: var(--text-primary);
         }
 
-        .add-btn-v8 {
-          background: rgba(255, 255, 255, 0.05);
-          border: 0.5px solid rgba(255, 255, 255, 0.15);
-          color: var(--text-primary);
-          font-size: 11px;
-          font-weight: 500;
-          padding: 8px 18px;
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          cursor: pointer;
-          transition: all 0.25s var(--spring-bounce);
-          font-family: var(--font-sans);
-          position: relative;
-          overflow: hidden;
-        }
-
-        .add-btn-v8:hover {
-          background: linear-gradient(120deg, rgba(255,255,255,0.05), rgba(255,255,255,0.15), rgba(255,255,255,0.05));
-          border-color: rgba(255,255,255,0.25);
-          box-shadow: 0 15px 40px rgba(0,0,0,.6);
-        }
-
-        .add-btn-v8::after {
-          content: '';
-          position: absolute;
-          top: 0; left: -100%; width: 100%; height: 100%;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-          transition: all 0.5s ease;
-        }
-
-        .add-btn-v8:hover::after {
-          left: 100%;
-        }
-
-        .add-btn-v8:hover .arrow-icon-v8 {
-          transform: translateX(2px);
-        }
-
         .tool-btn-v8 {
           background: rgba(255,255,255,0.04);
           border: 0.5px solid var(--border-soft);
@@ -381,18 +529,6 @@ export default function Repository() {
           border-radius: 10px;
           cursor: pointer;
           transition: all 0.2s ease;
-        }
-
-        .tool-btn-v8:hover { background: rgba(255,255,255,0.12); color: var(--text-primary); border-color: var(--border-accent); }
-        .tool-btn-v8.delete-v8:hover { border-color: var(--danger); color: var(--danger); }
-
-        .game-footer-v8 {
-          margin-top: auto;
-          padding-top: 16px;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border-top: 0.5px solid var(--border-soft);
         }
 
         .title-v8 {
@@ -426,9 +562,50 @@ export default function Repository() {
           font-size: 13px;
         }
 
-        .v8-input:focus {
-          background: rgba(255, 255, 255, 0.08) !important;
-          border-color: var(--border-accent) !important;
+        .pill-v8-new:hover {
+          background: rgba(255,255,255,0.09) !important;
+          border-color: rgba(255,255,255,0.16) !important;
+          color: rgba(255,255,255,0.8) !important;
+        }
+
+        .ghost-add-btn:hover {
+          background: rgba(255,255,255,0.12) !important;
+          color: #fff !important;
+          border-color: rgba(255,255,255,0.2) !important;
+        }
+
+        @media (max-width: 1024px) {
+          .repository-main-layout {
+            grid-template-columns: 1fr;
+            gap: 24px;
+            padding: 40px 20px;
+          }
+          
+          .repository-sidebar {
+            display: none !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .repository-main-layout {
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 16px;
+            margin: 0;
+            width: 100%;
+          }
+
+          .repository-content-section {
+            gap: 16px;
+            width: 100%;
+          }
+
+          .repository-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+            padding: 12px 0;
+          }
         }
       `}</style>
 
@@ -440,34 +617,22 @@ export default function Repository() {
         mode="repository"
       />
 
-      <main className="container-max repository-main-layout" style={{ display: 'grid', gridTemplateColumns: '240px 1fr', gap: '48px', padding: '60px 20px', position: 'relative', zIndex: 10 }}>
-
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: isMobile ? '20px' : '40px' }}>
-          <div className="search-container-v8">
-            <Search className="search-icon-v8" size={14} />
-            <input
-              type="text"
-              placeholder="Search assets..."
-              className="v8-input-search"
-              value={search || ''}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-
-          {isMobile && (
-            <div style={{ marginTop: '12px' }}>
-              <button 
-                onClick={() => setIsFiltersModalOpen(true)}
-                className="btn-secondary" 
-                style={{ width: '100%', justifyContent: 'center', padding: '10px 16px', fontSize: '11px', borderRadius: '10px', gap: '6px', background: 'rgba(255,255,255,0.04)', border: '0.5px solid rgba(255,255,255,0.1)' }}
-              >
-                <ListFilter size={12} />
-                <span>Adjust Filters & Categories</span>
-              </button>
+      <main className="repository-main-layout">
+        {!isMobile && (
+          <aside className="repository-sidebar">
+            <div className="search-container-v8">
+              <Search className="search-icon-v8" size={14} />
+              <input
+                type="text"
+                placeholder="Search assets..."
+                className="v8-input-search"
+                value={search || ''}
+                onChange={(e) => setSearch(e.target.value)}
+              />
             </div>
-          )}
 
-          <div style={{ marginTop: isMobile ? '8px' : '32px' }}>
+
+          <div style={{ marginTop: '32px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile && !isFoldersExpanded ? '0' : '12px' }}>
               <button 
                 onClick={() => isMobile && setIsFoldersExpanded(!isFoldersExpanded)}
@@ -522,77 +687,140 @@ export default function Repository() {
             </AnimatePresence>
           </div>
         </aside>
+      )}
 
-        <section style={{ display: 'flex', flexDirection: 'column', gap: '32px' }}>
-          <div className="repository-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-            <div style={{ display: 'flex', alignItems: 'baseline', gap: '12px' }}>
-              <h2 className="title-v8">Games Library</h2>
-              <span style={{ fontSize: '18px', color: 'var(--text-muted)', fontWeight: '500' }}>{filteredGames.length}</span>
-              <button
-                onClick={() => { if (confirm("Run bulk categorization? This will update interaction_types in Supabase for all games.")) runBulkCategoryUpdate(); }}
-                style={{ opacity: 0.2, background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: '10px', marginLeft: '20px' }}
+        <section className="repository-content-section">
+          {isMobile && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '4px' }}>
+              <div 
+                className="search-container-v8" 
+                style={{ 
+                  margin: 0, 
+                  background: 'rgba(255,255,255,0.03)', 
+                  border: '1px solid rgba(255,255,255,0.08)',
+                  borderRadius: '12px'
+                }}
               >
-                Sync Categories
-              </button>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <ListFilter size={14} style={{ position: 'absolute', left: '12px', color: 'var(--text-muted)' }} />
-                <select
-                  value={sortBy}
-                  onChange={(e) => setSortBy(e.target.value)}
-                  className="force-sort-padding"
-                  style={{
-                    background: 'rgba(255,255,255,0.03)',
-                    border: '0.5px solid var(--border-soft)',
-                    borderRadius: '10px',
-                    fontSize: '13px',
-                    color: 'var(--text-primary)',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <option value="Favorites first">Favorites first</option>
-                  <option value="Newest first">Newest first</option>
-                  <option value="Oldest first">Oldest first</option>
-                  <option value="Alphabetical">Alphabetical</option>
-                </select>
+                <Search className="search-icon-v8" size={12} />
+                <input
+                  type="text"
+                  placeholder="Search assets..."
+                  className="v8-input-search"
+                  style={{ fontSize: '12px', padding: '10px 0' }}
+                  value={search || ''}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
               </div>
-            </div>
-          </div>
 
-          {!isMobile && (
-            <div className="filters-grid-v8" style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div className="filter-row-v8" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--text-inactive)', width: '60px' }}>ENERGY</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  <button onClick={() => setEnergyF('all')} className={`pill-v8 ${energyF === 'all' ? 'active' : ''}`}>All</button>
-                  {energyTypes.map(t => (
-                    <button key={t} onClick={() => setEnergyF(t)} className={`pill-v8 ${energyF === t ? 'active' : ''}`}>{t}</button>
-                  ))}
-                </div>
-              </div>
-              <div className="filter-row-v8" style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                <span style={{ fontSize: '10px', fontWeight: 'bold', color: 'var(--text-inactive)', width: '60px' }}>CATEGORY</span>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                  <button
-                    onClick={() => setCategoryF('All')}
-                    className={`pill-v8 ${categoryF === 'All' ? 'active' : ''}`}
-                  >
-                    All
-                  </button>
-                  {['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing', 'Nostalgia', 'Youth & Positivity', 'General', 'Team Building', 'Icebreaker', 'Creativity', 'Trivia', 'Fun & Engagement', 'Mindfulness', 'Problem Solving', 'Communication'].map(cat => (
-                    <button
-                      key={cat}
-                      onClick={() => setCategoryF(cat)}
-                      className={`pill-v8 ${categoryF === cat ? 'active' : ''}`}
-                    >
-                      {cat}
-                    </button>
-                  ))}
-                </div>
+              <div style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: '8px', 
+                overflowX: 'auto', 
+                paddingBottom: '4px',
+                msOverflowStyle: 'none',
+                scrollbarWidth: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}>
+                <FilterDropdown 
+                  label="Folder" 
+                  options={['all', ...folders.map(f => f.name)]} 
+                  value={activeFolderId === 'all' ? 'all' : folders.find(f => f.id === activeFolderId)?.name || 'all'} 
+                  onChange={(v) => {
+                    if (v === 'all') setActiveFolderId('all');
+                    else {
+                      const f = folders.find(f => f.name === v);
+                      if (f) setActiveFolderId(f.id);
+                    }
+                  }}
+                  type="folder"
+                  isOpen={openDropdown === 'folder'}
+                  onToggle={() => setOpenDropdown(openDropdown === 'folder' ? null : 'folder')}
+                  isMobile={isMobile}
+                />
+                
+                <FilterDropdown 
+                  label="Energy" 
+                  options={['all', ...energyTypes]} 
+                  value={energyF} 
+                  onChange={(v) => setEnergyF(v)}
+                  type="energy"
+                  isOpen={openDropdown === 'energy'}
+                  onToggle={() => setOpenDropdown(openDropdown === 'energy' ? null : 'energy')}
+                  isMobile={isMobile}
+                />
+                <FilterDropdown 
+                  label="Category" 
+                  options={CATEGORIES} 
+                  value={categoryF} 
+                  onChange={(v) => setCategoryF(v)}
+                  type="category"
+                  isOpen={openDropdown === 'category'}
+                  onToggle={() => setOpenDropdown(openDropdown === 'category' ? null : 'category')}
+                  isMobile={isMobile}
+                />
+                <FilterDropdown 
+                  label="Sort" 
+                  options={['Favorites', 'Newest', 'Alphabetical']} 
+                  value={sortBy.split(' ')[0]} 
+                  onChange={(v) => {
+                    if (v === 'Favorites') setSortBy('Favorites first');
+                    else if (v === 'Newest') setSortBy('Newest first');
+                    else setSortBy('Alphabetical');
+                  }}
+                  type="sort"
+                  isOpen={openDropdown === 'sort'}
+                  onToggle={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
+                  isMobile={isMobile}
+                />
               </div>
             </div>
           )}
+          {!isMobile && (
+            <div className="repository-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <h2 className="title-v8">Games Library</h2>
+                <div style={{ background: 'rgba(255,255,255,0.07)', borderRadius: '20px', padding: '2px 9px', fontSize: '12px', color: 'rgba(255,255,255,0.35)', fontWeight: '600' }}>
+                  {filteredGames.length}
+                </div>
+              </div>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <FilterDropdown 
+                  label="Energy" 
+                  options={['all', ...energyTypes]} 
+                  value={energyF} 
+                  onChange={(v) => setEnergyF(v)}
+                  type="energy"
+                  isOpen={openDropdown === 'energy'}
+                  onToggle={() => setOpenDropdown(openDropdown === 'energy' ? null : 'energy')}
+                  isMobile={isMobile}
+                />
+                <FilterDropdown 
+                  label="Category" 
+                  options={CATEGORIES} 
+                  value={categoryF} 
+                  onChange={(v) => setCategoryF(v)}
+                  type="category"
+                  isOpen={openDropdown === 'category'}
+                  onToggle={() => setOpenDropdown(openDropdown === 'category' ? null : 'category')}
+                  isMobile={isMobile}
+                />
+
+                <FilterDropdown 
+                  label="Sort" 
+                  options={['Favorites first', 'Newest first', 'Oldest first', 'Alphabetical']} 
+                  value={sortBy} 
+                  onChange={(v) => setSortBy(v)}
+                  type="sort"
+                  isOpen={openDropdown === 'sort'}
+                  onToggle={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
+                  isMobile={isMobile}
+                />
+              </div>
+            </div>
+          )}
+
 
 
           <div className="repository-grid">
@@ -606,93 +834,22 @@ export default function Repository() {
                 }}
                 onAdd={setGameToRoute}
                 onEdit={setEditingRepoGame}
+                onManageFolders={setManagingGameFolders}
+                isMobile={isMobile}
               />
             ))}
           </div>
         </section>
-      {/* Mobile Filters Modal */}
-      <AnimatePresence>
-        {isFiltersModalOpen && (
-          <div className="modal-overlay" style={{ zIndex: 3000, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(20px)' }}>
-            <motion.div 
-              initial={{ y: '100%' }}
-              animate={{ y: 0 }}
-              exit={{ y: '100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-              className="premium-card-v9" 
-              style={{ 
-                width: '100%', 
-                maxHeight: '85vh', 
-                position: 'fixed', 
-                bottom: 0, 
-                left: 0, 
-                borderRadius: '24px 24px 0 0',
-                padding: '32px 24px 48px',
-                border: 'none',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '24px'
-              }}
-            >
-              <div className="shimmer-overlay-v9" style={{ opacity: 0.1 }} />
-              <div style={{ position: 'relative', zIndex: 2 }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                  <h3 style={{ fontSize: '20px', fontWeight: '800', color: '#FFFFFF', fontFamily: 'var(--font-serif)', margin: 0 }}>Filter Architecture</h3>
-                  <button onClick={() => setIsFiltersModalOpen(false)} style={{ background: 'rgba(255,255,255,0.08)', border: 'none', color: '#FFF', borderRadius: '50%', padding: '8px' }}>
-                    <X size={20} />
-                  </button>
-                </div>
-
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '32px', overflowY: 'auto', maxHeight: '60vh', paddingRight: '4px' }}>
-                  <div className="filter-row-v8">
-                    <span style={{ fontSize: '10px', fontWeight: '900', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '12px' }}>ENERGY LEVELS</span>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      <button onClick={() => setEnergyF('all')} className={`pill-v8 ${energyF === 'all' ? 'active' : ''}`} style={{ padding: '10px 18px', fontSize: '12px' }}>All</button>
-                      {energyTypes.map(t => (
-                        <button key={t} onClick={() => setEnergyF(t)} className={`pill-v8 ${energyF === t ? 'active' : ''}`} style={{ padding: '10px 18px', fontSize: '12px' }}>{t}</button>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="filter-row-v8">
-                    <span style={{ fontSize: '10px', fontWeight: '900', color: 'rgba(255,255,255,0.4)', textTransform: 'uppercase', letterSpacing: '0.15em', display: 'block', marginBottom: '12px' }}>CATEGORY</span>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                      <button
-                        onClick={() => setCategoryF('All')}
-                        className={`pill-v8 ${categoryF === 'All' ? 'active' : ''}`}
-                        style={{ padding: '10px 18px', fontSize: '12px' }}
-                      >
-                        All
-                      </button>
-                      {['Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing', 'Nostalgia', 'Youth & Positivity', 'General', 'Team Building', 'Icebreaker', 'Creativity', 'Trivia', 'Fun & Engagement', 'Mindfulness', 'Problem Solving', 'Communication'].map(cat => (
-                        <button
-                          key={cat}
-                          onClick={() => setCategoryF(cat)}
-                          className={`pill-v8 ${categoryF === cat ? 'active' : ''}`}
-                          style={{ padding: '10px 18px', fontSize: '12px' }}
-                        >
-                          {cat}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                <button 
-                  className="btn-primary" 
-                  onClick={() => setIsFiltersModalOpen(false)}
-                  style={{ width: '100%', marginTop: '32px', justifyContent: 'center', padding: '16px' }}
-                >
-                  Apply Filters
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
       <AddGameModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} />
+      <FolderAssignmentModal 
+        isOpen={!!managingGameFolders} 
+        onClose={() => setManagingGameFolders(null)} 
+        activity={managingGameFolders}
+        folders={folders}
+        toggleFolder={toggleGameFolder}
+      />
         </main>
-      </div>
+    </div>
     );
   }
