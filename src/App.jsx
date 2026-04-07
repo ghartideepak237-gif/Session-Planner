@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Users, Plus, ArrowRight, LogOut, Zap, Menu, X } from 'lucide-react';
+import { Users, Plus, ArrowRight, LogOut, Zap, Menu, X, ArrowUp } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Repository from './components/Repository';
 import SessionBuilder from './components/SessionBuilder';
@@ -148,7 +148,7 @@ export default function App() {
   }
 
   return (
-    <div className={`page-wrapper ${isMobile ? 'is-mobile' : ''}`}>
+    <div className={`page-wrapper ${isMobile ? 'is-mobile' : ''}`} style={{ width: '100%', overflowX: 'hidden' }}>
       {/* Mobile Drawer */}
       <AnimatePresence>
         {isMobile && isMenuOpen && (
@@ -308,37 +308,68 @@ export default function App() {
         </motion.div>
       </AnimatePresence>
 
-      {/* Mobile FAB for Adding Games */}
+      {/* Global FABs - Root Level Access */}
       <AnimatePresence>
-        {isMobile && activeTab === 'repository' && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0, y: 20 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={() => setShowAddGame(true)}
-            style={{
-              position: 'fixed',
-              bottom: '92px',
-              right: '18px',
-              width: '48px',
-              height: '48px',
-              borderRadius: '50%',
-              background: 'rgba(15, 19, 24, 0.8)',
-              backdropFilter: 'blur(32px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(32px) saturate(180%)',
-              border: '1.5px solid rgba(234, 179, 8, 0.35)',
-              color: 'var(--accent-gold)',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              zIndex: 1000,
-              cursor: 'pointer'
-            }}
-          >
-            <Plus size={22} strokeWidth={3} />
-          </motion.button>
+        {isMobile && (
+          <div style={{ position: 'fixed', bottom: 0, right: 0, paddingRight: '18px', paddingBottom: 'calc(env(safe-area-inset-bottom, 16px) + 16px)', zIndex: 99999, display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', pointerEvents: 'none' }}>
+            {/* Added Games FAB */}
+            {activeTab === 'repository' && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0, y: 20 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => setShowAddGame(true)}
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  background: 'rgba(15, 19, 24, 0.9)',
+                  backdropFilter: 'blur(32px) saturate(180%)',
+                  WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+                  border: '1.5px solid rgba(234, 179, 8, 0.4)',
+                  color: 'var(--accent-gold)',
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  pointerEvents: 'auto'
+                }}
+              >
+                <Plus size={22} strokeWidth={3} />
+              </motion.button>
+            )}
+
+            {/* Back to Top FAB */}
+            {scrolled && (
+              <motion.button
+                initial={{ opacity: 0, scale: 0, y: 10 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0, y: 10 }}
+                whileTap={{ scale: 0.9 }}
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                style={{
+                  width: '44px',
+                  height: '44px',
+                  borderRadius: '50%',
+                  background: 'rgba(15, 19, 24, 0.9)',
+                  backdropFilter: 'blur(32px)',
+                  WebkitBackdropFilter: 'blur(32px)',
+                  border: '1.5px solid rgba(125, 211, 252, 0.3)',
+                  color: 'var(--accent-silver)',
+                  boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  cursor: 'pointer',
+                  pointerEvents: 'auto'
+                }}
+              >
+                <ArrowUp size={20} strokeWidth={2.5} />
+              </motion.button>
+            )}
+          </div>
         )}
       </AnimatePresence>
 

@@ -439,38 +439,7 @@ export default function Repository() {
 
   return (
     <div className={`repository-v8-content ${isMobile ? 'compact-mobile' : ''}`}>
-      <AnimatePresence>
-        {showRocket && (
-          <motion.button
-            initial={{ opacity: 0, scale: 0, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0, y: 20 }}
-            whileTap={{ scale: 0.9 }}
-            onClick={scrollToTop}
-            style={{
-              position: 'fixed',
-              bottom: isMobile ? '32px' : '40px',
-              right: isMobile ? '18px' : '40px',
-              width: isMobile ? '44px' : '54px',
-              height: isMobile ? '44px' : '54px',
-              background: 'rgba(15, 19, 24, 0.8)',
-              backdropFilter: 'blur(32px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(32px) saturate(180%)',
-              border: '1.5px solid rgba(125, 211, 252, 0.2)',
-              borderRadius: '50%',
-              color: 'var(--accent-silver)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              zIndex: 900,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.15)',
-            }}
-          >
-            <ArrowUp size={isMobile ? 20 : 24} strokeWidth={2.5} />
-          </motion.button>
-        )}
-      </AnimatePresence>
+      {/* Back to Top moved to App.jsx root */}
       <style>{`
         .repository-v8-content {
           width: 100%;
@@ -656,9 +625,11 @@ export default function Repository() {
           }
 
           .repository-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr !important;
             gap: 16px;
             padding: 12px 0;
+            width: 100%;
+            overflow: hidden;
           }
         }
       `}</style>
@@ -829,6 +800,8 @@ export default function Repository() {
                   onToggle={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
                   isMobile={isMobile}
                 />
+                {/* Horizontal scroll spacer */}
+                <div style={{ width: '48px', flexShrink: 0, pointerEvents: 'none' }} />
               </div>
             </div>
           )}
