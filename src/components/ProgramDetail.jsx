@@ -83,15 +83,16 @@ export default function ProgramDetail() {
 
         {/* Progress Indicator */}
         {(() => {
-          const planned = programSessions.filter(s => s.selectedGames && s.selectedGames.length > 0).length;
+          const fullyPlanned = programSessions.filter(s => (s.totalActualDuration || 0) >= (s.baseDuration || 45)).length;
+          const anyPlanned = programSessions.filter(s => (s.totalActualDuration || 0) > 0).length;
           const total = programSessions.length || 1;
-          const pct = Math.round((planned / total) * 100);
+          const pct = Math.round((fullyPlanned / total) * 100);
           return (
             <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '32px', background: 'rgba(255,255,255,0.03)', border: '0.5px solid rgba(255,255,255,0.07)', borderRadius: '14px', padding: '16px 20px' }}>
               <div style={{ flex: 1 }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
                   <span style={{ fontSize: '10px', fontWeight: '700', color: 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Planning Progress</span>
-                  <span style={{ fontSize: '10px', fontWeight: '700', color: pct === 100 ? '#22c55e' : 'var(--accent-silver)' }}>{planned}/{total} sessions planned</span>
+                  <span style={{ fontSize: '10px', fontWeight: '700', color: pct === 100 ? '#22c55e' : 'var(--accent-silver)' }}>{fullyPlanned}/{total} sessions completed</span>
                 </div>
                 <div style={{ height: '3px', background: 'rgba(255,255,255,0.06)', borderRadius: '99px', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${pct}%`, background: pct === 100 ? '#22c55e' : 'linear-gradient(to right, var(--accent-silver), var(--accent-gold))', borderRadius: '99px', transition: 'width 0.6s ease' }} />
@@ -130,7 +131,11 @@ export default function ProgramDetail() {
                 {/* Session Cards - fixed width, left-aligned, no stretching */}
                 <div style={{ flex: 1, display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'flex-start', width: isMobile ? '100%' : 'auto' }}>
                   {weekSessions.map((session, sessionIndex) => {
-                    const isPlanned = session.selectedGames && session.selectedGames.length > 0 && session.totalActualDuration > 0;
+                    const actualDur = session.totalActualDuration || 0;
+                    const baseDur = session.baseDuration || 45;
+                    const isPlanned = actualDur >= baseDur;
+                    const isInProgress = actualDur > 0 && actualDur < baseDur;
+                    const isNotPlanned = actualDur === 0;
                     const theme = session.programTheme || wData.theme || '';
                     const focus = session.programFocus || wData.focus || '';
                     const focusBullets = focus ? focus.split(/[•\n,]+/).map(f => f.trim()).filter(Boolean) : [];
@@ -154,8 +159,13 @@ export default function ProgramDetail() {
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             {/* Session order badge */}
-                            <div style={{ width: '22px', height: '22px', borderRadius: '6px', background: isPlanned ? 'rgba(234,179,8,0.15)' : 'rgba(255,255,255,0.06)', border: `0.5px solid ${isPlanned ? 'rgba(234,179,8,0.3)' : 'rgba(255,255,255,0.1)'}`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <span style={{ fontSize: '11px', fontWeight: '800', color: isPlanned ? 'var(--accent-gold)' : 'rgba(255,255,255,0.3)' }}>{sessionIndex + 1}</span>
+                            <div style={{ 
+                              width: '22px', height: '22px', borderRadius: '6px', 
+                              background: isPlanned ? 'rgba(34,197,94,0.15)' : isInProgress ? 'rgba(234,179,8,0.15)' : 'rgba(255,255,255,0.06)', 
+                              border: `0.5px solid ${isPlanned ? 'rgba(34,197,94,0.3)' : isInProgress ? 'rgba(234,179,8,0.3)' : 'rgba(255,255,255,0.1)'}`, 
+                              display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 
+                            }}>
+                              <span style={{ fontSize: '11px', fontWeight: '800', color: isPlanned ? '#22c55e' : isInProgress ? 'var(--accent-gold)' : 'rgba(255,255,255,0.3)' }}>{sessionIndex + 1}</span>
                             </div>
                             <span style={{ fontSize: '13px', fontWeight: '700', color: '#FFFFFF', fontFamily: 'var(--font-serif)' }}>{session.sessionNumber}</span>
                             <button title="Edit" onClick={() => setEditingSession(session)} style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.25)', cursor: 'pointer', padding: '2px' }}>
@@ -163,9 +173,13 @@ export default function ProgramDetail() {
                             </button>
                           </div>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPlanned ? '#22c55e' : 'rgba(255,255,255,0.2)' }} />
-                            <span style={{ fontSize: '10px', fontWeight: '700', color: isPlanned ? '#22c55e' : 'rgba(255,255,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                              {isPlanned ? 'Planned' : 'Not Planned'}
+                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: isPlanned ? '#22c55e' : isInProgress ? 'var(--accent-gold)' : 'rgba(255,255,255,0.2)' }} />
+                            <span style={{ 
+                              fontSize: '10px', fontWeight: '700', 
+                              color: isPlanned ? '#22c55e' : isInProgress ? 'var(--accent-gold)' : 'rgba(255,255,255,0.35)', 
+                              textTransform: 'uppercase', letterSpacing: '0.08em' 
+                            }}>
+                              {isPlanned ? 'Planned' : isInProgress ? 'In Progress' : 'Not Planned'}
                             </span>
                           </div>
                         </div>
@@ -184,15 +198,15 @@ export default function ProgramDetail() {
                         </div>
 
                         {/* Duration */}
-                        {isPlanned && (
-                          <p style={{ fontSize: '12px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>
-                            {session.totalActualDuration} min structured
+                        {!isNotPlanned && (
+                          <p style={{ fontSize: '12px', fontWeight: '700', color: isPlanned ? '#22c55e' : 'var(--accent-gold)', margin: 0 }}>
+                            {actualDur} / {baseDur} min planned
                           </p>
                         )}
 
                         {/* Action Buttons */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', marginTop: '4px' }}>
-                          {isPlanned ? (
+                          {!isNotPlanned ? (
                             <>
                               <button 
                                 onClick={() => setSessionOverview(session)}

@@ -39,7 +39,7 @@
   color: rgba(255, 255, 255, 0.5) !important;
   padding: 8px 18px !important;
   border-radius: 12px !important;
-  transition: all 0.35s var(--smooth) !important;
+  transition: all 0.12s ease !important;
   background: transparent !important;
   border: none !important;
 }
@@ -70,7 +70,7 @@
   align-items: center !important;
   gap: 8px !important;
   cursor: pointer !important;
-  transition: all 0.25s var(--spring-bounce) !important;
+  transition: all 0.12s ease !important;
   text-transform: none !important;
   position: relative;
   overflow: hidden;
@@ -88,11 +88,87 @@
   position: absolute;
   top: 0; left: -100%; width: 100%; height: 100%;
   background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
-  transition: all 0.5s ease;
+  transition: all 0.3s ease;
 }
 
 .btn-primary:hover::after {
   left: 100%;
+}
+
+.premium-card-v9 {
+  background: linear-gradient(165deg, rgba(20, 24, 30, 0.7) 0%, rgba(12, 16, 20, 0.85) 100%);
+  backdrop-filter: blur(44px) saturate(210%);
+  -webkit-backdrop-filter: blur(44px) saturate(210%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 24px;
+  position: relative;
+  overflow: hidden;
+  box-shadow: 
+    0 25px 60px rgba(0, 0, 0, 0.6), 
+    inset 0 1px 1px rgba(255, 255, 255, 0.05),
+    inset 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.premium-card-v9:hover {
+  transform: translateY(-8px) scale(1.04);
+  background: linear-gradient(165deg, rgba(25, 30, 38, 0.75) 0%, rgba(15, 20, 25, 0.9) 100%);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: 0 45px 95px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.15);
+}
+
+/* Page - Specific Themes */
+.card-theme-blue {
+  background: rgba(15, 22, 28, 0.6);
+  border-color: rgba(14, 165, 233, 0.2);
+}
+.card-theme-blue:hover {
+  background: rgba(20, 28, 36, 0.7);
+  border-color: rgba(14, 165, 233, 0.5);
+  box-shadow: 0 40px 80px rgba(0, 0, 0, 0.8), 0 0 20px rgba(14, 165, 233, 0.15);
+}
+
+.compact-glass-scroll {
+  max-height: 200px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.compact-glass-scroll::-webkit-scrollbar {
+  width: 2px;
+}
+
+.compact-glass-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.compact-glass-scroll::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+}
+
+.shimmer-overlay-v9 {
+  position: absolute;
+  top: 0; left: -150%; width: 50%; height: 100%;
+  background: linear-gradient(
+    90deg, 
+    transparent, 
+    rgba(255, 255, 255, 0.05), 
+    rgba(255, 255, 255, 0.12), 
+    rgba(255, 255, 255, 0.05), 
+    transparent
+  );
+  transform: skewX(-20deg);
+  transition: none;
+  pointer-events: none;
+}
+
+.premium-card-v9:hover .shimmer-overlay-v9 {
+  animation: metallicShimmer 1.2s infinite;
+}
+
+@keyframes metallicShimmer {
+  0% { left: -150%; }
+  100% { left: 150%; }
 }
 
 .btn-secondary {
@@ -113,12 +189,13 @@
 
 /* Graphite Panels & Modals */
 .glass-panel, .modal-content {
-  background: rgba(11, 13, 16, 0.6) !important;
-  backdrop-filter: blur(32px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(15, 18, 22, 0.65) !important;
+  backdrop-filter: blur(44px) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(210%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: 24px !important;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), inset 0 1px 1px rgba(255, 255, 255, 0.12) !important;
+  transition: all 0.4s var(--smooth);
 }
 
 .modal-overlay {
@@ -254,14 +331,14 @@ input:focus {
 }
 
 .modal-content-glass {
-  background: rgba(11, 13, 16, 0.6) !important;
-  backdrop-filter: blur(32px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(32px) saturate(180%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background: rgba(15, 18, 22, 0.65) !important;
+  backdrop-filter: blur(44px) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(44px) saturate(210%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: 28px;
   overflow-y: auto;
   max-height: 90vh;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.08) !important;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.12) !important;
   width: 95%;
   max-width: 640px;
   position: relative;
@@ -364,6 +441,12 @@ input:focus {
     height: 40px !important;
     font-size: 15px !important;
   }
+}
+
+.folder-row-premium:hover {
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.03) !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 

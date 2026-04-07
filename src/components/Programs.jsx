@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { FolderOpen, Plus, Trash2, Calendar, Download, Upload } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useStore } from '../store';
 
 export default function Programs() {
-  const { programs, addProgram, deleteProgram, setActiveProgram, exportBackup, importBackup } = useStore();
+  const { programs, addProgram, deleteProgram, setActiveProgram, activeProgramId, exportBackup, importBackup } = useStore();
   const [showForm, setShowForm] = useState(false);
   
   const handleImport = (e) => {
@@ -39,149 +40,58 @@ export default function Programs() {
   return (
     <main className="container-max v8-theme">
       <style>{`
-        .program-card-v8 {
-          background: var(--card-grad);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 0.5px solid var(--border-main);
-          border-radius: 20px;
-          padding: 24px;
-          transition: all 0.4s var(--smooth);
+        .program-card-v9 {
           cursor: pointer;
           display: flex;
           flex-direction: column;
           gap: 12px;
-          position: relative;
-          overflow: hidden;
+          min-height: 200px;
         }
 
-        .program-card-v8:hover {
-          transform: translateY(-6px) scale(1.02);
-          background: linear-gradient(145deg, #11161C, #0C1015);
-          border-color: var(--accent-silver);
-          box-shadow: 0 30px 60px rgba(0,0,0,0.6), 0 0 20px var(--glow-silver);
-        }
-
-        .program-card-v8.active {
-          border-color: var(--accent-gold);
-          box-shadow: 0 0 30px var(--glow-gold);
-          animation: activePulse 3s infinite ease-in-out;
-        }
-
-        @keyframes activePulse {
-          0% { box-shadow: 0 0 15px var(--glow-gold); }
-          50% { box-shadow: 0 0 35px var(--glow-gold); }
-          100% { box-shadow: 0 0 15px var(--glow-gold); }
-        }
-
-        .v9-grad-border {
-          position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 2px;
-          background: linear-gradient(to right, var(--accent-silver), var(--accent-gold), var(--accent-silver));
-          opacity: 0.4;
-        }
-
-        .program-title-v8 {
+        .program-title-v9 {
           font-family: var(--font-serif);
-          font-size: 18px;
+          font-size: 20px;
           font-weight: 700;
-          color: var(--text-primary);
+          color: #FFFFFF;
           margin: 0;
         }
 
-        .program-meta-v8 {
+        .program-meta-v9 {
           font-size: 11px;
-          font-weight: 600;
-          color: var(--text-muted);
+          font-weight: 700;
+          color: rgba(255,255,255,0.4);
           text-transform: uppercase;
-          letter-spacing: 0.1em;
+          letter-spacing: 0.12em;
           font-family: var(--font-sans);
         }
-
-        .program-footer-v8 {
-          margin-top: auto;
-          padding-top: 16px;
-          display: flex;
-          align-items: center;
-          gap: 16px;
-          border-top: 0.5px solid var(--border-soft);
-          font-size: 11px;
-          color: var(--text-muted);
-        }
-
-        .hub-title-v8 {
-          font-family: var(--font-serif);
-          font-size: 26px;
-          font-weight: 700;
-          color: var(--text-primary);
-          margin: 0;
-          letter-spacing: -0.2px;
-        }
-
-        .hub-subtitle-v8 {
-          font-size: 13px;
-          color: var(--text-muted);
-          margin-top: 4px;
-        }
-
-        @media (max-width: 768px) {
-          .programs-header-row {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            gap: 16px !important;
-            padding: 16px 0 0 !important;
-            margin-bottom: 24px !important;
-          }
-          .programs-header-row .btn-primary {
-            width: 100% !important;
-            justify-content: center !important;
-          }
-          .program-form-grid {
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
-          }
-          .program-grid {
-            grid-template-columns: 1fr !important;
-            gap: 16px !important;
-          }
-          .program-card-v8 {
-            padding: 16px !important;
-            gap: 8px !important;
-          }
-          .hub-title-v8 {
-            font-size: 20px !important;
-          }
-        }
-
       `}</style>
-      <div className="programs-header-row" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', marginBottom: '48px', padding: '40px 0 0' }}>
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
         <div>
-          <h2 className="hub-title-v8">Program <span style={{ fontStyle: 'italic', background: 'linear-gradient(to right, var(--accent-silver), var(--accent-gold))', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>Curriculum</span></h2>
-          <p className="hub-subtitle-v8">Structured multi-week developmental architectures</p>
-          <div style={{ display: 'flex', gap: '20px', marginTop: '16px' }}>
-            <button 
-              onClick={exportBackup}
-              style={{ background: 'none', border: 'none', color: 'rgba(255,255,255,0.4)', fontSize: '11px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', padding: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}
-            >
-              <Download size={12} /> Export All
-            </button>
-            
-            <label style={{ color: 'rgba(255,255,255,0.4)', fontSize: '11px', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-              <Upload size={12} /> Import Backup
-              <input type="file" accept=".json" onChange={handleImport} style={{ display: 'none' }} />
-            </label>
-          </div>
+          <h2 style={{ fontSize: '32px', fontWeight: '800', color: '#FFFFFF', margin: 0, fontFamily: 'var(--font-serif)' }}>Curriculum Roadmap</h2>
+          <p style={{ color: 'rgba(255,255,255,0.4)', marginTop: '4px', fontSize: '14px' }}>Strategic planning for multi-week developmental programs.</p>
         </div>
         
-        <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
-          <Plus size={14} /> {showForm ? 'Cancel Creation' : 'Initialize Program'}
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <div style={{ position: 'relative' }}>
+            <input type="file" onChange={handleImport} accept=".json" style={{ position: 'absolute', inset: 0, opacity: 0, cursor: 'pointer' }} title="Import Backup" />
+            <button className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Upload size={14} /> Import</button>
+          </div>
+          <button onClick={exportBackup} className="btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}><Download size={14} /> Export</button>
+          <button onClick={() => setShowForm(!showForm)} className="btn-primary">
+            {showForm ? 'Cancel Initialization' : 'Initialize New Program'}
+          </button>
+        </div>
       </div>
 
       {showForm && (
-        <form className="glass-panel" style={{ marginBottom: '48px', padding: '32px' }} onSubmit={handleSubmit}>
-          <h3 style={{ fontSize: '18px', fontWeight: '700', fontFamily: 'var(--font-serif)', color: '#FFFFFF', marginBottom: '24px' }}>Architect New Roadmap</h3>
+        <form onSubmit={handleSubmit} className="glass-panel animate-fadeInUp" style={{ padding: '40px', marginBottom: '48px', border: '1px solid rgba(255,255,255,0.1)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '32px' }}>
+            <div style={{ padding: '10px', background: 'rgba(234, 179, 8, 0.1)', borderRadius: '12px' }}>
+              <Plus size={20} color="#EAB308" />
+            </div>
+            <h3 style={{ fontSize: '20px', fontWeight: '700', color: '#FFFFFF', margin: 0 }}>Configure Roadmap Parameters</h3>
+          </div>
           
           <div className="program-form-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '24px' }}>
             <div>
@@ -237,26 +147,68 @@ export default function Programs() {
           <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.4)', maxWidth: '400px', margin: '0 auto' }}>Initialize a new multi-week developmental program to begin structuring your sessions.</p>
         </div>
       ) : (
-        <div className="program-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '32px' }}>
-          {programs.map(p => {
-             const { activeProgram } = useStore.getState();
-             const isActive = activeProgram?.id === p.id;
+        <div className="program-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))', gap: '24px' }}>
+          {programs.map((p, i) => {
+             const isActive = activeProgramId === p.id;
              return (
-               <div key={p.id} className={`program-card-v8 ${isActive ? 'active' : ''}`} onClick={() => setActiveProgram(p.id)}>
-                  <div className="v9-grad-border"></div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                  <h3 className="program-title-v8">{p.name}</h3>
-                  <button onClick={(e) => { e.stopPropagation(); deleteProgram(p.id); }} style={{ background: 'none', border: 'none', color: 'var(--text-inactive)', cursor: 'pointer', padding: '4px' }}><Trash2 size={14} /></button>
-                </div>
-                <div className="program-meta-v8">{p.college}</div>
-                
-                <div className="program-footer-v8">
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={13} /> {p.duration} Weeks</span>
-                  <span style={{ opacity: 0.3 }}>•</span>
-                  <span>{p.totalSessions} Sessions</span>
-                </div>
-             </div>
-          )})}
+               <motion.div 
+                 key={p.id} 
+                 className="premium-card-v9 program-card-v9" 
+                 initial={{ opacity: 0, y: 20 }}
+                 animate={{ 
+                   opacity: 1, 
+                   y: 0,
+                   transition: { type: 'spring', stiffness: 300, damping: 25, mass: 0.8 }
+                 }}
+                 whileHover={{ 
+                   scale: 1.04, 
+                   y: -8,
+                   transition: { delay: 0, type: 'spring', stiffness: 300, damping: 25, mass: 0.8 } 
+                 }}
+                 whileTap={{ scale: 0.98 }}
+                 onClick={() => setActiveProgram(p.id)}
+                 style={{
+                   border: isActive ? '2px solid var(--accent-gold)' : '1px solid rgba(255, 255, 255, 0.1)',
+                   background: isActive ? 'rgba(234, 179, 8, 0.08)' : 'linear-gradient(165deg, rgba(20, 24, 30, 0.7) 0%, rgba(12, 16, 20, 0.85) 100%)',
+                   padding: '28px'
+                 }}
+               >
+                 <div className="shimmer-overlay-v9" />
+                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative', zIndex: 2 }}>
+                   <h3 className="program-title-v9">{p.name}</h3>
+                   <button 
+                     onClick={(e) => { e.stopPropagation(); deleteProgram(p.id); }} 
+                     style={{ background: 'rgba(255,255,255,0.06)', border: 'none', color: 'rgba(255,255,255,0.3)', cursor: 'pointer', padding: '6px', borderRadius: '8px' }}
+                   >
+                     <Trash2 size={14} />
+                   </button>
+                 </div>
+                 <div className="program-meta-v9" style={{ position: 'relative', zIndex: 2 }}>
+                   <div 
+                     className="premium-card-v9 card-theme-blue" 
+                     style={{ 
+                       display: 'inline-flex', 
+                       padding: '6px 12px', 
+                       borderRadius: '10px', 
+                       fontSize: '10px',
+                       letterSpacing: '0.1em',
+                       fontWeight: '800',
+                       background: 'rgba(59, 130, 246, 0.1)',
+                       borderColor: 'rgba(59, 130, 246, 0.2)'
+                     }}
+                   >
+                     {p.college || 'PRIVATE CURRICULUM'}
+                   </div>
+                 </div>
+                 
+                 <div style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '12px', fontSize: '12px', color: 'rgba(255,255,255,0.4)', fontWeight: '600', position: 'relative', zIndex: 2 }}>
+                   <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={13} /> {p.duration} Weeks</span>
+                   <span style={{ opacity: 0.3 }}>•</span>
+                   <span>{p.totalSessions} Sessions</span>
+                 </div>
+               </motion.div>
+             );
+          })}
         </div>
       )}
     </main>

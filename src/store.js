@@ -344,16 +344,22 @@ export const useStore = create((set, get) => ({
       newFolderIds = [...currentFolders, folderId];
     }
     
+    // OPTIMISTIC UPDATE: Update UI immediately
+    const previousGames = get().games;
+    set((state) => ({
+      games: state.games.map(g => g.id === gameId ? { ...g, folder_ids: newFolderIds } : g)
+    }));
+
     console.log(`[Supabase] Toggling folder assignment for "${game.title}"...`, newFolderIds);
     const { error } = await supabase.from('activities').update({ folder_ids: newFolderIds }).eq('id', gameId);
     
-    if (!error) {
-      console.log('[Supabase] Folder assignment successful');
-      set((state) => ({
-        games: state.games.map(g => g.id === gameId ? { ...g, folder_ids: newFolderIds } : g)
-      }));
+    if (error) {
+      console.error('[Supabase] Error toggling folder, rolling back:', error.message);
+      // ROLLBACK on error
+      set({ games: previousGames });
+      alert("Failed to sync folder change. Please check your connection.");
     } else {
-      console.error('[Supabase] Error toggling folder:', error.message);
+      console.log('[Supabase] Folder assignment successful');
     }
   },
   updateGame: async (gameId, updates) => {

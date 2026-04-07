@@ -170,7 +170,7 @@ export default function App() {
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}
-              transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+              transition={{ type: 'spring', damping: 40, stiffness: 400 }}
               style={{
                 position: 'fixed',
                 top: 0, left: 0, bottom: 0,
@@ -291,18 +291,13 @@ export default function App() {
 
       <GameForm isOpen={showAddGame} onClose={() => setShowAddGame(false)} />
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence>
         <motion.div
           key={activeTab}
-          initial={{ opacity: 0, y: 8, scale: 0.99 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -8, scale: 0.99 }}
-          transition={{
-            type: "spring",
-            stiffness: 450,
-            damping: 35,
-            mass: 0.5
-          }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.1, ease: "linear" }}
           style={{ flex: 1, display: 'flex', flexDirection: 'column' }}
         >
           {activeTab === 'repository' && <Repository />}
@@ -329,12 +324,12 @@ export default function App() {
               width: '48px',
               height: '48px',
               borderRadius: '50%',
-              background: 'rgba(15, 19, 24, 0.6)',
-              backdropFilter: 'blur(16px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-              border: '1.5px solid rgba(234, 179, 8, 0.25)',
+              background: 'rgba(15, 19, 24, 0.8)',
+              backdropFilter: 'blur(32px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+              border: '1.5px solid rgba(234, 179, 8, 0.35)',
               color: 'var(--accent-gold)',
-              boxShadow: '0 12px 40px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1)',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.15)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',

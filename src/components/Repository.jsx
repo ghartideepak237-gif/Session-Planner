@@ -23,18 +23,29 @@ const GameCard = ({ game, onAdd, onEdit, onManageFolders, index, isMobile }) => 
   const energyColor = ENERGY_COLORS[game.energyType] || '#7DD3FC';
 
   return (
-    <div
-      className="premium-card-v9"
+    <motion.div
+      className="premium-card-v9 card-theme-blue"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ 
+        opacity: 1, 
+        y: 0,
+        transition: { type: 'spring', stiffness: 300, damping: 25, mass: 0.8 }
+      }}
+      whileHover={{ 
+        scale: 1.04, 
+        y: -8,
+        transition: { delay: 0, type: 'spring', stiffness: 300, damping: 25, mass: 0.8 } 
+      }}
+      whileTap={{ scale: 0.98 }}
       style={{
-        animation: `fadeInUp 0.6s var(--spring-bounce) ${staggerDelay} forwards`,
-        opacity: 0,
         padding: isMobile ? '16px' : '24px',
         display: 'flex',
         flexDirection: 'column',
         gap: '12px',
         position: 'relative',
         height: '100%',
-        minHeight: '280px'
+        minHeight: '280px',
+        cursor: 'default'
       }}
     >
       <div className="shimmer-overlay-v9" />
@@ -76,7 +87,7 @@ const GameCard = ({ game, onAdd, onEdit, onManageFolders, index, isMobile }) => 
             style={{ background: 'none', border: 'none', padding: 0, display: 'flex', alignItems: 'center', gap: '6px', color: isInFolder ? 'var(--accent-silver)' : 'rgba(255,255,255,0.25)', fontSize: '11px', fontWeight: '700', cursor: 'pointer' }}
           >
             <Folder size={12} fill={isInFolder ? 'var(--accent-silver)' : 'none'} />
-            <span style={{ borderBottom: '1px dashed currentColor' }}>{isInFolder ? (assignedFolderIds.length === 1 ? 'In 1 Folder' : `In ${assignedFolderIds.length} Folders`) : 'Add to Folder'}</span>
+            <span style={{ borderBottom: '1px dashed currentColor' }}>Add to Folder</span>
           </button>
 
           <div style={{ fontSize: '10px', color: 'rgba(255,255,255,0.3)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -111,7 +122,7 @@ const GameCard = ({ game, onAdd, onEdit, onManageFolders, index, isMobile }) => 
           Add →
         </button>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
@@ -214,7 +225,9 @@ const FilterDropdown = ({ label, options, value, onChange, type, isOpen, onToggl
   );
 };
 
-const FolderAssignmentModal = ({ isOpen, onClose, activity, folders, toggleFolder }) => {
+const FolderAssignmentModal = ({ isOpen, onClose, activity: initialActivity, folders, toggleFolder }) => {
+  const { games } = useStore();
+  const activity = games.find(g => (g.id || g.title) === (initialActivity?.id || initialActivity?.title)) || initialActivity;
   if (!activity) return null;
   const assigned = Array.isArray(activity.folder_ids) ? activity.folder_ids : [];
 
@@ -254,35 +267,68 @@ const FolderAssignmentModal = ({ isOpen, onClose, activity, folders, toggleFolde
               </button>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', maxHeight: '50vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '50vh', overflowY: 'auto', padding: '4px' }}>
               {folders.length === 0 && (
                 <p style={{ textAlign: 'center', color: 'var(--text-inactive)', fontSize: '13px', padding: '20px' }}>No folders created yet.</p>
               )}
               {folders.map(folder => {
                 const isAssigned = assigned.includes(folder.id);
                 return (
-                  <button
+                  <motion.button
                     key={folder.id}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
                     onClick={() => toggleFolder(activity.id, folder.id)}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'space-between',
-                      padding: '16px 20px',
-                      background: isAssigned ? 'rgba(125, 200, 255, 0.08)' : 'rgba(255,255,255,0.02)',
-                      border: `1px solid ${isAssigned ? 'rgba(125, 200, 255, 0.3)' : 'rgba(255,255,255,0.08)'}`,
-                      borderRadius: '16px',
-                      transition: 'all 0.2s ease',
+                      padding: '14px 18px',
+                      background: isAssigned ? 'rgba(59, 130, 246, 0.08)' : 'transparent',
+                      border: isAssigned ? '2px solid #3B82F6' : '1px solid rgba(255,255,255,0.08)',
+                      borderRadius: '12px',
+                      transition: 'all 0.15s ease',
                       cursor: 'pointer',
-                      color: isAssigned ? '#FFF' : 'rgba(255,255,255,0.6)'
+                      color: isAssigned ? '#FFF' : 'rgba(255,255,255,0.6)',
+                      boxShadow: isAssigned ? '0 0 0 1px rgba(59, 130, 246, 0.15)' : 'none',
+                      position: 'relative',
+                      overflow: 'hidden',
+                      textAlign: 'left'
                     }}
+                    className="folder-row-premium"
                   >
+                    {/* Left Accent Bar */}
+                    {isAssigned && (
+                      <motion.div 
+                        initial={{ opacity: 0, x: -4 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        style={{ position: 'absolute', left: 0, top: 0, bottom: 0, width: '4px', background: '#3B82F6' }} 
+                      />
+                    )}
+
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <Folder size={18} fill={isAssigned ? 'var(--accent-silver)' : 'none'} color={isAssigned ? 'var(--accent-silver)' : 'currentColor'} />
-                      <span style={{ fontWeight: '600', fontSize: '14px' }}>{folder.name}</span>
+                      <Folder 
+                        size={18} 
+                        fill={isAssigned ? '#3B82F6' : 'none'} 
+                        color={isAssigned ? '#3B82F6' : 'currentColor'} 
+                        style={{ opacity: isAssigned ? 1 : 0.5 }}
+                      />
+                      <span style={{ fontWeight: isAssigned ? '700' : '500', fontSize: '14px', letterSpacing: '0.01em' }}>{folder.name}</span>
                     </div>
-                    {isAssigned && <CheckCircle2 size={18} color="var(--accent-silver)" />}
-                  </button>
+
+                    <AnimatePresence>
+                      {isAssigned && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.5, rotate: -15 }}
+                          animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                          exit={{ opacity: 0, scale: 0.5 }}
+                          transition={{ duration: 0.15 }}
+                        >
+                          <CheckCircle2 size={18} color="#3B82F6" />
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.button>
                 );
               })}
             </div>
@@ -290,7 +336,16 @@ const FolderAssignmentModal = ({ isOpen, onClose, activity, folders, toggleFolde
             <button 
               className="btn-primary" 
               onClick={onClose}
-              style={{ width: '100%', justifyContent: 'center', padding: '16px', marginTop: '8px' }}
+              disabled={assigned.length === 0}
+              style={{ 
+                width: '100%', 
+                justifyContent: 'center', 
+                padding: '16px', 
+                marginTop: '8px',
+                opacity: assigned.length === 0 ? 0.4 : 1,
+                cursor: assigned.length === 0 ? 'not-allowed' : 'pointer',
+                pointerEvents: assigned.length === 0 ? 'none' : 'auto'
+              }}
             >
               Done
             </button>
@@ -398,10 +453,10 @@ export default function Repository() {
               right: isMobile ? '18px' : '40px',
               width: isMobile ? '44px' : '54px',
               height: isMobile ? '44px' : '54px',
-              background: 'rgba(15, 19, 24, 0.6)',
-              backdropFilter: 'blur(16px) saturate(180%)',
-              WebkitBackdropFilter: 'blur(16px) saturate(180%)',
-              border: '1.5px solid rgba(125, 211, 252, 0.15)',
+              background: 'rgba(15, 19, 24, 0.8)',
+              backdropFilter: 'blur(32px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(32px) saturate(180%)',
+              border: '1.5px solid rgba(125, 211, 252, 0.2)',
               borderRadius: '50%',
               color: 'var(--accent-silver)',
               display: 'flex',
@@ -409,8 +464,7 @@ export default function Repository() {
               justifyContent: 'center',
               cursor: 'pointer',
               zIndex: 900,
-              boxShadow: '0 12px 40px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1)',
-              transition: 'all 0.3s var(--smooth)'
+              boxShadow: '0 12px 40px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.15)',
             }}
           >
             <ArrowUp size={isMobile ? 20 : 24} strokeWidth={2.5} />
