@@ -319,7 +319,7 @@ export default function App() {
             onClick={() => setShowAddGame(true)}
             style={{
               position: 'fixed',
-              bottom: '84px',
+              bottom: '92px',
               right: '18px',
               width: '48px',
               height: '48px',

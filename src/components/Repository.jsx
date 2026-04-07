@@ -128,7 +128,7 @@ const GameCard = ({ game, onAdd, onEdit, onManageFolders, index, isMobile }) => 
 
 const FilterDropdown = ({ label, options, value, onChange, type, isOpen, onToggle, isMobile }) => {
   return (
-    <div style={{ position: 'relative' }}>
+    <div style={{ position: 'relative', flexShrink: 0, minWidth: 'max-content' }}>
       <button
         onClick={onToggle}
         style={{
@@ -449,7 +449,7 @@ export default function Repository() {
             onClick={scrollToTop}
             style={{
               position: 'fixed',
-              bottom: isMobile ? '24px' : '40px',
+              bottom: isMobile ? '32px' : '40px',
               right: isMobile ? '18px' : '40px',
               width: isMobile ? '44px' : '54px',
               height: isMobile ? '44px' : '54px',
@@ -771,10 +771,12 @@ export default function Repository() {
                 alignItems: 'center', 
                 gap: '8px', 
                 overflowX: 'auto', 
+                paddingRight: '32px', // Added safety padding for last item
                 paddingBottom: '4px',
                 msOverflowStyle: 'none',
                 scrollbarWidth: 'none',
-                WebkitOverflowScrolling: 'touch'
+                WebkitOverflowScrolling: 'touch',
+                flexWrap: 'nowrap'
               }}>
                 <FilterDropdown 
                   label="Folder" 
