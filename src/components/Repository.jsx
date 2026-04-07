@@ -136,20 +136,20 @@ const FilterDropdown = ({ label, options, value, onChange, type, isOpen, onToggl
           border: value === 'all' || value === 'All' ? '1px solid rgba(125, 200, 255, 0.15)' : '1px solid rgba(125, 200, 255, 0.45)',
           color: value === 'all' || value === 'All' ? 'rgba(255,255,255,0.55)' : 'var(--accent-silver)',
           borderRadius: '20px',
-          padding: '6px 13px',
-          fontSize: '13px',
+          padding: isMobile ? '4px 10px' : '6px 13px',
+          fontSize: isMobile ? '11px' : '13px',
           fontWeight: '600',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
-          gap: '8px',
+          gap: isMobile ? '4px' : '8px',
           transition: 'all 0.2s ease',
-          minHeight: isMobile ? '44px' : 'auto',
+          minHeight: isMobile ? '32px' : 'auto',
           whiteSpace: 'nowrap'
         }}
       >
         {value === 'all' || value === 'All' ? label : value}
-        <ChevronDown size={14} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
+        <ChevronDown size={isMobile ? 12 : 14} style={{ transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
       </button>
 
       <AnimatePresence>
@@ -356,7 +356,7 @@ const FolderAssignmentModal = ({ isOpen, onClose, activity: initialActivity, fol
   );
 };
 
-export default function Repository() {
+export default function Repository({ scrollRef }) {
   const { games, energyTypes, folders, addFolder, renameFolder, deleteFolder, toggleGameFolder } = useStore();
 
   const [energyF, setEnergyF] = useState('all');
@@ -378,14 +378,16 @@ export default function Repository() {
   const CATEGORIES = ['All', 'Quick Fire', 'Interactive', 'Core Engagement', 'Deep Connect', 'Closing', 'Nostalgia', 'Youth & Positivity', 'General', 'Team Building', 'Icebreaker', 'Creativity', 'Trivia', 'Fun & Engagement', 'Mindfulness', 'Problem Solving', 'Communication'];
 
   useEffect(() => {
-    const handleScroll = () => setShowRocket(window.scrollY > 400);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    const container = scrollRef?.current;
+    if (!container) return;
+    const handleScroll = () => setShowRocket(container.scrollTop > 400);
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [scrollRef]);
 
   const scrollToTop = () => {
     setIsLaunching(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    scrollRef?.current?.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => setIsLaunching(false), 1200);
   };
 
@@ -740,9 +742,9 @@ export default function Repository() {
               <div style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: '8px', 
+                gap: '6px', 
                 overflowX: 'auto', 
-                paddingRight: '32px', // Added safety padding for last item
+                paddingRight: '12px',
                 paddingBottom: '4px',
                 msOverflowStyle: 'none',
                 scrollbarWidth: 'none',
@@ -800,8 +802,6 @@ export default function Repository() {
                   onToggle={() => setOpenDropdown(openDropdown === 'sort' ? null : 'sort')}
                   isMobile={isMobile}
                 />
-                {/* Horizontal scroll spacer */}
-                <div style={{ width: '48px', flexShrink: 0, pointerEvents: 'none' }} />
               </div>
             </div>
           )}

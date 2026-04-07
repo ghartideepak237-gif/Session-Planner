@@ -50,6 +50,12 @@ body {
   min-height: 100vh;
   position: relative;
   overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+html {
+  scroll-behavior: smooth;
+  overflow: hidden; /* We use .scroll-container for momentum control */
 }
 
 /* Ambient Glow Orbs (Cold Blue Atmosphere) */
@@ -77,9 +83,74 @@ body {
   z-index: 0;
 }
 
+/* Viewport Lock & Scroll Performance */
 .page-wrapper {
   position: relative;
   z-index: 1;
+  width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 768px) {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+  
+  .premium-card-v9 {
+    backdrop-filter: blur(10px) saturate(160%) !important;
+    -webkit-backdrop-filter: blur(10px) saturate(160%) !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+    will-change: transform;
+    transform: none !important; /* Disable hover scale on mobile */
+  }
+
+  .premium-card-v9:hover {
+    transform: none !important;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  .glass-header {
+    backdrop-filter: blur(12px) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+  }
+
+  /* GPU Layer Promotion & Scroll Lock */
+  .repository-grid > * {
+    will-change: transform;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
+
+  .scroll-container {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    touch-action: pan-y;
+  }
+}
+
+/* Liquid Scrolling Core */
+.scroll-container {
+  width: 100%;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+  will-change: scroll-position;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  transform: translateZ(0); /* Force GPU compositing */
+  perspective: 1000px;
+  backface-visibility: hidden;
+}
+
+.scroll-container::-webkit-scrollbar {
+  display: none;
+}
+
+.premium-card-v9 {
+  contain: layout style paint;
+  will-change: transform;
 }
 
 /* Metallic Animations */
