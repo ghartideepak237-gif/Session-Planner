@@ -108,18 +108,19 @@ const GameCard = ({ game, onAdd, onEdit, onManageFolders, index, isMobile }) => 
             background: 'rgba(255,255,255,0.06)', 
             border: '1px solid rgba(255,255,255,0.09)', 
             borderRadius: '5px', 
-            padding: '4px 10px', 
-            fontSize: '12px', 
+            padding: isMobile ? '4px 8px' : '4px 10px', 
+            fontSize: isMobile ? '11px' : '12px', 
             color: 'rgba(255,255,255,0.6)',
             fontWeight: '600',
             display: 'flex', 
             alignItems: 'center', 
-            gap: '6px', 
+            gap: isMobile ? '4px' : '6px', 
             cursor: 'pointer',
-            transition: 'all 0.2s ease'
+            transition: 'all 0.2s ease',
+            flexShrink: 0
           }}
         >
-          Add →
+          {isMobile ? 'Add +' : 'Add →'}
         </button>
       </div>
     </motion.div>
@@ -629,9 +630,10 @@ export default function Repository({ scrollRef }) {
           .repository-grid {
             grid-template-columns: 1fr !important;
             gap: 16px;
-            padding: 12px 0;
+            padding: 12px 16px;
             width: 100%;
             overflow: hidden;
+            box-sizing: border-box;
           }
         }
       `}</style>
@@ -742,14 +744,10 @@ export default function Repository({ scrollRef }) {
               <div style={{ 
                 display: 'flex', 
                 alignItems: 'center', 
-                gap: '6px', 
-                overflowX: 'auto', 
+                gap: '8px', 
+                flexWrap: 'wrap',
                 paddingRight: '12px',
-                paddingBottom: '4px',
-                msOverflowStyle: 'none',
-                scrollbarWidth: 'none',
-                WebkitOverflowScrolling: 'touch',
-                flexWrap: 'nowrap'
+                paddingBottom: '8px',
               }}>
                 <FilterDropdown 
                   label="Folder" 

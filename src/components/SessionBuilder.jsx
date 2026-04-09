@@ -145,7 +145,9 @@ export default function SessionBuilder() {
             flex-direction: column !important;
             grid-template-columns: 1fr !important;
             gap: 20px !important;
-            padding: 12px !important;
+            padding: 12px 16px !important;
+            box-sizing: border-box !important;
+            overflow-x: hidden !important;
           }
           .builder-main-v8 > aside:last-of-type {
             display: flex !important;
@@ -525,7 +527,7 @@ export default function SessionBuilder() {
                   />
                 </div>
 
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflowX: 'auto', paddingBottom: '4px', scrollbarWidth: 'none' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', paddingBottom: '4px' }}>
                   <button
                     onClick={() => setSelectedFolderId(null)}
                     style={{
