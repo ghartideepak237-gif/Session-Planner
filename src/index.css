@@ -139,8 +139,6 @@ html {
   will-change: scroll-position;
   scrollbar-width: none;
   -ms-overflow-style: none;
-  transform: translateZ(0); /* Force GPU compositing */
-  perspective: 1000px;
   backface-visibility: hidden;
   box-sizing: border-box;
 }

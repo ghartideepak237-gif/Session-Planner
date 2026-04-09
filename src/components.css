@@ -199,17 +199,18 @@
 }
 
 .modal-overlay {
-  background: rgba(8, 10, 12, 0.88) !important;
-  backdrop-filter: blur(16px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
+  background: rgba(8, 10, 12, 0.82) !important;
+  backdrop-filter: blur(12px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   position: fixed !important;
   inset: 0 !important;
-  z-index: 2000 !important;
-  padding: 40px !important;
+  z-index: 9999 !important; /* Extremely high to cover everything */
+  padding: 20px !important;
   opacity: 1;
+  pointer-events: auto !important;
 }
 
 /* Inputs & Form Elements */
@@ -331,18 +332,20 @@ input:focus {
 }
 
 .modal-content-glass {
-  background: rgba(15, 18, 22, 0.65) !important;
-  backdrop-filter: blur(44px) saturate(210%) !important;
-  -webkit-backdrop-filter: blur(44px) saturate(210%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  background: rgba(15, 18, 22, 0.75) !important;
+  backdrop-filter: blur(48px) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(48px) saturate(210%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.16) !important;
   border-radius: 28px;
   overflow-y: auto;
-  max-height: 90vh;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.8), inset 0 1px 1px rgba(255,255,255,0.12) !important;
-  width: 95%;
-  max-width: 640px;
+  max-height: 85vh;
+  box-shadow: 0 50px 120px rgba(0,0,0,0.9), inset 0 1px 1px rgba(255,255,255,0.12) !important;
+  width: 92%;
+  max-width: 600px;
   position: relative;
   margin: auto;
+  z-index: 10000;
+  will-change: transform, opacity;
 }
 
 .search-icon-v8 {
