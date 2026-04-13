@@ -606,7 +606,7 @@ export default function SessionBuilder() {
                 </div>
               </div>
 
-              <div style={{ flex: 1, overflowY: isMobile ? 'hidden' : 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px', minHeight: 0 }}>
+              <div className="local-scroll" style={{ flex: 1, overflowY: isMobile ? 'hidden' : 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px', minHeight: 0 }}>
                 {recommendedGames.length > 0 && !search && !isMobile && (
                   <div style={{ marginBottom: '8px' }}>
                     <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--accent-gold)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>✨ Recommended for Focus</div>

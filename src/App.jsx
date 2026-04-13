@@ -55,6 +55,9 @@ export default function App() {
 
     const onWheel = (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; 
+
+      if (e.target.closest('.local-scroll')) return;
+
       e.preventDefault();
       const now = Date.now();
       const dt = now - lastTime || 1;
@@ -163,7 +166,7 @@ export default function App() {
         <GameForm isOpen={showAddGame} onClose={() => setShowAddGame(false)} />
         <AnimatePresence mode="wait">
           <motion.div key={activeTab} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}>
-            <div style={{ padding: isMobile ? '16px 0' : '40px 80px', width: '100%', boxSizing: 'border-box' }}>
+            <div style={{ padding: isMobile ? '16px 0' : '20px 80px', width: '100%', boxSizing: 'border-box' }}>
               {activeTab === 'repository' && <Repository scrollRef={scrollRef} />}
               {activeTab === 'builder' && <SessionBuilder />}
               {activeTab === 'programs' && <Programs />}
