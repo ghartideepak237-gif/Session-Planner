@@ -56,7 +56,7 @@ export default function App() {
     const onWheel = (e) => {
       if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return; 
 
-      if (e.target.closest('.local-scroll')) return;
+      if (e.target.closest('.local-scroll, .modal-overlay, .modal-content, .modal-content-glass, textarea')) return;
 
       e.preventDefault();
       const now = Date.now();
