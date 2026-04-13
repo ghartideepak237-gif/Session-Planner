@@ -64,9 +64,9 @@ const addFooter = (doc) => {
 };
 
 // ATOMIC HEIGHT CALCULATORS
-const getActivityCardHeight = (doc, game, contentWidth) => {
+const getActivityCardHeight = (doc, game, contentWidth, isNested = false) => {
     const p = MARGINS.cardPadding;
-    const maxWidth = contentWidth - (p * 2);
+    const maxWidth = contentWidth - (p * 2) - (isNested ? 20 : 0);
     let h = p + 25; // Start padding + Title space
     
     // Title
@@ -123,7 +123,7 @@ const drawSessionNotes = (doc, notes, y, contentWidth) => {
 const drawActivityCard = (doc, game, index, y, contentWidth, isNested = false, onPageBreak = null) => {
     const p = MARGINS.cardPadding;
     const maxWidth = contentWidth - (p * 2);
-    const h = getActivityCardHeight(doc, game, contentWidth);
+    const h = getActivityCardHeight(doc, game, contentWidth, isNested);
     const pageHeight = doc.internal.pageSize.getHeight();
 
     if (y + h > pageHeight - MARGINS.bottom) {
@@ -150,14 +150,17 @@ const drawActivityCard = (doc, game, index, y, contentWidth, isNested = false, o
     
     doc.setFontSize(FONTS.meta.size);
     doc.setFont('helvetica', 'bold');
-    const stageStr = (game.flowPosition || 'Activity').toUpperCase();
+    const cleanFlowInfo = (game.flowPosition || 'Activity').replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
+    const stageStr = cleanFlowInfo.toUpperCase();
     doc.setTextColor(...COLORS.textSecondary);
     doc.text(stageStr, drawX, textY);
+    
+    const stageWidth = doc.getTextWidth(stageStr);
     
     doc.setFont('helvetica', 'normal');
     const metaStr = `  |  ${game.category || 'General'}  |  ${game.actualDuration} min`;
     doc.setTextColor(...COLORS.textDim);
-    doc.text(metaStr, drawX + doc.getTextWidth(stageStr), textY);
+    doc.text(metaStr, drawX + stageWidth, textY);
     textY += 18;
     
     const sections = [];
@@ -290,15 +293,16 @@ export const generateSessionPDF = async (session) => {
                 if (gamesInCat.length > 0) {
                     doc.setFont('helvetica', 'bold');
                     doc.setTextColor(...COLORS.textSecondary);
-                    doc.text(`${cat}:`, MARGINS.x, y);
+                    const cleanCat = cat.replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
+                    doc.text(`${cleanCat}:`, MARGINS.x, y);
                     
                     doc.setFont('helvetica', 'normal');
                     doc.setTextColor(...COLORS.textMain);
-                    const names = gamesInCat.map(g => g.title).join(', ');
-                    const limit = contentWidth - 140; // Indent padding
+                    const names = gamesInCat.map(g => g.title).join(' • ');
+                    const limit = contentWidth - 100; // Indent padding adjusted
                     const lines = doc.splitTextToSize(names, limit);
                     
-                    doc.text(lines, MARGINS.x + 130, y);
+                    doc.text(lines, MARGINS.x + 100, y);
                     y += (lines.length * 15) + 6;
                 }
             });

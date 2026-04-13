@@ -199,16 +199,16 @@
 }
 
 .modal-overlay {
-  background: rgba(8, 10, 12, 0.82) !important;
-  backdrop-filter: blur(12px) saturate(180%) !important;
-  -webkit-backdrop-filter: blur(12px) saturate(180%) !important;
+  background: rgba(8, 10, 12, 0.85) !important;
+  backdrop-filter: blur(16px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   position: fixed !important;
   inset: 0 !important;
-  z-index: 9999 !important; /* Extremely high to cover everything */
-  padding: 20px !important;
+  z-index: 9999 !important;
+  padding: 40px !important;
   opacity: 1;
   pointer-events: auto !important;
 }
@@ -301,7 +301,7 @@ input:focus {
 .v8-form-group {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
 }
 
 .v8-form-label {
@@ -332,16 +332,19 @@ input:focus {
 }
 
 .modal-content-glass {
-  background: rgba(15, 18, 22, 0.75) !important;
-  backdrop-filter: blur(48px) saturate(210%) !important;
-  -webkit-backdrop-filter: blur(48px) saturate(210%) !important;
-  border: 1px solid rgba(255, 255, 255, 0.16) !important;
-  border-radius: 28px;
-  overflow-y: auto;
-  max-height: 85vh;
-  box-shadow: 0 50px 120px rgba(0,0,0,0.9), inset 0 1px 1px rgba(255,255,255,0.12) !important;
-  width: 92%;
-  max-width: 600px;
+  background: rgba(15, 18, 22, 0.8) !important;
+  backdrop-filter: blur(64px) saturate(210%) !important;
+  -webkit-backdrop-filter: blur(64px) saturate(210%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 32px;
+  overflow: hidden; /* Let internal containers handle scrolling */
+  max-height: 92vh;
+  box-shadow: 
+    0 50px 120px rgba(0, 0, 0, 0.9), 
+    inset 0 1px 1px rgba(255, 255, 255, 0.15),
+    0 0 40px rgba(125, 211, 252, 0.05);
+  width: 95%;
+  max-width: 720px;
   position: relative;
   margin: auto;
   z-index: 10000;

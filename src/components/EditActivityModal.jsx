@@ -85,7 +85,7 @@ export default function EditActivityModal({ isOpen, onClose, activity, mode = 's
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           className="modal-content-glass"
-          style={{ padding: '0', display: 'flex', flexDirection: 'column' }}
+          style={{ width: '100%', display: 'flex', flexDirection: 'column' }}
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}

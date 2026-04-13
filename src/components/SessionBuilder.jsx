@@ -31,6 +31,21 @@ export default function SessionBuilder() {
     reorderSessionGames(result.source.index, result.destination.index);
   };
 
+  const programSessions = useMemo(() => {
+    if (!builder.programId) return [];
+    return sessions.filter(s => s.programId === builder.programId && s.id !== builder.id);
+  }, [sessions, builder.programId, builder.id]);
+
+  const getActivityUsage = (gameId) => {
+    const usages = [];
+    programSessions.forEach(s => {
+      if (s.selectedGames?.some(g => g.id === gameId)) {
+        usages.push(s.sessionNumber || `Session ${s.programWeek}`);
+      }
+    });
+    return usages;
+  };
+
   const availableGames = useMemo(() => {
     let list = games;
     if (selectedFolderId) {
@@ -41,6 +56,39 @@ export default function SessionBuilder() {
     }
     return list;
   }, [games, selectedFolderId, search]);
+
+  const scoredGames = useMemo(() => {
+    const baseList = availableGames;
+    if (!builder.programTheme && !builder.programFocus && !builder.targetGroup) {
+      return baseList.map(g => ({ ...g, score: 0 }));
+    }
+    const kwString = `${builder.programTheme || ''} ${builder.programFocus || ''} ${builder.targetGroup || ''}`.toLowerCase();
+    const keywords = kwString.split(/[\s,\-]+/).filter(w => w.length > 3);
+    if (keywords.length === 0) return baseList.map(g => ({ ...g, score: 0 }));
+
+    return baseList.map(game => {
+      let score = 0;
+      const t = (game.title || '').toLowerCase();
+      const d = (game.description || '').toLowerCase();
+      const o = (game.objective || '').toLowerCase();
+      const c = (game.category || game.theme_clean || '').toLowerCase();
+      const i = (game.interaction_types || []).join(' ').toLowerCase();
+
+      keywords.forEach(kw => {
+        if (t.includes(kw)) score += 5;
+        if (c.includes(kw)) score += 4;
+        if (i.includes(kw)) score += 3;
+        if (o.includes(kw)) score += 2;
+        if (d.includes(kw)) score += 1;
+      });
+      return { ...game, score };
+    });
+  }, [availableGames, builder.programTheme, builder.programFocus, builder.targetGroup]);
+
+  const recommendedGames = useMemo(() => {
+    const scored = scoredGames.filter(g => g.score > 2 && !builder.selectedGames.some(sg => sg.id === g.id));
+    return [...scored].sort((a, b) => b.score - a.score).slice(0, 3);
+  }, [scoredGames, builder.selectedGames]);
 
   const favoriteGames = availableGames.filter(g => g.favorite);
   const remainingGames = availableGames.filter(g => !g.favorite);
@@ -490,7 +538,7 @@ export default function SessionBuilder() {
         </div>
 
         {/* COLUMN 3: Asset Library Quick Pick */}
-        <aside style={{ display: 'flex', flexDirection: 'column', gap: '24px', background: 'var(--secondary)', padding: '24px', border: '0.5px solid var(--border-soft)', borderRadius: '24px', maxHeight: 'calc(100vh - 120px)', overflow: 'hidden' }}>
+        <aside style={{ position: 'sticky', top: '96px', display: 'flex', flexDirection: 'column', gap: '24px', background: 'var(--secondary)', padding: '24px', border: '0.5px solid var(--border-soft)', borderRadius: '24px', height: 'calc(100vh - 120px)', maxHeight: 'calc(100vh - 120px)', overflow: 'hidden' }}>
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
             <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)', margin: 0 }}>
@@ -558,16 +606,43 @@ export default function SessionBuilder() {
                 </div>
               </div>
 
-              <div style={{ flex: 1, overflowY: isMobile ? 'hidden' : 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px' }}>
-                {(isMobile ? availableGames.slice(0, 4) : availableGames).map(game => (
+              <div style={{ flex: 1, overflowY: isMobile ? 'hidden' : 'auto', display: 'flex', flexDirection: 'column', gap: '10px', paddingRight: '4px', minHeight: 0 }}>
+                {recommendedGames.length > 0 && !search && !isMobile && (
+                  <div style={{ marginBottom: '8px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: '700', color: 'var(--accent-gold)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>✨ Recommended for Focus</div>
+                    {recommendedGames.map(game => (
+                      <div key={`rec-${game.id}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(234, 179, 8, 0.05)', border: '1px solid rgba(234, 179, 8, 0.2)', borderRadius: '14px', marginBottom: '8px', position: 'relative' }}>
+                        <div style={{ flex: 1 }}>
+                          <h5 style={{ fontSize: '13px', fontWeight: '700', margin: '0 0 2px 0', color: 'var(--accent-gold)', fontFamily: 'var(--font-serif)' }}>{game.title}</h5>
+                          <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '600', fontFamily: 'var(--font-sans)', display: 'flex', gap: '6px', alignItems: 'center' }}>
+                            <span>{game.baseDurationNum}m • {game.energyType}</span>
+                            {getActivityUsage(game.id).length > 0 && (
+                              <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', padding: '2px 6px', borderRadius: '4px', fontSize: '9px' }}>Used: {getActivityUsage(game.id)[0]}</span>
+                            )}
+                          </div>
+                        </div>
+                        <button onClick={() => addGameToSession(game)} style={{ width: '28px', height: '28px', background: 'var(--accent-gold)', border: 'none', borderRadius: '50%', color: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}><Plus size={14} /></button>
+                      </div>
+                    ))}
+                    <div style={{ height: '1px', background: 'var(--border-soft)', margin: '16px 0 8px 0' }} />
+                  </div>
+                )}
+                {(isMobile ? availableGames.slice(0, 4) : availableGames).map(game => {
+                  const usages = getActivityUsage(game.id);
+                  return (
                   <div key={game.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', background: 'rgba(255,255,255,0.03)', border: '0.5px solid var(--border-soft)', borderRadius: '14px' }}>
                     <div style={{ flex: 1 }}>
                       <h5 style={{ fontSize: '13px', fontWeight: '700', margin: '0 0 2px 0', color: 'var(--text-primary)', fontFamily: 'var(--font-serif)' }}>{game.title}</h5>
-                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '600', fontFamily: 'var(--font-sans)' }}>{game.baseDurationNum}m • {game.energyType}</div>
+                      <div style={{ fontSize: '10px', color: 'var(--text-muted)', fontWeight: '600', fontFamily: 'var(--font-sans)', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                        <span>{game.baseDurationNum}m • {game.energyType}</span>
+                        {usages.length > 0 && (
+                          <span style={{ background: 'rgba(239, 68, 68, 0.15)', color: '#fca5a5', padding: '2px 6px', borderRadius: '4px', fontSize: '9px' }}>Used: {usages[0]}</span>
+                        )}
+                      </div>
                     </div>
                     <button onClick={() => addGameToSession(game)} style={{ width: '28px', height: '28px', background: 'var(--text-primary)', border: 'none', borderRadius: '50%', color: 'var(--bg-deep)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.2s' }}><Plus size={14} /></button>
                   </div>
-                ))}
+                )})}
                 {isMobile && availableGames.length > 4 && (
                   <button 
                     onClick={() => setIsLibraryModalOpen(true)}

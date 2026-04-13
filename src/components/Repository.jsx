@@ -455,9 +455,9 @@ export default function Repository({ scrollRef }) {
         .repository-main-layout {
           display: grid;
           grid-template-columns: 240px 1fr;
-          gap: 48px;
-          padding: 60px 40px;
-          max-width: 1300px;
+          gap: 40px;
+          padding: 0;
+          max-width: 100%;
           margin: 0 auto;
           width: 100%;
           position: relative;
@@ -467,7 +467,7 @@ export default function Repository({ scrollRef }) {
         .repository-content-section {
           display: flex;
           flex-direction: column;
-          gap: 32px;
+          gap: 16px;
           width: 100%;
         }
 
@@ -475,7 +475,7 @@ export default function Repository({ scrollRef }) {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
           gap: 32px;
-          padding: 40px 0;
+          padding: 10px 0 40px;
           width: 100%;
         }
 
@@ -662,7 +662,7 @@ export default function Repository({ scrollRef }) {
 
 
           <div style={{ marginTop: '32px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: isMobile && !isFoldersExpanded ? '0' : '12px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingLeft: isMobile ? '0' : '18px', marginBottom: isMobile && !isFoldersExpanded ? '0' : '12px' }}>
               <button 
                 onClick={() => isMobile && setIsFoldersExpanded(!isFoldersExpanded)}
                 style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', cursor: isMobile ? 'pointer' : 'default', flex: 1, textAlign: 'left', padding: isMobile ? '8px 0' : '0' }}
