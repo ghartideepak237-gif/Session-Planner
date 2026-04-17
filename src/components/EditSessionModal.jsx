@@ -57,9 +57,9 @@ export default function EditSessionModal({ isOpen, onClose, session }) {
               <input 
                 type="number"
                 className="v8-input-premium"
-                style={{ width: '100%' }}
-                value={formData.baseDuration} 
-                onChange={e => setFormData({...formData, baseDuration: parseInt(e.target.value) || 0})} 
+                style={{ width: '100%', opacity: 0.5, cursor: 'not-allowed' }}
+                value={45} 
+                disabled
               />
             </div>
           </div>

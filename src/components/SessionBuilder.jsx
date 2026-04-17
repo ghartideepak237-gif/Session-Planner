@@ -118,8 +118,9 @@ export default function SessionBuilder() {
   };
 
   // Predictive timing
+  const FIXED_TARGET_TIME = 45;
   const totalPlanned = builder.selectedGames.reduce((acc, g) => acc + g.actualDuration, 0);
-  const remainingTime = builder.baseDuration - totalPlanned;
+  const remainingTime = FIXED_TARGET_TIME - totalPlanned;
 
   let remainingColor = '#ef4444';
   if (remainingTime >= 10) remainingColor = '#22c55e';
@@ -343,12 +344,12 @@ export default function SessionBuilder() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
                   <label className="timing-label-v8">Target (min)</label>
-                  <div className="timing-value-v8">{builder.baseDuration}</div>
+                  <div className="timing-value-v8">{FIXED_TARGET_TIME}</div>
                 </div>
                 <div>
                   <label className="timing-label-v8">Remaining</label>
-                  <div className="timing-value-v8" style={{ color: remainingTime < 0 ? 'var(--danger)' : 'var(--text-primary)' }}>
-                    {Math.abs(remainingTime)}
+                  <div className="timing-value-v8" style={{ color: remainingColor }}>
+                    {remainingTime}
                   </div>
                 </div>
               </div>
