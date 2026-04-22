@@ -181,29 +181,77 @@ const drawActivityCard = (doc, game, index, startY, contentWidth, isNested = fal
         doc.text(s.label, cardX + 22, y + 17);
         y += 40; 
         
-        doc.setFontSize(10);
-        doc.setFont('helvetica', 'normal');
-        doc.setTextColor(...COLORS.textMain);
+        const rawLines = (s.text || '').split('\n');
         
-        const textLines = doc.splitTextToSize(s.text, cardW - 45);
-        
-        for (let i = 0; i < textLines.length; i++) {
-            if (y > pageHeight - MARGINS.bottom - 15) {
-                doc.addPage();
-                if (onPageBreak) onPageBreak();
-                y = MARGINS.y + 30;
-                addFooter(doc);
+        for (let r = 0; r < rawLines.length; r++) {
+            const line = rawLines[r].trim();
+            if (!line) {
+                y += 8; // Extra padding for blank lines
+                continue;
+            }
+
+            const isBullet = /^[\-\*•\u2022]/.test(line);
+            let cleanedLine = line.replace(/^[\-\*•\u2022]\s*/, '');
+            
+            const isHeading = !isBullet && (
+                line.endsWith(':') || 
+                (line.length < 35 && line === line.toUpperCase() && line.length > 2)
+            );
+
+            if (isHeading) {
+                 doc.setFontSize(10.5);
+                 doc.setFont('helvetica', 'bold');
+                 doc.setTextColor(...COLORS.textSecondary);
+                 y += 10; 
+            } else {
+                 doc.setFontSize(10);
+                 doc.setFont('helvetica', 'normal');
+                 doc.setTextColor(...COLORS.textMain);
+                 y += 4; 
+            }
+
+            const wrapWidth = cardW - 60;
+            const textLines = doc.splitTextToSize(cleanedLine, wrapWidth);
+
+            for (let i = 0; i < textLines.length; i++) {
+                if (y > pageHeight - MARGINS.bottom - 15) {
+                    doc.addPage();
+                    if (onPageBreak) onPageBreak();
+                    y = MARGINS.y + 30;
+                    addFooter(doc);
+                }
+                
+                // Continuous stylish left boundary
+                doc.setDrawColor(...COLORS.cardBorder);
+                doc.setLineWidth(2.5);
+                doc.line(cardX + 22, y - 12, cardX + 22, y + 8);
+                
+                let drawTextX = cardX + 45;
+                
+                if (i === 0) {
+                    if (isBullet) {
+                        doc.setFillColor(...COLORS.accent);
+                        doc.circle(cardX + 35, y - 3.5, 2.5, 'F');
+                    } else if (!isHeading) {
+                        doc.setDrawColor(...COLORS.textDim);
+                        doc.setLineWidth(1.5);
+                        doc.line(cardX + 33, y - 3.5, cardX + 37, y - 3.5);
+                    } else {
+                        drawTextX = cardX + 35;
+                    }
+                } else if (isHeading) {
+                    drawTextX = cardX + 35;
+                }
+
+                doc.text(textLines[i], drawTextX, y);
+                y += 18; // Spacious 1.8 line height
             }
             
-            // Draw continuous left padding border
-            doc.setDrawColor(...COLORS.cardBorder);
-            doc.setLineWidth(2);
-            doc.line(cardX + 22, y - 10, cardX + 22, y + 6);
-            
-            doc.text(textLines[i], cardX + 35, y);
-            y += 16;
+            if (!isHeading) {
+               y += 4; 
+            }
         }
-        y += 20; 
+        y += 15; 
     });
 
     // Subtle divider line to mark the end of the activity
