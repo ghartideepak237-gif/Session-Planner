@@ -95,49 +95,67 @@ const drawSessionNotes = (doc, notes, y, contentWidth) => {
 // SHARED CARD RENDERER
 const drawActivityCard = (doc, game, index, startY, contentWidth, isNested = false, onPageBreak = null) => {
     let y = startY;
-    const p = MARGINS.cardPadding;
-    const maxWidth = contentWidth - (p * 2);
-    const drawX = (isNested ? MARGINS.x + 10 : MARGINS.x) + p;
+    const padding = 20;
+    const cardX = isNested ? MARGINS.x + 10 : MARGINS.x;
+    const cardW = isNested ? contentWidth - 20 : contentWidth;
     const pageHeight = doc.internal.pageSize.getHeight();
     
-    if (y > pageHeight - MARGINS.bottom - 80) {
+    if (y > pageHeight - MARGINS.bottom - 100) {
         doc.addPage();
         if (onPageBreak) onPageBreak();
         y = MARGINS.y + 30;
         addFooter(doc);
     }
 
+    // --- 1. HEADER BOX ---
     doc.setFontSize(FONTS.title.size + 2);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...COLORS.textMain);
-    const nameLines = doc.splitTextToSize(`${index + 1}. ${game.title}`, maxWidth);
+    const nameLines = doc.splitTextToSize(`${index + 1}. ${game.title}`, cardW - (padding * 2));
+    const headerH = (nameLines.length * 18) + 45;
     
-    const headerH = (nameLines.length * 18) + 30;
+    doc.setFillColor(...COLORS.headerBg);
+    doc.setDrawColor(...COLORS.cardBorder);
+    doc.setLineWidth(1);
+    doc.roundedRect(cardX, y, cardW, headerH, 8, 8, 'FD');
     
-    doc.setFillColor(...COLORS.tagBg);
-    doc.roundedRect(isNested ? MARGINS.x + 10 : MARGINS.x, y, isNested ? contentWidth - 20 : contentWidth, headerH, 6, 6, 'F');
-    
+    // Left Accent line purely inside the header box
     doc.setFillColor(...COLORS.accent);
-    const accentX = isNested ? MARGINS.x + 10 : MARGINS.x;
-    doc.rect(accentX, y, 4, headerH, 'F');
+    doc.rect(cardX, y + 6, 4, headerH - 12, 'F');
 
-    let textY = y + 22;
-    doc.text(nameLines, drawX, textY);
-    textY += (nameLines.length * 18);
+    let textY = y + 25;
+    doc.setTextColor(...COLORS.textMain);
+    doc.text(nameLines, cardX + padding, textY);
+    textY += (nameLines.length * 18) - 4;
 
-    doc.setFontSize(FONTS.meta.size);
-    doc.setFont('helvetica', 'bold');
-    const cleanFlowInfo = (game.flowPosition || 'Activity').replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
-    doc.setTextColor(...COLORS.accent);
-    doc.text(cleanFlowInfo.toUpperCase(), drawX, textY);
-    const stageWidth = doc.getTextWidth(cleanFlowInfo.toUpperCase());
+    // Meta Pills logic
+    let currentPillX = cardX + padding;
+    const drawPill = (text, textColor, bgColor, isBorder = false) => {
+        doc.setFontSize(9);
+        doc.setFont('helvetica', 'bold');
+        const tw = doc.getTextWidth(text);
+        
+        if (isBorder) {
+            doc.setFillColor(...bgColor);
+            doc.setDrawColor(...COLORS.cardBorder);
+            doc.roundedRect(currentPillX, textY, tw + 20, 20, 10, 10, 'FD');
+        } else {
+            doc.setFillColor(...bgColor);
+            doc.roundedRect(currentPillX, textY, tw + 20, 20, 10, 10, 'F');
+        }
+        
+        doc.setTextColor(...textColor);
+        doc.text(text, currentPillX + 10, textY + 14);
+        currentPillX += tw + 28;
+    };
 
-    doc.setFont('helvetica', 'normal');
-    doc.setTextColor(...COLORS.textDim);
-    doc.text(`  •  ${game.category || 'General'}  •  ${game.actualDuration} min`, drawX + stageWidth, textY);
-    
-    y = y + headerH + 20;
+    const cleanFlowInfo = (game.flowPosition || 'Activity').replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim().toUpperCase();
+    drawPill(cleanFlowInfo, [255, 255, 255], COLORS.accent);
+    drawPill(game.category || 'General', COLORS.textSecondary, COLORS.cardBg, true);
+    drawPill(`${game.actualDuration} min`, COLORS.textSecondary, COLORS.cardBg, true);
 
+    y = y + headerH + 25;
+
+    // --- 2. SECTIONS (Blockquote Style) ---
     const sections = [];
     if (game.description || game.rules) sections.push({ label: 'Activity Description & Rules', text: game.description || game.rules });
     if (game.objective) sections.push({ label: 'Strategic Objective', text: game.objective });
@@ -146,23 +164,28 @@ const drawActivityCard = (doc, game, index, startY, contentWidth, isNested = fal
     if (game.facilitatorNotes) sections.push({ label: 'Facilitator Notes (Customized)', text: game.facilitatorNotes });
 
     sections.forEach(s => {
-        if (y > pageHeight - MARGINS.bottom - 40) {
+        if (y > pageHeight - MARGINS.bottom - 50) {
             doc.addPage();
             if (onPageBreak) onPageBreak();
             y = MARGINS.y + 30;
             addFooter(doc);
         }
 
-        doc.setFontSize(FONTS.body.size);
+        // Section Title Pill
+        doc.setFillColor(...COLORS.tagBg);
+        doc.roundedRect(cardX + 10, y, cardW - 20, 26, 6, 6, 'F');
+        
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...COLORS.textSecondary);
-        doc.text(s.label, drawX, y);
-        y += 18; 
+        doc.text(s.label, cardX + 22, y + 17);
+        y += 40; 
         
+        doc.setFontSize(10);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...COLORS.textMain);
         
-        const textLines = doc.splitTextToSize(s.text, maxWidth - (isNested ? 20 : 0) - 10);
+        const textLines = doc.splitTextToSize(s.text, cardW - 45);
         
         for (let i = 0; i < textLines.length; i++) {
             if (y > pageHeight - MARGINS.bottom - 15) {
@@ -171,13 +194,26 @@ const drawActivityCard = (doc, game, index, startY, contentWidth, isNested = fal
                 y = MARGINS.y + 30;
                 addFooter(doc);
             }
-            doc.text(textLines[i], drawX, y);
+            
+            // Draw continuous left padding border
+            doc.setDrawColor(...COLORS.cardBorder);
+            doc.setLineWidth(2);
+            doc.line(cardX + 22, y - 10, cardX + 22, y + 6);
+            
+            doc.text(textLines[i], cardX + 35, y);
             y += 16;
         }
-        y += 14; 
+        y += 20; 
     });
 
-    return { height: headerH, endY: y + 5 };
+    // Subtle divider line to mark the end of the activity
+    y += 5;
+    doc.setDrawColor(...COLORS.cardBorder);
+    doc.setLineWidth(1);
+    doc.line(cardX + 60, y, cardX + cardW - 60, y);
+    y += 25;
+
+    return { height: headerH, endY: y };
 };
 
 // FOCUS TAGS RENDERER (Grid Layout 2-column force)
