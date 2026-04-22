@@ -64,33 +64,6 @@ const addFooter = (doc) => {
 };
 
 // ATOMIC HEIGHT CALCULATORS
-const getActivityCardHeight = (doc, game, contentWidth, isNested = false) => {
-    const p = MARGINS.cardPadding;
-    const maxWidth = contentWidth - (p * 2) - (isNested ? 20 : 0);
-    let h = p + 25; // Start padding + Title space
-    
-    // Title
-    doc.setFontSize(FONTS.title.size);
-    const nameLines = doc.splitTextToSize(game.title, maxWidth);
-    h += (nameLines.length * 16);
-    h += 14; // Meta Row
-
-    const sections = [
-        { label: 'Activity Description:', text: game.description || game.rules },
-        { label: 'Strategic Objective:', text: game.objective },
-        { label: 'Context / When to use:', text: game.context },
-        { label: 'Activity Notes:', text: game.notes },
-        { label: 'Facilitator Notes:', text: game.facilitatorNotes }
-    ].filter(s => s.text);
-
-    sections.forEach(s => {
-        h += 12; // Gap
-        doc.setFontSize(FONTS.body.size);
-        const textLines = doc.splitTextToSize(s.text, maxWidth);
-        h += 15 + (textLines.length * 15); // Label + Text
-    });
-    return h + p;
-};
 
 const drawSessionNotes = (doc, notes, y, contentWidth) => {
     if (!notes) return y;
@@ -120,71 +93,91 @@ const drawSessionNotes = (doc, notes, y, contentWidth) => {
 };
 
 // SHARED CARD RENDERER
-const drawActivityCard = (doc, game, index, y, contentWidth, isNested = false, onPageBreak = null) => {
+const drawActivityCard = (doc, game, index, startY, contentWidth, isNested = false, onPageBreak = null) => {
+    let y = startY;
     const p = MARGINS.cardPadding;
     const maxWidth = contentWidth - (p * 2);
-    const h = getActivityCardHeight(doc, game, contentWidth, isNested);
+    const drawX = (isNested ? MARGINS.x + 10 : MARGINS.x) + p;
     const pageHeight = doc.internal.pageSize.getHeight();
-
-    if (y + h > pageHeight - MARGINS.bottom) {
+    
+    if (y > pageHeight - MARGINS.bottom - 80) {
         doc.addPage();
         if (onPageBreak) onPageBreak();
         y = MARGINS.y + 30;
         addFooter(doc);
     }
 
-    doc.setDrawColor(...COLORS.cardBorder);
-    doc.setFillColor(...(isNested ? [255, 255, 255] : COLORS.cardBg));
-    doc.setLineWidth(1);
-    doc.roundedRect(isNested ? MARGINS.x + 10 : MARGINS.x, y, isNested ? contentWidth - 20 : contentWidth, h, 8, 8, 'FD');
-    
-    let textY = y + p + 10;
-    const drawX = (isNested ? MARGINS.x + 10 : MARGINS.x) + p;
-    
-    doc.setFontSize(FONTS.title.size);
+    doc.setFontSize(FONTS.title.size + 2);
     doc.setFont('helvetica', 'bold');
-    doc.setTextColor(...COLORS.accent);
+    doc.setTextColor(...COLORS.textMain);
     const nameLines = doc.splitTextToSize(`${index + 1}. ${game.title}`, maxWidth);
-    doc.text(nameLines, drawX, textY);
-    textY += (nameLines.length * 16) + 4;
     
+    const headerH = (nameLines.length * 18) + 30;
+    
+    doc.setFillColor(...COLORS.tagBg);
+    doc.roundedRect(isNested ? MARGINS.x + 10 : MARGINS.x, y, isNested ? contentWidth - 20 : contentWidth, headerH, 6, 6, 'F');
+    
+    doc.setFillColor(...COLORS.accent);
+    const accentX = isNested ? MARGINS.x + 10 : MARGINS.x;
+    doc.rect(accentX, y, 4, headerH, 'F');
+
+    let textY = y + 22;
+    doc.text(nameLines, drawX, textY);
+    textY += (nameLines.length * 18);
+
     doc.setFontSize(FONTS.meta.size);
     doc.setFont('helvetica', 'bold');
     const cleanFlowInfo = (game.flowPosition || 'Activity').replace(/([\u2700-\u27BF]|[\uE000-\uF8FF]|\uD83C[\uDC00-\uDFFF]|\uD83D[\uDC00-\uDFFF]|[\u2011-\u26FF]|\uD83E[\uDD10-\uDDFF])/g, '').trim();
-    const stageStr = cleanFlowInfo.toUpperCase();
-    doc.setTextColor(...COLORS.textSecondary);
-    doc.text(stageStr, drawX, textY);
-    
-    const stageWidth = doc.getTextWidth(stageStr);
-    
+    doc.setTextColor(...COLORS.accent);
+    doc.text(cleanFlowInfo.toUpperCase(), drawX, textY);
+    const stageWidth = doc.getTextWidth(cleanFlowInfo.toUpperCase());
+
     doc.setFont('helvetica', 'normal');
-    const metaStr = `  |  ${game.category || 'General'}  |  ${game.actualDuration} min`;
     doc.setTextColor(...COLORS.textDim);
-    doc.text(metaStr, drawX + stageWidth, textY);
-    textY += 18;
+    doc.text(`  •  ${game.category || 'General'}  •  ${game.actualDuration} min`, drawX + stageWidth, textY);
     
+    y = y + headerH + 20;
+
     const sections = [];
-    if (game.description || game.rules) sections.push({ label: 'Activity Description:', text: game.description || game.rules });
-    if (game.objective) sections.push({ label: 'Strategic Objective:', text: game.objective });
-    if (game.context) sections.push({ label: 'Context / When to use:', text: game.context });
-    if (game.notes) sections.push({ label: 'Activity Notes:', text: game.notes });
-    if (game.facilitatorNotes) sections.push({ label: 'Facilitator Notes (Customized):', text: game.facilitatorNotes });
+    if (game.description || game.rules) sections.push({ label: 'Activity Description & Rules', text: game.description || game.rules });
+    if (game.objective) sections.push({ label: 'Strategic Objective', text: game.objective });
+    if (game.context) sections.push({ label: 'Context / When to use', text: game.context });
+    if (game.notes) sections.push({ label: 'Anchor Notes', text: game.notes });
+    if (game.facilitatorNotes) sections.push({ label: 'Facilitator Notes (Customized)', text: game.facilitatorNotes });
 
     sections.forEach(s => {
-        textY += 12;
+        if (y > pageHeight - MARGINS.bottom - 40) {
+            doc.addPage();
+            if (onPageBreak) onPageBreak();
+            y = MARGINS.y + 30;
+            addFooter(doc);
+        }
+
         doc.setFontSize(FONTS.body.size);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(...COLORS.textSecondary);
-        doc.text(s.label, drawX, textY);
-        textY += 15;
+        doc.text(s.label, drawX, y);
+        y += 18; 
+        
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...COLORS.textMain);
-        const textLines = doc.splitTextToSize(s.text, maxWidth - (isNested ? 20 : 0));
-        doc.text(textLines, drawX, textY);
-        textY += (textLines.length * 15) - 6;
+        
+        const textLines = doc.splitTextToSize(s.text, maxWidth - (isNested ? 20 : 0) - 10);
+        
+        for (let i = 0; i < textLines.length; i++) {
+            if (y > pageHeight - MARGINS.bottom - 15) {
+                doc.addPage();
+                if (onPageBreak) onPageBreak();
+                y = MARGINS.y + 30;
+                addFooter(doc);
+            }
+            doc.text(textLines[i], drawX, y);
+            y += 16;
+        }
+        y += 14; 
     });
-    
-    return { height: h, endY: y + h };
+
+    return { height: headerH, endY: y + 5 };
 };
 
 // FOCUS TAGS RENDERER (Grid Layout 2-column force)
@@ -272,7 +265,7 @@ export const generateSessionPDF = async (session) => {
         const totalDuration = session.selectedGames.reduce((acc, g) => acc + (g.actualDuration || 0), 0);
         doc.setFontSize(10);
         doc.setTextColor(...COLORS.textDim);
-        doc.text(`Timeline: ${totalDuration} min planned / ${session.baseDuration} min target`, MARGINS.x + 20, hY);
+        doc.text(`Timeline: ${totalDuration} min planned / 45 min target`, MARGINS.x + 20, hY);
         y += headerH + 20;
 
         // --- SESSION NOTES ---
