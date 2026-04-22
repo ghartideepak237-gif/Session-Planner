@@ -3,6 +3,10 @@ import jsPDF from 'jspdf';
 // DESIGN TOKENS
 const COLORS = {
   accent: [255, 122, 47],
+  yellow: [250, 192, 0],         // Amber/Yellow
+  skyBlueText: [3, 105, 161],    // Sky 700 - readable on white
+  skyBg: [240, 249, 255],        // Sky 50
+  skyBorder: [186, 230, 253],    // Sky 200
   lightAccent: [255, 248, 242],
   textMain: [15, 23, 42],
   textSecondary: [51, 65, 85],
@@ -119,7 +123,7 @@ const drawActivityCard = (doc, game, index, startY, contentWidth, isNested = fal
     doc.roundedRect(cardX, y, cardW, headerH, 8, 8, 'FD');
     
     // Left Accent line purely inside the header box
-    doc.setFillColor(...COLORS.accent);
+    doc.setFillColor(...COLORS.yellow);
     doc.rect(cardX, y + 6, 4, headerH - 12, 'F');
 
     let textY = y + 25;
@@ -172,12 +176,12 @@ const drawActivityCard = (doc, game, index, startY, contentWidth, isNested = fal
         }
 
         // Section Title Pill
-        doc.setFillColor(...COLORS.tagBg);
+        doc.setFillColor(...COLORS.skyBg);
         doc.roundedRect(cardX + 10, y, cardW - 20, 26, 6, 6, 'F');
         
         doc.setFontSize(10);
         doc.setFont('helvetica', 'bold');
-        doc.setTextColor(...COLORS.textSecondary);
+        doc.setTextColor(...COLORS.skyBlueText);
         doc.text(s.label, cardX + 22, y + 17);
         y += 40; 
         
@@ -222,7 +226,7 @@ const drawActivityCard = (doc, game, index, startY, contentWidth, isNested = fal
                 }
                 
                 // Continuous stylish left boundary
-                doc.setDrawColor(...COLORS.cardBorder);
+                doc.setDrawColor(...COLORS.skyBorder);
                 doc.setLineWidth(2.5);
                 doc.line(cardX + 22, y - 12, cardX + 22, y + 8);
                 
@@ -233,9 +237,8 @@ const drawActivityCard = (doc, game, index, startY, contentWidth, isNested = fal
                         doc.setFillColor(...COLORS.accent);
                         doc.circle(cardX + 35, y - 3.5, 2.5, 'F');
                     } else if (!isHeading) {
-                        doc.setDrawColor(...COLORS.textDim);
-                        doc.setLineWidth(1.5);
-                        doc.line(cardX + 33, y - 3.5, cardX + 37, y - 3.5);
+                        doc.setFillColor(...COLORS.yellow);
+                        doc.roundedRect(cardX + 33, y - 5, 4, 4, 1, 1, 'F');
                     } else {
                         drawTextX = cardX + 35;
                     }
